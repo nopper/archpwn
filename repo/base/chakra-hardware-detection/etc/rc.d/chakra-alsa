@@ -1,0 +1,77 @@
+#!/bin/bash
+
+. /etc/rc.conf
+. /etc/rc.d/functions
+
+AMIXER="/usr/bin/amixer"
+
+case "$1" in
+	start)
+
+	stat_busy "Setting up audio volume levels"
+
+	# doing it brute-force, baby... output levels
+	$AMIXER -c 0 sset "Master" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "Front" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "Side" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "Surround" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "Center" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "LFE" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Headphone" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "PCM" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "Line" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "External" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "FM" 50% unmute &> /dev/null
+	$AMIXER -c 0 sset "Master Mono" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "Master Digital" 70% unmute &>/dev/null
+	$AMIXER -c 0 sset "Analog Mix" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Aux" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Aux2" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "PCM Center" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "PCM Front" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "PCM LFE" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "PCM Side" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "PCM Surround" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Playback" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "PCM,1" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "DAC" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "DAC,0" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "DAC,1" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Synth" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "CD" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Wave" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Music" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "AC97" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "Analog Front" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "VIA DXS,0" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "VIA DXS,1" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "VIA DXS,2" 70% unmute &> /dev/null
+	$AMIXER -c 0 sset "VIA DXS,3" 70% unmute &> /dev/null
+
+	# input levels
+	$AMIXER -c 0 sset "Mic" 70% mute &>/dev/null
+	$AMIXER -c 0 sset "IEC958" 70% mute &>/dev/null
+
+	# special stuff
+	$AMIXER -c 0 sset "Master Playback Switch" on &>/dev/null
+	$AMIXER -c 0 sset "Master Surround" on &>/dev/null
+
+	stat_done
+
+	stat_busy "Saving audio volume levels"
+
+	alsactl -f /etc/asound.state store
+
+	stat_done
+
+	;;
+	stop)
+	;;
+	restart)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+	*)
+	echo "usage: $0 {start|stop|restart}"  
+esac

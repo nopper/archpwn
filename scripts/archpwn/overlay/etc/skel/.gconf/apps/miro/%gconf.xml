@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<gconf>
+        <entry name="singleVideoPlaybackMode" mtime="1212878051" type="bool" value="true">
+        </entry>
+        <entry name="useRenderer" mtime="1212873777" type="string">
+                <stringvalue>xine</stringvalue>
+        </entry>
+        <entry name="uploadRatio" mtime="1212177644" type="float" value="2">
+        </entry>
+        <entry name="preserveXGBFree" mtime="1212878053" type="float" value="0.20000000298023224">
+        </entry>
+        <entry name="DownloadsTarget" mtime="1212177644" type="int" value="8">
+        </entry>
+        <entry name="MaxManualDownloads" mtime="1212177644" type="int" value="10">
+        </entry>
+        <entry name="BitTorrentMaxPort" mtime="1212177644" type="int" value="8600">
+        </entry>
+        <entry name="BitTorrentMinPort" mtime="1212177644" type="int" value="8500">
+        </entry>
+        <entry name="downstreamBTLimitInKBS" mtime="1212177644" type="int" value="200">
+        </entry>
+        <entry name="upstreamLimitInKBS" mtime="1212177644" type="int" value="12">
+        </entry>
+        <entry name="expireAfterXDays" mtime="1212180615" type="int" value="6">
+        </entry>
+        <entry name="checkChannelsEveryXMn" mtime="1212177615" type="int" value="-1">
+        </entry>
+        <entry name="iHeartMiroRequestCount" mtime="1212177535" type="int" value="1">
+        </entry>
+        <entry name="VolumeLevel" mtime="1212177487" type="float" value="1">
+        </entry>
+        <entry name="runAtStartup" mtime="1212233537" type="bool" value="false">
+        </entry>
+        <entry name="startupTasksDone" mtime="1212177469" type="bool" value="true">
+        </entry>
+</gconf>

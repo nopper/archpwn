@@ -1,0 +1,10 @@
+[Desktop Entry]
+Exec=dnstracer;sudo -s
+Icon=preferences-web-browser-cache
+Name=DNSTracer
+StartupNotify=true
+Terminal=1
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Information-Gathering-DNS
+

@@ -1,0 +1,5 @@
+#!/bin/sh
+mkdir -p ~/Network/
+fusesmb -o allow_other ~/Network/
+fusesmb.cache
+thunar ~/Network/

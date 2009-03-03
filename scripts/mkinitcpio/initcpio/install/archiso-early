@@ -1,0 +1,7 @@
+install ()
+{
+    MODULES=""
+    BINARIES=""
+    FILES=""
+    SCRIPT="archiso-early"
+}

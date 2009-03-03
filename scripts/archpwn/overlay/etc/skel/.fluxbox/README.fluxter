@@ -1,0 +1,55 @@
+This file gives a short description of the configuration possibilities of
+fluxter.
+
+** Configuring fluxter **
+------------------------
+
+Blackbox users:
+
+By default fluxter reads the Blackbox style-file as defined in .blackboxrc 
+and copies as much of the style as possible. The result is a application 
+which looks a lot like the toolbar. 
+
+Configuration options can be changed in fluxter.bb. 
+Most likely you want to change some of these options, 
+
+The global configuration file can be found in $datadir/fluxbox/fluxter.bb
+A local configuration can be made by copying the fluxter.bb file to 
+$HOME/.fluxbox/fluxter.bb and editing it.
+
+
+Users other Window managers:
+
+Configuration options can be changed in fluxter.bb. 
+Most likely you want to change some of these options, 
+
+The global configuration file can be found in $datadir/fluxbox/fluxter.nobb
+A local configuration can be made by copying the fluxter.nobb file to 
+$HOME/.fluxbox/fluxter.nobb and editing it.
+
+
+** Reconfigure fluxter.**
+------------------------
+
+Automatic update style:
+	If the resource : fluxter.autoConfig: true
+	The tool will periodically check if the main config files, .blackboxrc
+	for Blackbox users and fluxter.nobb for other WM's to see if 
+	they have changed. If so fluxter will reconfigure.
+
+
+** Copying the look of the Blackbox toolbar **
+----------------------------------------------
+fluxter automaticly copes the style of the blackbox toolbar.
+It copies:
+toolbar                	 	-> fluxter.frame
+toolbar.label           	-> fluxter.label
+toolbar.color           	-> fluxter.frame.color
+toolbar.colorTo         	-> fluxter.frame.colorTo
+toolbar.label.color     	-> fluxter.label.color
+toolbar.label.colorTo   	-> fluxter.label.colorTo
+toolbar.textColor       	-> fluxter..textColor
+bevelWidth              	-> fluxter.bevelWidth
+
+For the meaning of the different resources see the comments in the
+config-files.

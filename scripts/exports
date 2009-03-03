@@ -1,0 +1,2 @@
+echo "This overrides the mkinitcpio path so remember to clean up the PATH with source /etc/profile"
+export PATH="`pwd`/mkinitcpio:`pwd`:$PATH"

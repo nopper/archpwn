@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# /etc/rc.local: Local multi-user startup script.
+#
+
+# set correct permissions for live user
+/bin/chown -R live:users /home/live
+

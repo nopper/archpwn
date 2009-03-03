@@ -1,0 +1,15 @@
+
+pkgname=chakra-hardware-detection
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="General hardware detection for Chakra"
+arch=('any')
+url="http://www.archlinux.org"
+depends=('bc' 'util-linux-ng')
+license=('GPL')
+
+build() {
+  cp -rf ${startdir}/etc ${startdir}/pkg
+  cp -rf ${startdir}/opt ${startdir}/pkg
+  find ${startdir}/pkg -type d -name '.svn' -print | xargs rm -rf -
+}

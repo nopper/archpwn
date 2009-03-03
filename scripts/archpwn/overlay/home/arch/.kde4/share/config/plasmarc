@@ -1,0 +1,26 @@
+[Applet Browser]
+used=,digital-clock,systemtray,battery,pager,tasks,launcher,notifier,simplelauncher,wifi_signal,runcommand
+
+[DownloadDialog Settings]
+Height 600=400
+Width 800=700
+
+[KFileDialog Settings]
+Height 600=450
+Width 800=700
+
+[PlasmaAppletBrowserDialog]
+Height 600=534
+Width 800=432
+
+[PlasmaViews][2]
+Alignment=132
+Offset=0
+panelVisibility=0
+
+[Theme]
+name=Elegance
+
+[ViewIds]
+1=1
+2=2

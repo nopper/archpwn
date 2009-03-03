@@ -1,0 +1,11 @@
+[Desktop Entry]
+Exec=sqlbf;sudo -s
+GenericName=sqlpat
+Icon=preferences-web-browser-cache
+Name=sqlpat
+Path=/usr/share/doc/sqlpat/
+StartupNotify=true
+Terminal=1
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=PasswordOfflineAttacks

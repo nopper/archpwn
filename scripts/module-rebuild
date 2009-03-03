@@ -1,0 +1,128 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2008 Francesco Piccinno
+#
+# Author: Francesco Piccinno <stack.box@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+import os
+import os.path
+
+import sys
+import shutil
+
+from optparse import OptionParser
+
+from pylibs.pkgbuild import PkgBuild
+from pylibs.utils import ConsoleP, foreach_pkgbuild
+
+class ModuleRebuild(ConsoleP):
+    def __init__(self, absdir, regendir):
+        self.absdir = absdir
+        self.regendir = os.path.abspath(regendir)
+
+        self.regen()
+
+    def regen(self):
+        os.chdir(os.path.join(self.regendir, "direct"))
+
+        for dir in self.find_pkgs():
+            if not dir:
+                os.chdir(os.path.join(self.regendir, "indirect"))
+                continue
+
+            dirname = os.path.basename(dir)
+
+            if os.path.exists(dirname):
+                shutil.rmtree(dirname, True)
+
+            shutil.copytree(dir, dirname)
+
+    def find_pkgs(self):
+
+        def _clean_deps(l):
+            r = []
+            for d in l:
+                if d.startswith("kernel26"):
+                    continue
+
+                ops = (">=", "<=", "=", ">", "<")
+
+                for op in ops:
+                    if op in d:
+                        r.append(d.split(op)[0])
+                        break
+                else:
+                    r.append(d)
+            return r
+
+        related = []
+
+        for pkgdir, category in foreach_pkgbuild(self.absdir):
+
+            try:
+                pbuild = PkgBuild(os.path.join(pkgdir, "PKGBUILD"))
+                deps = pbuild.get("depends")
+
+                if not deps:
+                    continue
+
+                for dep in deps:
+                    if "kernel26" in dep:
+                        self.write("D %s" \
+                                  % (pbuild.get("pkgname")))
+
+                        r = _clean_deps(pbuild.get("depends"))
+                        
+                        if len(r) > 0 and len(r) < 3:
+                            for p in r:
+                                if p not in related:
+                                    related.append(p)
+
+                        yield pkgdir
+                        break
+            except Exception, err:
+                continue
+
+        yield None
+
+        if 'glibc' in related:
+            related.remove('glibc')
+
+        for pkgdir, category in foreach_pkgbuild(self.absdir):
+            pname = os.path.basename(pkgdir)
+
+            if pname in related:
+                related.remove(pname)
+                self.write("I %s" % pname)
+                yield pkgdir
+
+        if related:
+            self.error("Some related deps cannot be found: %s" \
+                       % (", ".join(related)))
+
+        raise StopIteration
+
+if __name__ == "__main__":
+    parser = OptionParser(usage="%s <absdir> <regendir>" % sys.argv[0])
+    (options, args) = parser.parse_args()
+
+    if len(args) == 2:
+        rebuild = ModuleRebuild(args[0], args[1])
+        rebuild.find_pkgs()
+    else:
+        parser.print_help()
+        sys.exit(-1)

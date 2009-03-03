@@ -1,0 +1,38 @@
+# Functions used by rc.shutdown
+# These can be overwritten by sourcing another file, for example so that
+# modified versions for a live CD can be used.
+
+f_saveclock ()
+{
+    stat_busy "Saving System Clock"
+    if [ "$TIMEZONE" != "" -a -e /usr/share/zoneinfo/$TIMEZONE ]; then
+        /bin/rm -f /etc/localtime
+        /bin/cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime
+    fi
+
+    HWCLOCK_PARAMS="--systohc"
+    if [ "$HARDWARECLOCK" = "UTC" ]; then
+        HWCLOCK_PARAMS="$HWCLOCK_PARAMS --utc"
+    else
+        HWCLOCK_PARAMS="$HWCLOCK_PARAMS --localtime"
+    fi
+    if [ "$USEDIRECTISA" != "no" ]; then
+        HWCLOCK_PARAMS="$HWCLOCK_PARAMS --directisa"
+    fi
+    /sbin/hwclock $HWCLOCK_PARAMS
+    stat_done
+}
+
+f_swapoff ()
+{
+    stat_busy "Deactivating Swap"
+    /sbin/swapoff -a
+    stat_done
+}
+
+f_remountro ()
+{
+    stat_busy "Remounting Root Filesystem Read-only"
+    /bin/mount -n -o remount,ro /
+    stat_done
+}

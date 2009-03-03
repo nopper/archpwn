@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcuts-theme name="Zenwalk">
+	<shortcut command="gksudo /usr/sbin/hibernate" keys="Shift+Control+Alt+h"/>
+	<shortcut command="gksudo /usr/sbin/standby" keys="Shift+Control+Alt+s"/>
+	<shortcut command="thunar" keys="Super+e"/>
+	<shortcut command="xfce4-popup-menu" keys="Control+Escape"/>
+	<shortcut command="xfhelp4" keys="Alt+F1"/>
+	<shortcut command="xflock4" keys="Control+Alt+Delete"/>
+	<shortcut command="xfrun4" keys="Alt+F2"/>
+	<shortcut command="xkill" keys="Control+Alt+Escape"/>
+</shortcuts-theme>

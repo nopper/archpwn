@@ -1,0 +1,8 @@
+*.o
+*gz
+*bz2
+*.swp
+*.part
+*.tar
+pkg
+src

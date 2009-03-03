@@ -1,0 +1,100 @@
+#!/bin/bash
+
+. /etc/rc.conf
+. /etc/conf.d/alsa
+. /etc/rc.d/functions
+
+# A function to load the ALSA mixer settings:
+load_alsa_mixer() {
+  # Volume is muted by default. Set it to 71% unless nosound boot option given:
+  if ! cat /proc/cmdline | grep -w nosound >/dev/null 2>/dev/null; then
+    if [ -r /etc/asound.state ]; then
+      echo "Loading ALSA mixer settings:  /usr/sbin/alsactl restore"
+      /usr/sbin/alsactl restore
+    else
+      echo "Setting sound volume: 71%"
+      for SCONTROL in {"Master","PCM","Front","Surround","Center","CD","Video"}; do
+        /usr/bin/amixer -q sset $SCONTROL 71% unmute 2>/dev/null
+      done
+    fi
+  fi
+}
+
+# A function to load the ALSA OSS compat modules:
+load_alsa_oss_modules() {
+  if ! cat /proc/modules | tr _ - | grep -wq snd-pcm-oss ; then
+    echo "Loading OSS compatibility modules for ALSA."
+    modprobe snd-pcm-oss
+    modprobe snd-mixer-oss
+    modprobe snd-seq-oss
+  fi
+}
+
+load_alsa()
+{
+# If hotplug or something else has loaded the ALSA modules, then
+# simply load the mixer settings and make sure the OSS compat
+# modules are loaded:
+if [ -d /proc/asound ]; then
+  load_alsa_mixer
+  load_alsa_oss_modules
+else
+  # If there are ALSA modules defined in /etc/modules.conf, but
+  # ALSA is not yet loaded, then load the modules now:
+  DRIVERS=`modprobe -c | grep -E "^[[:space:]]*alias[[:space:]]+snd-card-[[:digit:]]" | awk '{ print $3 }'`
+  if [ ! "$DRIVERS" = "" ]; then
+    echo "Loading ALSA kernel modules."
+    for module in $DRIVERS; do
+      modprobe $module
+    done
+  fi
+  # If ALSA is now up, then load the mixer settings and OSS modules:
+  if [ -d /proc/asound ]; then
+    load_alsa_mixer
+    load_alsa_oss_modules
+  fi
+fi
+}
+
+case "$1" in
+  start)
+    stat_busy "Restoring ALSA Levels"
+    load_alsa
+    if [ $? -gt 0 ]; then
+      stat_fail
+    else
+      stat_done
+      add_daemon alsa
+    fi
+
+    POWERSAVE=${POWERSAVE:-0}
+    if [ -e /sys/module/snd_ac97_codec/parameters/power_save \
+	 -a $POWERSAVE -ne 0 ]; then
+        echo $POWERSAVE > /sys/module/snd_ac97_codec/parameters/power_save
+        echo 1 > /dev/dsp
+    fi
+
+    if [ -e /sys/module/snd_hda_intel/parameters/power_save \
+	 -a $POWERSAVE -ne 0 ]; then
+	echo $POWERSAVE > /sys/module/snd_hda_intel/parameters/power_save
+        echo 1 > /dev/dsp
+    fi
+    ;;
+  stop)
+    stat_busy "Saving ALSA Levels"
+    /usr/sbin/alsactl store
+    if [ $? -gt 0 ]; then
+      stat_fail
+    else
+      stat_done
+      rm_daemon alsa
+    fi
+    ;;
+  restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  *)
+    echo "usage: $0 {start|stop|restart}"  
+esac

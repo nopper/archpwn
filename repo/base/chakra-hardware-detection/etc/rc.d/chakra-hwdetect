@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# functions
+. /etc/rc.conf
+. /etc/rc.d/functions
+. /etc/rc.d/functions.d/cmdline
+
+# configs
+. /etc/chakra-hwdetect.conf
+
+# needed hooks (located in /opt/chakra/hooks)
+LOAD_HOOKS="hwdetect_1_base hwdetect_2_platform hwdetect_3_power hwdetect_4_network hwdetect_5_alsa hwdetect_6_graphics"
+
+# load hooks
+for hook in ${LOAD_HOOKS}
+do
+	. /opt/chakra/hooks/${hook}
+done
+
+# lets start
+case "$1" in
+	start)
+		stat_busy "Inspecting hardware"
+		hwdetect_base
+		hwdetect_platform
+		hwdetect_power
+		hwdetect_network
+
+		stat_busy "Detecting graphics hardware"
+		hwdetect_graphics
+
+		stat_busy "Setting up audio volume levels"
+		hwdetect_alsa
+	;;
+
+	stop)
+	;;
+
+	restart)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+
+	*)
+		echo "usage: $0 {start|stop|restart}"
+esac

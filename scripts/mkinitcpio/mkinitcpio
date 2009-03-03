@@ -1,0 +1,297 @@
+#!/bin/sh
+# mkinitcpio - modular tool for building an init ramfs cpio image
+#
+# IMPORTANT: We need to keep a common base syntax here
+# because some of these hooks/scripts need to run under
+# the klibc shell or even busybox's ash - therefore, the
+# following constraints should be enforced:
+#   variables should be quoted and bracketed "${SOMEVAR}"
+#   inline execution should be done with $() instead of backticks
+#   use -z "${var}" to test for nulls/empty strings
+#   incase of embedded spaces, quote all path names and string comarpisons
+#
+
+
+# Settings
+TMPDIR="$(mktemp -d /tmp/mkinitcpio.XXXXXX)"
+CWD="$(dirname $0)"
+BASEDIR=""
+FILELIST="${TMPDIR}/filelist"
+MESSAGEFILE="${TMPDIR}/message"
+KERNELVERSION="$(uname -r)"
+FUNCTIONS="$CWD/initcpio/functions"
+CONFIG="/etc/mkinitcpio.conf"
+HOOKDIR="$CWD/initcpio/hooks"
+INSTDIR="$CWD/initcpio/install"
+MODULE_FILE=""
+SAVELIST=""
+GENIMG=""
+APPEND=""
+PRESET=""
+MESSAGE=""
+SKIPHOOKS=""
+PRESETDIR="$CWD/mkinitcpio.d"
+QUIET="y"
+SHOW_AUTOMODS="n"
+
+# Add /{,usr}/sbin to path
+# works around undetected problems like in #8448
+PATH="${PATH}:/sbin:/usr/sbin"
+
+APPNAME=$(basename "${0}")
+
+usage ()
+{
+    echo "${APPNAME}: usage"
+    echo "  -c CONFIG        Use CONFIG file. default: /etc/mkinitcpio.conf"
+    echo "  -k KERNELVERSION Use KERNELVERSION. default: $(uname -r)"
+    echo "  -s NAME          Save filelist. default: no"
+    echo "  -b BASEDIR       Use BASEDIR. default: /"
+    echo "  -g IMAGE         Generate a cpio image as IMAGE. default: no"
+    echo "  -a NAME          Append to an existing filelist. default: no"
+    echo "  -p PRESET        Build specified preset."
+    echo "  -m MESSAGE       Print MESSAGE before passing control to kinit."
+    echo "  -S SKIPHOOKS     Skip SKIPHOOKS (comma-separated) when building the image."
+    echo "  -v               Verbose output. Default: no"
+    echo "  -M               Display modules found via autodetection." 
+    echo "  -L               List all available hooks." 
+    echo "  -H HOOKNAME      Output help for hook 'HOOKNAME'."
+    echo "  -h               This message."
+    cleanup
+    exit 1
+}
+
+cleanup ()
+{
+    [ -n "${TMPDIR}" -a -d "${TMPDIR}" ] && rm -rf ${TMPDIR}
+}
+
+sighandler() {
+    cleanup
+    exit 1
+}
+
+trap sighandler TERM INT
+
+while getopts ':c:k:s:b:g:a:p:m:vH:LMhS:' arg; do
+    if [ "${OPTARG:0:1}" = "-" ]; then
+        echo "error: optional argument to '-${arg}' begins with a '-'"
+        echo "  you probably don't want this....aborting."
+        usage
+    fi
+    case "${arg}" in
+        c) CONFIG="${OPTARG}" ;;
+        k) KERNELVERSION="${OPTARG}" ;;
+        s) SAVELIST="y"; FILELIST="${OPTARG}" ;;
+        b) BASEDIR="${OPTARG}" ;;
+        g) GENIMG="${OPTARG}" ;;
+        a) APPEND="y"; SAVELIST="y"; FILELIST="${OPTARG}" ;;
+        p) PRESET="${OPTARG}" ;;
+        m) MESSAGE="${OPTARG}" ;;
+        v) QUIET="n" ;;
+        S) SKIPHOOKS="${OPTARG}" ;;
+        H) source "${INSTDIR}/${OPTARG}";
+           echo "Help for hook '${OPTARG}':"
+           help
+           cleanup
+           exit 0 ;;
+        L) echo "Available hooks: " 
+           for h in ${INSTDIR}/*; do
+               echo "   $(basename ${h})"
+           done
+           cleanup
+           exit 0 ;;
+        M) SHOW_AUTOMODS="y" ;;
+        h|?) usage ;;
+        :) echo "${OPTARG} requires a value..."; usage ;;
+        *) echo "invalid argument '${arg}'"; usage ;;
+    esac
+done
+shift $((${OPTIND} - 1))
+
+# use preset $PRESET
+if [ -n "${PRESET}" ]; then
+    if [ -f "${PRESETDIR}/${PRESET}.preset" ]; then
+        # Use -b, -m and -v options specified earlier
+        PRESET_MKOPTS="${0}"
+        [ -n "${BASEDIR}" ] && PRESET_MKOPTS="${PRESET_MKOPTS} -b ${BASEDIR}"
+        [ -n "${MESSAGE}" ] && PRESET_MKOPTS="${PRESET_MKOPTS} -m \"${MESSAGE}\""
+        [ "${QUIET}" = "n" ] && PRESET_MKOPTS="${PRESET_MKOPTS} -v"
+        # Build all images
+        source ${PRESETDIR}/${PRESET}.preset
+        for p in ${PRESETS[@]}; do
+            echo "==> Building image \"${p}\""
+            PRESET_CMD="${PRESET_MKOPTS}"
+
+            eval "PRESET_KVER=\"\${${p}_kver}\""
+            [ -z "${PRESET_KVER}" ] && PRESET_KVER="${ALL_kver}"
+            eval "PRESET_CONFIG=\"\${${p}_config}\""
+            [ -z "${PRESET_CONFIG}" ] && PRESET_CONFIG="${ALL_config}"
+            eval "PRESET_IMAGE=\"\${${p}_image}\""
+            eval "PRESET_OPTIONS=\"\${${p}_options}\""
+
+            if [ -n "${PRESET_KVER}" ]; then
+                PRESET_CMD="${PRESET_CMD} -k ${PRESET_KVER}"
+            else
+                echo "==> No kernel version specified. Skipping image \"${p}\"."
+                continue
+            fi
+
+            if [ -n "${PRESET_CONFIG}" ]; then
+                PRESET_CMD="${PRESET_CMD} -c ${PRESET_CONFIG}"
+            else
+                echo "==> No configuration file specified. Skipping image \"${p}\"."
+                continue
+            fi
+
+            if [ -n "${PRESET_IMAGE}" ]; then
+                PRESET_CMD="${PRESET_CMD} -g ${PRESET_IMAGE}"
+            else
+                echo "==> No image file specified. Skipping image \"${p}\"."
+                continue
+            fi
+
+            if [ -n "${PRESET_OPTIONS}" ]; then
+                PRESET_CMD="${PRESET_CMD} ${PRESET_OPTIONS}"
+            fi
+
+            echo "==> Running command: ${PRESET_CMD}"
+            if eval ${PRESET_CMD}; then
+                echo "==> SUCCESS"
+            else
+                echo "==> FAIL"
+            fi
+        done
+        cleanup
+        exit 0
+    else
+        echo "Preset ${PRESET} does not exist. Exiting."
+        cleanup
+        exit 1
+    fi
+fi
+
+# append a trailing / if needed
+if [ "${BASEDIR:${#BASEDIR}}" == "/" ]; then
+    BASEDIR="${BASEDIR:0:${#BASEDIR}-1}"
+fi
+
+MODULEDIR="${BASEDIR}/lib/modules/${KERNELVERSION}"
+
+if [ -n "${BASEDIR}" ]; then
+    if [ "${BASEDIR:0:1}" != "/" ]; then
+        BASEDIR="$(pwd)/${BASEDIR}"
+    elif [ ! -d "${BASEDIR}" ]; then
+        echo "base directory '${BASEDIR}' does not exist or is not a directory"
+        cleanup
+        exit 1
+    fi
+fi
+
+if [ ! -f "${CONFIG}" ]; then
+    echo "config file '${CONFIG}' cannot be found, aborting..."
+    cleanup
+    exit 1
+fi
+source "${CONFIG}"
+
+if [ -f "${FILELIST}" -a -z "${APPEND}" ]; then
+    if [ -z "${SAVELIST}" ]; then
+        rm ${FILELIST}
+        touch "${FILELIST}"
+    else
+        echo "destination file list '${FILELIST}' exists - remove before running"
+        cleanup
+        exit 1
+    fi
+else
+    touch "${FILELIST}"
+fi
+
+BASEDIR=$(echo ${BASEDIR} | tr -s /)
+MODULEDIR=$(echo ${MODULEDIR} | tr -s /)
+
+source "${FUNCTIONS}"
+
+if [ "${SHOW_AUTOMODS}" = "y" ]; then
+    echo "Modules autodetected:"
+    source "${INSTDIR}/autodetect"
+    install
+    cat "${MODULE_FILE}"
+    cleanup
+    exit 0
+fi
+
+if [ -n "${GENIMG}" ]; then
+    echo ":: Begin dry run"
+else
+    echo ":: Begin build"
+fi
+#parse 'global' hook, as defined in ${CONFIG}
+parse_hook
+
+for hook in ${HOOKS}; do
+    echo "${SKIPHOOKS}" | grep -qw ${hook} && continue
+    unset MODULES
+    unset BINARIES
+    unset FILES
+    install () { msg "${hook}: no install function..."; }
+    # Deprecation check
+    # A hook is considered deprecated if it is a symlink
+    # within $INSTDIR.
+    if [ -L "${INSTDIR}/${hook}" ]; then
+        newhook="$(readlink -ne "${INSTDIR}/${hook}")"
+        if [ -n "${newhook}" -a "${INSTDIR}/$(basename ${newhook})" -ef "${newhook}" ]; then
+            newhook="$(basename ${newhook})"
+            echo "   -------------------------------------------------------------------"
+            echo "   WARNING: Hook \"${hook}\" is deprecated."
+            echo "            Replace it with \"${newhook}\" in your configuration file."
+            echo "   -------------------------------------------------------------------"
+            hook="${newhook}"
+        fi
+    fi
+    if grep "install" "${INSTDIR}/${hook}" >/dev/null 2>&1; then
+        source "${INSTDIR}/${hook}"
+        echo ":: Parsing hook [${hook}]"
+        install
+        parse_hook
+    else
+        die "Hook '${hook}' can not be found."
+    fi
+done
+
+if [ "${HAS_MODULES}" == "y" ]; then
+    echo ":: Generating module dependencies"
+    for mod in $(grep "file /lib/modules/${KERNELVERSION}" ${FILELIST} | cut -d' ' -f2); do
+        dir=$(dirname "${mod}")
+        mkdir -p "${TMPDIR}/${dir}"
+        cp "${BASEDIR}${mod}" "${TMPDIR}/${dir}/"
+    done
+    /sbin/depmod -b ${TMPDIR} ${KERNELVERSION}
+    add_file "${TMPDIR}/lib/modules/${KERNELVERSION}/modules.dep"     "/lib/modules/${KERNELVERSION}/modules.dep"
+    add_file "${TMPDIR}/lib/modules/${KERNELVERSION}/modules.alias"   "/lib/modules/${KERNELVERSION}/modules.alias"
+    add_file "${TMPDIR}/lib/modules/${KERNELVERSION}/modules.symbols" "/lib/modules/${KERNELVERSION}/modules.symbols"
+fi
+
+status=0
+if [ -n "${GENIMG}" ]; then
+    echo -n ":: Generating image '${GENIMG}'..."
+    if ! /sbin/gen_init_cpio ${FILELIST} | gzip -9 > "${GENIMG}"; then
+        echo "FAILED"
+        status=1
+    else
+        echo "SUCCESS"
+        status=0
+    fi
+
+    if [ -z "${SAVELIST}" ]; then
+        rm ${FILELIST}
+    fi
+else
+    echo ":: Dry run complete, use -g IMAGE to generate a real image"
+fi
+
+cleanup
+
+exit ${status}
+#vim:set ft=sh ts=4 sw=4 noet:

@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# functions
+. /etc/rc.conf
+. /etc/rc.d/functions
+. /etc/rc.d/functions.d/cmdline
+
+# configs
+. /etc/chakra-hwdetect.conf
+
+# lets start
+case "$1" in
+	start)
+		stat_busy "Testing network"
+
+			ping_check=$(ping -c 1 www.google.com | grep "1 received")
+
+			if [ "${ping_check}" != "" ] ; then
+				printhl2 "Success!"
+				touch /tmp/network_dhcp
+			else
+				printhl3 "Test failed"
+			fi
+
+		stat_done
+	;;
+
+	stop)
+	;;
+
+	restart)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+
+	*)
+		echo "usage: $0 {start|stop|restart}"
+esac

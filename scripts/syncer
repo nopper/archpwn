@@ -1,0 +1,314 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2008 Francesco Piccinno
+#
+# Author: Francesco Piccinno <stack.box@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+import os
+import os.path
+
+import stat
+import datetime
+
+import sys
+import sqlite3
+
+from optparse import OptionParser
+
+from pylibs.pkgbuild import PkgBuild
+from pylibs.libalpm import libalpm
+from pylibs.aur import foreach_aur, AurPkgBuild, AurException
+from pylibs.utils import ConsoleP, foreach_pkgbuild
+
+class Syncer(ConsoleP):
+    def __init__(self, absdir, repodir, db, abs, verbose):
+        self.orig_dir = absdir
+        self.work_dir = repodir
+        self.verbose = verbose
+
+        self.db = sqlite3.connect(db)
+        self.db.create_function("vercmp", 2, libalpm.vercmp)
+        self.check_db()
+
+        self.normalize = (abs) and (os.path.abspath) or (os.path.relpath)
+
+    def check_db(self):
+        cur = self.db.cursor()
+        cur.execute("""SELECT sql FROM sqlite_master
+                         WHERE type='table'
+                           AND name='versions'
+                           AND tbl_name='versions'""")
+
+        if not cur.fetchone():
+            # The name could not be null like also work* stuff
+            # the orig* stuff could be because we should have packages
+            # that are not in the abs dir or in aur but no vice versa
+
+            cur.execute("""CREATE TABLE 'versions' (
+                             'name' VARCHAR NOT NULL PRIMARY KEY,
+                             'work_ver' VARCHAR(10) NOT NULL,
+                             'work_ts' TIMESTAMP NOT NULL,
+                             'work_path' VARCHAR NOT NULL,
+                             'orig_ver' VARCHAR(10),
+                             'orig_ts' TIMESTAMP,
+                             'orig_path' VARCHAR )""")
+
+        cur.execute("""SELECT sql FROM sqlite_master
+                         WHERE type='table'
+                           AND name='aur_pkg'
+                           AND tbl_name='aur_pkg'""")
+
+        if not cur.fetchone():
+            # We use this table only for indexing the packages
+            # in AUR. This table is populated by parsing index.html
+            # from the AUR web site.
+
+            cur.execute("""CREATE TABLE 'aur_pkg' (
+                           'name' VARCHAR NOT NULL PRIMARY KEY,
+                           'ts' TIMESTAMP NOT NULL)""")
+
+        self.info("Database seems ok")
+
+    def update_db(self, includeaur=False, updateaur=True):
+        # We have to start from the work_dir
+        # and get the various versions of the files, and update the db
+        # properly.
+
+        if includeaur:
+            self.update_aur()
+
+        self.update_work_dir()
+        self.update_orig_dir()
+
+        self.db.commit()
+
+        # Now let's iterate over the database checking
+        # work_ver with orig_ver
+
+        cur = self.db.cursor()
+
+        if updateaur:
+            self.info("=" * 50)
+            self.info("Updating AUR packages:")
+            self.info("=" * 50)
+
+            tot_pkgs, err_pkgs = 0, 0
+
+            for pkgname, pkgver in map(lambda x: (x[0], x[1]),
+                cur.execute("""SELECT V.name, V.work_ver FROM versions AS V
+                                 JOIN aur_pkg AS A ON V.name = A.name
+                                 WHERE V.orig_ver IS NULL""").fetchall()):
+                
+                # Let's download the pkgbuild from aur.archlinux.org and
+                # parse the versions.
+
+                tot_pkgs += 1
+
+                try:
+                    pkg = AurPkgBuild(pkgname)
+                    pname, pver = pkg.get("pkgname"), pkg.get("pkgver")
+
+                    ts = cur.execute("SELECT ts FROM aur_pkg WHERE name=?",
+                                     (pname, )).fetchone()[0]
+
+                    self.write("A %s %s" % (pname, pver))
+
+                    cur.execute("""UPDATE versions SET orig_ver = ?,
+                                                       orig_ts = ?
+                                     WHERE name = ?""", (pver, ts, pname))
+                except AurException, err:
+                    err_pkgs += 1
+                
+            self.info("=" * 50)
+            self.info("%d total HTTP GETs:" % tot_pkgs)
+            self.info("%d packages correctly downloaded, %d not found." \
+                      % (tot_pkgs - err_pkgs, err_pkgs))
+            self.db.commit()
+
+    def summarize(self):
+        cur = self.db.cursor()
+
+        # Now we have to look for unsynced packages
+        old_lst = map(lambda x: (x[0], x[1], x[2], x[3]), cur.execute(
+                      """SELECT name, work_ver, orig_ver, work_path FROM versions
+                         WHERE orig_ver IS NOT NULL AND
+                         vercmp(work_ver, orig_ver) = -1""").fetchall())
+
+        self.info("=" * 50)
+        self.info("List of outdated packages:")
+        self.info("=" * 50)
+
+        for name, work_ver, orig_ver, work_path in old_lst:
+            self.write("O %s %s < %s ( @ %s )" % (name, work_ver, orig_ver, work_path))
+
+    def update_aur(self):
+        self.info("=" * 50)
+        self.info("Updating AUR index:")
+        self.info("=" * 50)
+
+        tot_pkgs = 0
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM aur_pkg")
+
+        for pname, ts in foreach_aur():
+            cur.execute("INSERT INTO aur_pkg(name, ts) VALUES (?, ?)", (pname, ts))
+            tot_pkgs += 1
+
+        self.info("=" * 50)
+        self.info("%d packages present in AUR." % tot_pkgs)
+
+    def update_orig_dir(self):
+        self.info("=" * 50)
+        self.info("2 - Updating original tree:")
+        self.info("=" * 50)
+
+        tot_pkgs = 0
+        cur = self.db.cursor()
+
+        work_lst = map(lambda x: x[0],
+                       cur.execute("SELECT name FROM versions").fetchall())
+
+        for pkgdir, category in foreach_pkgbuild(self.orig_dir):
+            # Check the presence in the db.
+
+            key = os.path.basename(pkgdir)
+
+            if key not in work_lst:
+                continue
+            else:
+                work_lst.remove(key)
+
+            # Now let's analyze the pkgbuild
+
+            pkg = PkgBuild(os.path.join(pkgdir, "PKGBUILD"))
+
+            pname, pver, pdir = pkg.get("pkgname"), \
+                                pkg.get("pkgver"), \
+                                self.normalize(pkgdir)
+
+            ts = datetime.datetime.fromtimestamp(os.stat(pkgdir)[stat.ST_MTIME])
+
+            tot_pkgs += 1
+
+            cur.execute("SELECT orig_ver FROM versions WHERE name=?", (pname, ))
+
+            # We get the first object in the row
+            oldver = cur.fetchone()[0]
+
+            if oldver is not None:
+                ret = libalpm.vercmp(oldver, pver)
+            
+                if ret is -1:
+                    self.write("U %s %s -> %s" % (pname, oldver, pver))
+                elif ret is 0:
+                    if self.verbose:
+                        self.write("= %s %s" % (pname, oldver))
+                else:
+                    self.write("D %s %s -> %s" % (pname, oldver, pver))
+            else:
+                self.write("A %s %s" % (pname, pver))
+
+            query = """UPDATE versions SET orig_ver = ?,
+                                           orig_ts = ?,
+                                           orig_path = ? WHERE name = ?"""
+            cur.execute(query, (pver, ts, pdir, pname))
+
+        self.info("=" * 50)
+        self.info("%d processed, %d indipendent packages." % (tot_pkgs, len(work_lst)))
+
+    def update_work_dir(self):
+        self.info("=" * 50)
+        self.info("1 - Updating working tree:")
+        self.info("=" * 50)
+
+        tot_pkgs = 0
+        cur = self.db.cursor()
+
+        for pkgdir, category in foreach_pkgbuild(self.work_dir):
+            pkg = PkgBuild(os.path.join(pkgdir, "PKGBUILD"))
+
+            pname, pver, pdir = pkg.get("pkgname"), \
+                                pkg.get("pkgver"), \
+                                self.normalize(pkgdir)
+
+            ts = datetime.datetime.fromtimestamp(os.stat(pkgdir)[stat.ST_MTIME])
+            tot_pkgs += 1
+
+            # Check the presence of our package
+            cur.execute("SELECT work_ver FROM versions WHERE name=?", (pname, ))
+
+            oldver = cur.fetchone()
+
+            if oldver is not None:
+                oldver = str(oldver[0])
+                ret = libalpm.vercmp(oldver, pver)
+            
+                if ret is -1:
+                    self.write("U %s %s -> %s" % (pname, oldver, pver))
+                elif ret is 0:
+                    if self.verbose:
+                        self.write("= %s %s" % (pname, oldver))
+                else:
+                    self.write("D %s %s -> %s" % (pname, oldver, pver))
+
+                query = """UPDATE versions SET work_ver = ?,
+                                               work_ts = ?,
+                                               work_path = ? WHERE name = ?"""
+                cur.execute(query, (pver, ts, pdir, pname))
+            else:
+                self.write("A %s %s" % (pname, pver))
+
+                query = """INSERT INTO versions(name, work_ver, work_ts, work_path)
+                             VALUES(?, ?, ?, ?)"""
+
+                cur.execute(query, (pname, pver, ts, pdir))
+
+        self.info("=" * 50)
+        self.info("%d packages processed." % tot_pkgs)
+
+if __name__ == "__main__":
+    parser = OptionParser(usage="%s [<absdir> <repodir>]" % sys.argv[0])
+    parser.add_option("-o", "--output", dest="reportname",
+                      help="write report to FILE", metavar="FILE")
+    parser.add_option("-v", "--verbose", dest="verbose", default=False,
+                      help="don't print status messages to stdout")
+    parser.add_option("-d", "--database", dest="database", default="sync.db",
+                      help="the database to use", metavar="FILE")
+    parser.add_option("-a", "--absolute", dest="absolute", default=False,
+                      help="choose to use absolute or relative path saving")
+    parser.add_option("-u", "--update-aur", dest="updateaur", default=False,
+                      help="update the AUR packages list")
+    parser.add_option("-A", "--aur", dest="includeaur", default=False,
+                      help="check for AUR update")
+
+    (options, args) = parser.parse_args()
+
+    if len(args) != 2:
+        # Only summarize without regen
+        sync = Syncer(None, None, options.database, \
+                      None, options.verbose)
+        sync.summarize()
+
+    else:
+        sync = Syncer(args[0], args[1], \
+                      options.database, \
+                      options.absolute, \
+                      options.verbose)
+
+        sync.update_db(options.updateaur, \
+                       options.includeaur)
+        sync.summarize()

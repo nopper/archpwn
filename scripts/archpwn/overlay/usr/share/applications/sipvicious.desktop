@@ -1,0 +1,10 @@
+[Desktop Entry]
+Exec=cd /usr/share/sipvicious;ls;sudo -s
+Icon=preferences-web-browser-cache
+Name=SIPvicious
+Path=/usr/share/sipvicious
+StartupNotify=true
+Terminal=1
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Voip-And-Telephony-VOIP-Signalling

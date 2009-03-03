@@ -1,0 +1,19 @@
+# Contributor: Francesco Piccinno <stack.box@gmail.com>
+pkgname=archpwn-fbsplash
+pkgver=0.1
+pkgrel=1
+pkgdesc="fbsplash theme for archpwn"
+arch=(any)
+url="http://www.archpwn.org"
+license=('GPL')
+groups=('archpwn-base')
+depends=('fbsplash')
+source=($pkgname-$pkgver.tar.bz2)
+md5sums=('3500c11aa77a353d90ccb97dfbe29651')
+
+build() {
+  mkdir -p "${pkgdir}/etc/splash"
+  cp -r "${srcdir}/archpwn" "${pkgdir}/etc/splash/archpwn"
+}
+
+# vim:set ts=2 sw=2 et:

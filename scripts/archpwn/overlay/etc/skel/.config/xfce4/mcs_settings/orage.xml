@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mcs-option SYSTEM "mcs-option.dtd">
+
+<mcs-option>
+	<option name="orage/ArchiveFile" type="string" value="/home/bobo/.config/xfce4/orage/orage_old.ics"/>
+	<option name="orage/Lookback" type="int" value="0"/>
+	<option name="orage/NormalMode" type="int" value="1"/>
+	<option name="orage/Pager" type="int" value="0"/>
+	<option name="orage/ShowStart" type="int" value="0"/>
+	<option name="orage/SoundApplication" type="string" value="play"/>
+	<option name="orage/Systray" type="int" value="0"/>
+	<option name="orage/TaskBar" type="int" value="1"/>
+	<option name="orage/Timezone" type="string" value="floating"/>
+</mcs-option>

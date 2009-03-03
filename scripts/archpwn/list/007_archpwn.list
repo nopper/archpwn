@@ -1,0 +1,54 @@
+# Reverse
+wipe
+gdb
+ddd
+valkyrie
+ltrace
+strace
+# Wireless
+aircrack-ng
+airsnort
+kismet
+# Bluetooth
+minicom
+obexftp
+bluez-hcidump
+ussp-push
+# Misc
+macchanger
+ipcalc
+# Tunneling
+hamachi
+tor
+privoxy
+proxytunnel
+socat
+# Sniffer
+wireshark
+dsniff
+etherape
+ettercap
+ettercap-gtk
+# Forensic
+dcfldd
+ddrescue
+rkhunter
+sleuthkit
+# Already present
+dnsutils
+tcptraceroute
+fping
+hping
+gnu-netcat
+nmap
+curl
+lynx
+samba
+smb4k
+john
+nemesis
+ntop
+ngrep
+steghide
+# Then archpwn
+archpwn

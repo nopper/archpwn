@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<gconf>
+        <entry name="hinting" mtime="1213298335" type="string">
+                <stringvalue>full</stringvalue>
+        </entry>
+        <entry name="antialiasing" mtime="1213298335" type="string">
+                <stringvalue>grayscale</stringvalue>
+        </entry>
+</gconf>

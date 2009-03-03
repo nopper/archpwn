@@ -1,0 +1,44 @@
+# vim:set ft=sh:
+
+install ()
+{
+    add_dir "/proc"
+    add_dir "/sys"
+    add_dir "/dev"
+
+    add_device "/dev/null"    c 1 3
+    add_device "/dev/zero"    c 1 5
+    add_device "/dev/console" c 5 1
+    add_device "/dev/mem"     c 1 1
+
+    for f in $(find /lib -name klibc-*.so); do
+        add_file ${f}
+    done
+
+    for f in /usr/lib/klibc/bin/*; do
+        add_file ${f} /bin/$(basename ${f})
+    done
+    for f in /usr/lib/klibc/sbin/*; do
+        add_file ${f} /sbin/$(basename ${f})
+    done
+    # add symlink for compatibility
+    add_symlink2 /bin/modprobe /sbin/modprobe
+
+    add_file "$CWD/initcpio/init" "/init"
+    add_file "${CONFIG}" "/config"
+    if [ -n "${MESSAGE}" ]; then
+        echo -e "${MESSAGE}" > ${MESSAGEFILE}
+        add_file "${MESSAGEFILE}" "/message"
+    fi
+    add_file "/etc/modprobe.d/usb-load-ehci-first"
+    SCRIPT=""
+}
+
+help ()
+{
+cat <<HELPEOF
+  This hook sets up all initial directories and installs base
+  klibc utilities and libraries.  DO NOT remove this one unless
+  you know what you're doing.
+HELPEOF
+}

@@ -1,0 +1,74 @@
+#!/bin/bash
+# Use module while running LiveCD
+# include it into live directory structure on the fly
+#
+# Author: Tomas M. <http://www.linux-live.org>
+# Modified: Flavio Olivera <http://www.goblinx.com.br>
+
+MODULE="$1"
+if [ "$(echo $MODULE | fgrep -i .sqfs)" = "" ]; then
+zenity --title="Error Message" --error --text "$(basename $MODULE): Module must end with .sqfs
+If you have .mo extension, convert it by using mo2lzm" 0 0
+exit 2
+fi
+
+PATH=.:$(dirname $0):/usr/lib:$PATH
+. liblinuxlive || exit 3
+
+allow_only_root
+IMAGES=/mnt/live/memory/images
+MODULES=/mnt/live/memory/modules
+
+# are we even using union?
+if [ "$(grep '^aufs / ' /proc/mounts)" = "" ]; then
+zenity --title="Error Message" --error --text "Not in the live mode, can't continue. Try lzm2dir" 0 0
+   exit 4
+fi
+
+mkdir -p "$MODULES"
+
+# Test whether the module file is stored in union
+# if yes, then we must move it somewhere else (to RAM) else it can't be added
+if [ -e "/mnt/live/memory/changes/$(readlink -f "$MODULE")" ]; then
+notify-send -i gtk-dialog-info -t 2000 'g-Uselivemod' "Module file is stored inside the union, moving to $MODULES first..."
+
+   TARGET="$MODULES/$(basename "$MODULE")"
+   mv "$MODULE" "$TARGET"
+   if [ $? -ne 0 ]; then
+   zenity --title="Error Message" --error --text "error copying module to memory, not enough free RAM? try df" 0 0 >&2
+      rm "$TARGET"
+      exit 6
+   fi
+   MODULE="$TARGET"
+fi
+
+#MOD=$(union_insert_module / "$MODULE" $IMAGES)
+cd $PWD
+mkdir -p $IMAGES/$1
+TARGET=$IMAGES/$1
+if ismountpoint $TARGET; then zenity --title="Error Message" --error --text "its already mounted" 0 0 >&2; exit 1; fi
+mount -t squashfs -o loop $1 $IMAGES/$1
+mount -t aufs -n -o remount,add:1:$IMAGES/$1=rr aufs /
+if [ $? -ne 0 ]; then 
+zenity --title="Error Message" --error --text "error inserting module to live filesystem" 0 0 >&2 
+exit 3
+else
+notify-send -i gtk-dialog-info -t 2000 'g-Uselivemod' "Module $MODULE inserted to live system... You can use it now..."
+fi
+
+# All executables (but symlinks) in /etc/rc.d/ from this module will be started
+# with two arguments: "start" "uselivemod".
+# This is done only by uselivemod, not in the case when the module is loaded 
+# during OS startup (in that case, your distro is responsible for execution)
+#find $IMAGES/$MOD/etc/rc.d -type f 2>/dev/null | while read SCRIPT; do
+#   if [ "$SCRIPT" != "" -a -x "$SCRIPT" -a ! -d "$SCRIPT" ]; then
+#      ${SCRIPT##$IMAGES/$MOD} start uselivemod
+#   fi
+#done
+
+# update ld cache if new ld.so.conf/cache exists in the module
+
+if [ -e "$IMAGES/$MOD/etc/ld.so.conf" -o -e "$IMAGES/$MOD/etc/ld.so.cache" ]; then
+   echo "Module contains ld.so.conf or ld.so.cache, updating lib cache..."
+   /sbin/ldconfig
+fi

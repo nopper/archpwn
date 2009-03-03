@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN" "http://standards.freedesktop.org/menu-spec/menu-1.0.dtd">
+<Menu>
+  <Name>(null)</Name>
+  <DefaultAppDirs/>
+  <DefaultDirectoryDirs/>
+  <Layout>
+    <Filename>firefox.desktop</Filename>
+    <Filename>xterm.desktop</Filename>
+    <Filename>virtualbox.desktop</Filename>
+    <Filename>hardinfo.desktop</Filename>
+    <Filename>transmission.desktop</Filename>
+    <Filename>vlc.desktop</Filename>
+    <Filename>gnome-volume-control.desktop</Filename>
+    <Filename>Thunar.desktop</Filename>
+    <Filename>htop.desktop</Filename>
+  </Layout>
+  <Include>
+    <Filename>firefox.desktop</Filename>
+    <Filename>xterm.desktop</Filename>
+    <Filename>virtualbox.desktop</Filename>
+    <Filename>hardinfo.desktop</Filename>
+    <Filename>transmission.desktop</Filename>
+    <Filename>vlc.desktop</Filename>
+    <Filename>gnome-volume-control.desktop</Filename>
+    <Filename>Thunar.desktop</Filename>
+    <Filename>htop.desktop</Filename>
+  </Include>
+</Menu>

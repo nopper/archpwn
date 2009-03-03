@@ -1,0 +1,5 @@
+[General]
+exclude filters=.*/,.*,*~,*.part
+exclude folders[$e]=
+first run=false
+folders[$e]=$HOME

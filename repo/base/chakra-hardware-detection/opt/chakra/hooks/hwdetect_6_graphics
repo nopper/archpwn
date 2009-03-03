@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# config is in /etc/chakra-hwdetect.conf
+
+hwdetect_graphics() {
+
+		NONFREE=`get_nonfree`
+
+		[ -n "$NONFREE" ] || NONFREE="yes"
+
+		case "$NONFREE" in
+
+			yes)
+				# check for vendors
+				CARD_NVIDIA=$(lspci -n | sed -n "s/.* 0300: 10de:\(....\).*/\1/p")
+				CARD_ATI=$(lspci -n | sed -n "s/.* 0300: 1002:\(....\).*/\1/p")
+
+				# do we have one?
+				if [ "$CARD_NVIDIA" != "" ]
+				then
+				
+					# check if its a legacy card
+					if [ $(grep -i "$CARD_NVIDIA" ${HW_DB_PATH}/${NV173XX_DB}) ] 
+					then
+					
+						printhl "NVIDIA hardware detected"
+						printhl "Installing driver: nvidia-173xx"
+				
+						pacman -Udf ${HW_DRIVER_PATH}/nvidia-173xx* &>/dev/null
+				
+						# add a file in /tmp, so that tribe and postinstall know which driver has been installed
+						touch /tmp/nvidia-173xx
+
+					elif [ $(grep -i "$CARD_NVIDIA" ${HW_DB_PATH}/${NV96XX_DB}) ] 
+					then
+					
+						printhl "NVIDIA hardware detected"
+						printhl "Installing driver: nvidia-96xx"
+				
+						pacman -Udf ${HW_DRIVER_PATH}/nvidia-96xx* &>/dev/null
+				
+						# add a file in /tmp, so that tribe and postinstall know which driver has been installed
+						touch /tmp/nvidia-96xx
+				
+					else 
+				
+						printhl "NVIDIA hardware detected"
+						printhl "Installing driver: nvidia"
+				
+						pacman -Udf ${HW_DRIVER_PATH}/nvidia-utils-${NVIDIA_DRV_VER}* &>/dev/null
+						pacman -Udf ${HW_DRIVER_PATH}/nvidia-${NVIDIA_DRV_VER}* &>/dev/null
+				
+						# add a file in /tmp, so that tribe and postinstall know which driver has been installed
+						touch /tmp/nvidia
+					fi
+				
+				
+				elif [ "$CARD_ATI" != "" ]
+				then
+				
+				
+					if [ $(grep -i "$CARD_ATI" ${HW_DB_PATH}/${ATI_DB}) ]
+					then
+					
+						printhl "ATI hardware detected"
+						printhl "Installing driver: ATI catalyst"
+				
+						pacman -Udf ${HW_DRIVER_PATH}/catalyst* &>/dev/null
+				
+						# add a file in /tmp, so that tribe and postinstall know which driver has been installed
+						touch /tmp/catalyst
+					fi
+				else
+				
+						printhl "No non-free drivers available for this hardware"
+
+				fi
+			;;
+
+			*)
+
+						printhl "Non-free graphics drivers disabled"
+
+			;;
+		esac
+}

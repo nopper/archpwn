@@ -1,0 +1,63 @@
+#!/bin/bash
+# you must have all the locales available in your running system,
+# so make sure to install glibc package and glibc-i18n
+
+# $1 = source file or directory
+# $2 = target file or directory
+# $3 = root which is used (will be stripped)
+cp_parents()
+{
+   local SOURCE TARGET ROOT STRIP
+
+   SOURCE="$1"
+   TARGET="$2"
+   ROOT="$3"
+
+   if [ -e "$SOURCE" -a "$#" = "3" ]; then
+      STRIP=$(dirname ${SOURCE:${#ROOT}})
+      mkdir -p $TARGET/$STRIP
+      cp -a $SOURCE $TARGET/$STRIP
+   fi
+}
+
+# $1 = from dir (eg /)
+# $2 = to dir
+# $3..$n = language(s)
+#
+copylocales()
+{
+   local ROOT TARGET ADDLOCALE MYLOCALE MYALIAS MYGCONV MYI18NLOC NAME ALIAS LOCA LOCAC CHAR GCONV GCONVDEP
+
+   ROOT="$1"; shift
+   TARGET="$1"; shift
+   ADDLOCALE="$*"
+
+   MYLOCALE=$ROOT/usr/lib/locale # system locales (sorting, days in week, etc)
+   MYI18NLOC=$ROOT/usr/share/i18n/locales # the same like above
+   MYALIAS=$ROOT/usr/share/locale/locale.alias # eg. to translate 'czech' to 'cs_CZ.ISO-8859-2'
+   MYGCONV=$ROOT/usr/lib/gconv # codepages (compiled charmaps I guess)
+
+   for NAME in $(echo $ADDLOCALE | tr ',' ' '); do
+      ALIAS=$(cat $MYALIAS | egrep ^$NAME[[:space:]])
+      if [ "$ALIAS" = "" ]; then continue; fi
+      LOCA=$(echo $ALIAS | cut -d " " -f 2- | cut -d "." -f 1)
+      CHAR=$(echo $ALIAS | cut -d "." -f 2 | sed -r 's/-/-?/g')
+      # echo adding locales for $NAME:$LOCA:$CHAR | tr -d '?'
+
+      cp_parents $MYALIAS $TARGET $ROOT
+      cp_parents $MYI18NLOC/$LOCA $TARGET $ROOT
+      cp_parents $MYGCONV/gconv-modules $TARGET $ROOT
+
+      GCONV=$(find $MYGCONV | while read LINE; do echo $LINE@$(echo $LINE | tr -d "-"); done | egrep -i "/$CHAR.so\$" | head -n 1)
+      GCONV=$(echo $GCONV | cut -d "@" -f 1)
+      cp_parents $GCONV $TARGET $ROOT
+
+      GCONVDEP=$(ldd $GCONV | grep -v linux-gate.so | grep -v libc.so | grep -v ld-linux.so)
+      GCONVDEP=$(echo $GCONVDEP | cut -d " " -f 1)
+      if [ "$GCONVDEP" ]; then cp_parents $MYGCONV/$GCONVDEP $TARGET $ROOT; fi
+
+      LOCAC=$(find $MYLOCALE | egrep -i "/$LOCA(\\.$CHAR)?\$" | head -n 1)
+      cp_parents $LOCAC $TARGET $ROOT
+      cp_parents $ROOT/usr/bin/locale $TARGET $ROOT
+   done
+}

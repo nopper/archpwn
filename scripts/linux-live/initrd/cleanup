@@ -1,0 +1,75 @@
+#!/bin/ash
+# Optional script to be called instead of final reboot/shutdown
+# To safely switch back to initrd root and unmount everything possible
+# Mainly needed if you use changes= boot parameter in order to correctly
+# unmount the changes device/filesystem. Also needed to free up all loops
+# (to properly free disk space) if you delete an used lzm module.
+#
+# Call it this way in your shutdown script:
+#   cd /mnt/live
+#   exec ./cleanup <dev/console >dev/console 2>&1
+
+export PATH=.:/mnt/live:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib
+
+. liblinuxlive
+
+# This script needs to be re-executed to free up any shell
+# from the union which may be used (eg. /union/bin/bash)
+if [ ! "$RE_EXEC_CLEANUP" ]; then
+   export RE_EXEC_CLEANUP=1
+   header "starting Linux Live shutdown procedures..."
+   echo "changing root back to initrd"
+   pivot_root . $UNION
+   echo "re-executing cleanup script"
+   exec chroot . /cleanup "$@" <dev/console >dev/console 2>&1
+   fatal "Something was wrong because we should never be here!"
+fi
+
+# kill all processes which can be killed
+killall_unneeded $(pidof cleanup)
+
+echo "unmounting union"
+fumount -l $UNION/dev/pts
+fumount -l $UNION/dev
+fumount -l $UNION/proc
+fumount -l $UNION/sys
+fumount $UNION/boot
+fumount $UNION
+
+echo "unmounting images"
+fumount $IMAGES/*
+
+echo "unmounting mountpoints"
+fumount $COPY2RAM
+fumount $ISOMOUNT
+fumount $XINO
+fumount $CHANGES
+fumount $MEMORY
+
+fumount $MOUNTDIR/*
+
+# eject cdrom devices
+for MNT in $(ls -1 $MOUNTDIR 2>/dev/null); do
+   CD=$(cat /proc/sys/dev/cdrom/info 2>/dev/null | grep name | grep "$MNT")
+   if [ "$CD" -a "$MNT" ]; then
+      echo "Ejecting $MNT..."
+      /bin/eject -m /dev/$MNT >/dev/null 2>&1
+      echo "CD tray will be closed in 6 seconds..."
+      sleep 6
+      /bin/eject -t /dev/$MNT >/dev/null 2>&1
+   fi
+done
+
+if [ "$DEBUG_IS_ENABLED" ]; then
+   echo "Everything should be correctly unmounted now so we can $1"
+   echo "Verify it using 'losetup' and 'cat /proc/mounts'."
+   /bin/ash
+fi
+
+sync
+echo $1
+# $1 = action, eg. poweroff or reboot
+if [ "$1" = "" ]; then reboot -f; fi
+if [ "$1" = "halt" ]; then poweroff -f; else $1 -f; fi
+
+fatal "Something was wrong because we should never be here!"

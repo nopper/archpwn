@@ -1,0 +1,5 @@
+# Hacked list of PCI ID's for 'lspci' command for linux live scripts.
+# This list only contains [EUO]HCI controllers from http://pciids.sourceforge.net/pci.ids
+# It's used only in Linux Live scripts during system startup
+# to recognize which USB controllers should be loaded (EHCI | OHCI | UHCI).
+#

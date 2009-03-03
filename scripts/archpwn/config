@@ -1,0 +1,3 @@
+MODULES="archlive devel 001_xorg 002_lib 003_apps 004_xlibs 005_mono 006_kde4 007_archpwn 008_vm 009_office"
+PKGLIST=""
+DELDIR="usr/share/doc usr/share/devhelp usr/share/gtk-doc usr/share/wallpapers"

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Comment=
+Exec=man 3proxy;sudo -s
+GenericName=
+Icon=preferences-web-browser-cache
+Name=3proxy
+StartupNotify=true
+Terminal=1
+TerminalOptions=
+Type=Application
+X-KDE-SubstituteUID=false
+X-KDE-Username=
+Categories=Tunneling

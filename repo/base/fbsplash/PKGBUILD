@@ -1,0 +1,53 @@
+# Maintainer: Greg Helton <gt@fallendusk.org>
+
+pkgname=fbsplash
+pkgver=1.5.4.3
+pkgrel=1
+pkgdesc="A userspace implementation of a splash screen for Linux (formerly known as gensplash)"
+arch=('i686' 'x86_64')
+url="http://fbsplash.berlios.de"
+license=('GPL')
+backup=('/etc/conf.d/fbsplash.conf')
+depends=('initscripts' 'miscsplashutils' 'libjpeg' 'libpng' 'freetype2' 'gpm' 'libmng') 
+conflicts=('bootsplash' 'gensplash')
+install=fbsplash.install
+source=(http://download.berlios.de/fbsplash/splashutils-${pkgver}.tar.bz2 \
+	http://code.thewrecker.net/files/darch.tar.bz2 \
+	fbsplash.inithooks \
+	splash-functions-arch.sh \
+	fbsplash.conf \
+	fbsplash.initcpio_install \
+	fbsplash.daemon)
+md5sums=('c722cd4148817b9c50381d9bdc1ea6ef'
+         '4ea33e99330abf4a9a468ac8c0ba48ca'
+         '44375e92025ce07b3434773efb282127'
+         '8ffb29400a2518b16f3dbca653855268'
+         'b1b45761b2a5899a4fe8255fc9cfaf9c'
+         '5cce2373181193207d105e150a7f371c'
+         'edf12b534e256bd360f761056295c6c5')
+
+build() {
+	cd ${startdir}/src/splashutils-${pkgver}
+
+	# Configure, make, and install
+	./configure --prefix=/usr --sysconfdir=/etc --enable-fbcondecor --with-gpm --with-mng --with-png --with-ttf --with-ttf-kernel
+	make || return 1
+	make DESTDIR=${startdir}/pkg install || return 1
+	
+	# Create directories
+	mkdir -p ${startdir}/pkg/lib/splash/cache
+	mkdir -p ${startdir}/pkg/etc/splash
+	mkdir -p ${startdir}/pkg/etc/rc.d/functions.d
+
+	# Install scripts
+	install -D -m644 ${startdir}/src/fbsplash.initcpio_install ${startdir}/pkg/lib/initcpio/install/fbsplash
+	install -D -m644 ${startdir}/src/fbsplash.conf ${startdir}/pkg/etc/conf.d/fbsplash.conf
+	install -D -m744 ${startdir}/src/fbsplash.daemon ${startdir}/pkg/etc/rc.d/fbsplash
+	install -D -m744 ${startdir}/src/splash-functions-arch.sh ${startdir}/pkg/sbin/splash-functions-arch.sh
+
+	# install darch fbsplash theme
+	cp -r ${startdir}/src/darch ${startdir}/pkg/etc/splash/darch
+	
+	# install initscripts hooks
+	install -D -m744 ${startdir}/src/fbsplash.inithooks ${startdir}/pkg/etc/rc.d/functions.d/fbsplash.sh
+}

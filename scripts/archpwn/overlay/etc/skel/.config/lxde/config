@@ -1,0 +1,10 @@
+
+[GTK]
+sNet/ThemeName=Clearlooks
+sNet/IconThemeName=nuoveXT2
+sGtk/FontName=Sans 10
+iGtk/ToolbarStyle=3
+sGtk/FileChooserBackend=
+iGtk/ButtonImages=1
+iGtk/MenuImages=1
+iXft/Antialias=1

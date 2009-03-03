@@ -1,0 +1,494 @@
+#!/bin/bash
+
+CPIOCONFIG="$(pwd)/archiso-mkinitcpio.conf"
+OVERLAY="$(pwd)/overlay"
+CACHE="/var/cache/pacman/pkg"
+PKGFILE="$(pwd)/packages.list"
+PKGLIST="$(pwd)/archpwn-packages-list.txt"
+QUIET="n"
+FORCE="n"
+#MOUNTFILE="$(pwd)/mounts"
+IMG_TYPE="iso"
+DELDIR=""
+BOOT=""
+
+error () { echo -e "\033[1;31;40m!!! \033[1;37;40m$@\033[1;0m"; }
+warn ()  { echo -e "\033[1;33;40m*** \033[1;37;40m$@\033[1;0m"; }
+info () { echo -e "\033[1;32;40m>>> \033[1;37;40m$@\033[1;0m"; }
+
+if [ -f $(pwd)/config ]; then
+    . $(pwd)/config
+fi
+
+if [ -f "$(pwd)/pacman.conf" ]; then
+	PACMANCONF="$(pwd)/pacman.conf"
+else
+	PACMANCONF="/etc/pacman.conf"
+fi
+
+APPNAME=$(basename "${0}")
+
+# usage: usage <exitvalue>
+usage ()
+{
+    echo "usage ${APPNAME} [options] command <command options>"
+    echo " general options:"
+    echo "    -f               Force overwrite of working files/squashfs image/bootable image"
+    echo "    -i CPIO_CONFIG   Use CONFIG file for mkinitcpio. default: ${CPIOCONFIG}"
+    #echo "    -P PKGFILE       File with list of packages to install. default: ${PKGFILE}"
+    #echo "    -p PACKAGE       Additional package to install, can be used multiple times"
+    echo "    -n NOLZMA        Use plain squashfs instead of squashfs+lzma."
+    echo "    -b BOOT		Boot option (syslinux,grub,grub-gfx)"
+    echo "    -M MODULES       Modules for livecd. default: ${MODULES}"
+    echo "    -m MODULESCOPY   Copy modules from a folder to modules place in IMGROOT. default: none"
+    echo "    -a ADDON_DIR     Use addons from DIR. default: none"
+    echo "    -t <iso,disk>    Type of image to create. Defaults to iso."
+    echo "    -v               Enable verbose output."
+    echo "    -h               This message."
+    echo " commands:"
+    echo "     install <working dir>        : install packages to the working dir"
+    echo "     overlay <working dir>        : generate the default overlay.sqfs"
+    echo "     squash <working dir>         : generate a squashfs image of the installed root"
+    echo "     imgprepare <working dir>     : prepare the image"
+    echo "     img <working dir> <image name> : build an image from the working directory"
+    echo "     all <working dir> <image name> : perform all of the above, in order"
+    exit $1
+}
+
+#while getopts 'i:P:p:a:t:fvh' arg; do
+while getopts 'i:P:b:M:m:a:t:nfvh' arg; do
+    case "${arg}" in
+        i) CPIOCONFIG="${OPTARG}" ;;
+        #P) PKGFILE="${OPTARG}" ;;
+        #p) PKGLIST="${PKGLIST} ${OPTARG}" ;;
+		b) BOOT="${OPTARG}" ;;
+	M) MODULES="${OPTARG}" ;;
+	m) MODULESCOPY="${OPTARG}" ;;
+        a) ADDON_DIR="${OPTARG}" ;;
+        t) IMG_TYPE="${OPTARG}" ;;
+        f) FORCE="y" ;;
+    n) NOLZMA="n" ;;
+        v) QUIET="n" ;;
+        h|?) usage 0 ;;
+        *) echo "invalid argument '${arg}'"; usage 1 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+echo "ARGS: $@"
+
+[ $# -le 1 ] && usage 1
+
+# do UID checking here so someone can at least get usage instructions
+if [ "$EUID" != "0" ]; then
+    error "error: This script must be run as root."
+    exit 1
+fi
+
+command_name="${1}"
+work_dir=""
+imgname=""
+
+case "${command_name}" in
+    install) work_dir="${2}" ;;
+    overlay) work_dir="${2}" ;;
+    squash) work_dir="${2}" ;;
+    imgprepare) work_dir="${2}" ;;
+    img) work_dir="${2}"; imgname="${3}" ;;
+    all) work_dir="${2}"; imgname="${3}" ;;
+    *) warn "invalid command name '${command_name}'"; usage 1 ;;
+esac
+
+if [ "x${BOOT}" = "x" ]; then BOOT="syslinux"; fi
+
+[ "x${imgname}" = "x" ] && (warn "Bootable image name must be specified" && usage 1)
+[ "x${work_dir}" = "x" ] && (warn "please specify a working directory" && usage 1)
+
+if [ "${NOLZMA}" = "n" ]; then
+	EXT="sqfs"
+	OPTION="-nolzma"
+else
+	EXT="lzm"
+	OPTION=""
+fi
+
+info "Active configuration:"
+echo "   mkinitcpio config file:   ${CPIOCONFIG}"
+#echo "   mount description file:   ${MOUNTFILE}"
+echo "         pacman.conf file:   ${PACMANCONF}"
+echo "                boot menu:   ${BOOT}"
+echo "        working directory:   ${work_dir}"
+echo "               image name:   ${imgname}"
+echo "               image type:   ${IMG_TYPE}"
+echo "            squashfs type:   ${EXT}"
+sleep 1
+
+IMGROOT="${work_dir}/img"
+union="${work_dir}/union"
+lastbr="${work_dir}/empty"
+moduleplace="${IMGROOT}/archpwn-live/base"
+moduledir="${work_dir}/modules"
+INSTROOT="${moduledir}/archlive"
+CDROOT="$(pwd)/cd-root"
+
+_kversion ()
+{
+    source ${INSTROOT}/etc/mkinitcpio.d/kernel26.kver
+    echo ${ALL_kver}
+}
+
+copy2root()
+{
+	cp -rp $1/* ${union}
+}
+
+remove()
+{
+   rm -vRf "$@"
+   return
+}
+
+# Go through the main commands in order. If 'all' was specified, then we want
+# to do everything. Start with 'install'.
+#if [ "${command_name}" = "install" -o "${command_name}" = "all" ]; then
+command_install () {
+    info "Installing root image"
+    if [ -e "${work_dir}" -a "${FORCE}" = "n" ]; then
+        error "error: Working dir '${work_dir}' already exists, aborting."
+        error "       set FORCE to 'y' to overwrite"
+        exit 1
+    fi
+
+    mkdir -p "${IMGROOT}"
+    mkdir -p "${INSTROOT}"
+    mkdir -p "${lastbr}"
+    mkdir -p "${union}"
+    mkdir -p "${moduleplace}"
+    mkdir -p "${moduledir}"
+	cp -af ${CDROOT}/* "${IMGROOT}"
+
+    modprobe aufs
+    if [ $? -ne 0 ]; then
+        error "Error loading Union filesystem module. (aufs)"
+        exit 1
+    fi
+
+    mount -t aufs -o br:${lastbr}=rw aufs ${union}
+    if [ $? -ne 0 ]; then 
+        error "Error mounting $UNION."
+        exit 1
+    fi
+
+    for mod in ${MODULES}; do
+        mkdir -p "${moduledir}/${mod}"
+        mount -o remount,add:0:${moduledir}/${mod}=rw aufs ${union}
+        mount -o remount,mod:${lastbr}=ro aufs ${union}
+        lastbr="${moduledir}/${mod}"
+
+        if [ -e "${union}/var/lib/pacman/db.lck" ]; then
+            rm -f ${union}/var/lib/pacman/db.lck
+        fi
+        
+        mkdir -p "${union}/var/lib/pacman"	
+
+        mkdir -p "${union}/dev"
+        mknod ${union}/dev/console c 5 1 >/dev/null
+        mknod ${union}/dev/null c 1 3 >/dev/null
+        mknod ${union}/dev/zero c 1 5 >/dev/null
+        
+        pacman -Sy --noprogressbar --noconfirm --config "${PACMANCONF}" -fr "${union}"
+
+        cat  "$(pwd)/list/${mod}.list" | grep -v "^#" | while read pkgname; do
+            info "Installing package $pkgname"
+            pacman -S -f --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname | tee current.log
+
+            if [ $? -ne 0 ]; then
+                warn "Package $pkgname not correctly installed"
+                cat current.log >> errors.log
+            fi
+        done
+	
+        if [ -e "$(pwd)/list/${mod}.removelist" ]; then
+            cat "$(pwd)/list/${mod}.removelist" | grep -v "^#" | while read pkgname; do
+                info "Removing package $pkgname"
+                pacman -R -d -n --noprogressbar --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname &> /dev/null
+            done
+        fi
+	
+        if [ -e "${union}/etc/ld.so.conf" ]; then
+            ldconfig -r ${union}
+        fi
+
+        if [ -d "${union}/usr/share/icons" ]; then
+            remove "${union}/usr/share/icons/hicolor/icon-theme.cache"
+            remove "${union}/usr/share/icons/Rodent/icon-theme.cache"
+        fi
+
+        # remove the initcpio images that were generated for the host system
+        find "${union}/boot" -name *.img -delete
+
+        #info "Creating default home directory"
+        #install -d -o1001 -g100 -m0755 "${union}/home/arch"
+	
+        #if [ -d "${OVERLAY}/home/arch" ]; then
+        #    chown -R arch:users "${OVERLAY}/home/arch"
+        #    chmod -R 755 "${OVERLAY}/home/arch"
+        #fi
+
+        # Cleanup
+        info "Cleaning up image root files..."
+        find "${union}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+
+        # delete a lot of unnecessary cache/log files
+        # We don't have to delete stuff from /usr/share/doc if we are building archpwn module
+
+        if [ "${mod:4:7}" = "archpwn" ]; then
+            kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/ initrd"
+        else
+            kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${DELDIR}"
+        fi
+        for x in ${kill_dirs}; do
+            if [ -e "${union}/${x}" ]; then
+                rm -Rf "${union}/${x}"
+            fi
+        done
+
+        # pacman DBs are big, delete all sync dbs
+        rm -rf ${union}/var/lib/pacman/sync/*
+
+        # copy over kernel and grub configs for boot
+        if [ "$BOOT" = "grub" -o "$BOOT" = "grub-gfx" ]; then
+            if [ -e "${union}/boot" ]; then
+                #rm -rf "${IMGROOT}/boot"
+                cp -rf "${union}/boot" "${IMGROOT}"
+            fi
+        else
+            if [ -e "${union}/boot" ]; then
+                #rm -rf "${IMGROOT}/boot"
+                cp -rf "${union}/boot" "${IMGROOT}"
+                rm -rf "${IMGROOT}/boot/grub"
+            fi
+        fi
+        
+    done
+
+    if [ -e "$(pwd)/isolinux" ]; then
+        cp -r "$(pwd)/isolinux" "${IMGROOT}"
+    fi
+
+    pacman -Q -r ${union} > ${PKGLIST}
+
+    # Unmount union
+    info "Unmounting union."
+    umount -l ${union}
+
+    info "Updating kernel module dependencies"
+    kernelver=$(_kversion)
+    depmod -a -b "${INSTROOT}" "${kernelver}"
+        
+    # Clean up unionfs whiteout files
+    #echo "Removing unionfs .wh. files."
+    find ${moduledir} -type f -name ".wh.*" -exec rm {} \;
+    find ${moduledir} -type d -name ".wh.*" -exec rm -rf {} \;
+
+    # TODO: this might belong somewhere else
+    #mkdir -p "${IMGROOT}/addons"
+    #if [ -d "${ADDON_DIR}" ]; then
+    #    info "Copying addons from ${ADDON_DIR}..."
+    #    cp -r ${ADDON_DIR}/* "${IMGROOT}/addons"
+    #fi
+}
+
+command_overlay () {
+    # always make an addon out of DEF_CONFIG_DIR
+    info "Creating overlay default addon..."
+
+    find "${OVERLAY}" -name ".svn" -type d > exclude
+
+    if [ "${QUIET}" = "y" ]; then
+        /sbin/mksquashfs "${OVERLAY}" "${IMGROOT}/archpwn-live/modules/overlay.${EXT}" -noappend -ef exclude ${OPTION} >/dev/null
+    else
+		/sbin/mksquashfs "${OVERLAY}" "${IMGROOT}/archpwn-live/modules/overlay.${EXT}" -noappend -ef exclude ${OPTION}
+    fi
+
+    rm exclude
+    chmod 0444 "${IMGROOT}/archpwn-live/modules/overlay.${EXT}"
+}
+
+# Squash is the next step.
+command_squash () {
+    info "Generating SquashFS image"
+    info "Creating modules procede..."
+
+    start=$(date +%s)
+
+    if [ -d "${MODULESCOPY}" ]; then
+        cp -r ${MODULESCOPY}/* "${IMGROOT}/archiso-live/modules"
+    fi
+
+    for DIR in $MODULES; do
+        MOD="$(basename $DIR).${EXT}"
+        info "Building module $MOD"
+        if [ "${QUIET}" = "y" ]; then
+            /sbin/mksquashfs ${moduledir}/$DIR ${moduleplace}/$MOD -noappend ${OPTION} > /dev/null
+        else
+            /sbin/mksquashfs ${moduledir}/$DIR ${moduleplace}/$MOD -noappend ${OPTION}
+        fi
+        chmod 0444 ${moduleplace}/$MOD
+    done
+
+    minutes=$(echo $start $(date +%s) | awk '{ printf "%0.2f",($2-$1)/60 }')
+    info "Modules creation done in $minutes minutes."
+    
+    if [ -e ${moduleplace}/archlive.${EXT} ]; then
+        mv ${moduleplace}/archlive.${EXT} ${moduleplace}/000_archlive.${EXT}
+        mv ${moduleplace}/devel.${EXT} ${moduleplace}/000_devel.${EXT}
+    fi
+}
+
+# Finally, make the image.
+command_imgprepare () {
+    info "Making compressed initrd ( assuming ../linux-live/initrd/initrd_create )"
+    pushd .
+    cd ../linux-live/initrd/
+
+    if [ $? -ne 0 ]; then
+        error "Cannot chdir into ../linux-live/initrd"
+        exit -1
+    fi
+
+    ./initrd_create
+
+    if [ $? -ne 0 ]; then
+        error "Error while creating initrd.lzm"
+        exit -1
+    fi
+
+    popd
+
+    info "Moving initrd.lzm to $IMGROOT"
+    mv -f ../linux-live/initrd/initrd.lzm $IMGROOT/
+
+    if [ $? -ne 0 ]; then
+        error "Error while copying initrd.lzm"
+        exit -1
+    fi
+
+    info "Making bootable image"
+
+    if [ -e "${imgname}" ]; then
+        if [ "${FORCE}" = "y" ]; then
+            info "Removing existing bootable image..."
+            rm -rf "${imgname}"
+        else
+            error "error: Image '${imgname}' already exists, aborting."
+            exit 1
+        fi
+    fi
+    if [ ! -e "${CPIOCONFIG}" ]; then
+        error "error: mkinitcpio config '${CPIOCONFIG}' does not exist, aborting."
+        exit 1
+    fi
+
+    kernelver=$(_kversion)
+    basedir=${INSTROOT}
+    [ "${INSTROOT:0:1}" != "/" ] && basedir="$(pwd)/${INSTROOT}"
+    info "Generating initcpio for image..."
+    if [ "${QUIET}" = "y" ]; then
+        mkinitcpio -c "${CPIOCONFIG}" -b "${basedir}" -k "${kernelver}" -g "${IMGROOT}/boot/archlive.img" >/dev/null
+        ret=$?
+    else
+        mkinitcpio -c "${CPIOCONFIG}" -b "${basedir}" -k "${kernelver}" -g "${IMGROOT}/boot/archlive.img"
+        ret=$?
+    fi
+    if [ $ret -ne 0 ]; then
+        error "error: initcpio image creation failed..."
+        exit 1
+    fi
+}
+
+command_img () {
+
+    # Here we copy packages .lzm modules to the correct location
+    for mod in packages/*.lzm; do
+        info "Copying $mod ..."
+        cp $mod $IMGROOT/archpwn-live/modules/
+    done
+	
+	bootflags=""
+	if [ "$BOOT" = "grub" -o "$BOOT" = "grub-gfx" ]; then
+		tst=0
+		pacman -Q grub >/dev/null 2>&1
+		tst=$(($tst + $?))
+		pacman -Q grub-gfx >/dev/null 2>&1
+		tst=$(($tst + $?))
+		if [ $tst -ge 2 ]; then
+			error "grub or grub-gfx not found on host system. Cannot install!"
+			exit 1
+		fi
+	
+		mkdir -p "${IMGROOT}/boot/grub"
+		cp -r /usr/lib/grub/i386-pc/* "${IMGROOT}/boot/grub"
+    
+		bootflags="-b boot/grub/stage2_eltorito"
+	elif [ "$BOOT" = "syslinux" ]; then
+		if ! pacman -Qi syslinux >/dev/null 2>&1; then
+			error "$BOOT not found on host system. Cannot install!"
+			exit 1
+		fi
+		
+		mkdir -p "${IMGROOT}/boot/isolinux"
+		cp /usr/lib/syslinux/* "${IMGROOT}/boot/isolinux"
+		
+		if [ -f "${IMGROOT}/boot/vmlinuz26" ]; then
+			mv -f "${IMGROOT}/boot/vmlinuz26" "${IMGROOT}/boot/vmlinuz"
+		fi
+		
+		bootflags="-b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat"
+	else
+		error "No bootloader specified. Use the -b flag to specify"
+		info "  Supported Bootloaders:"
+		info "     grub"
+		info "     grub-gfx"
+		info "     isolinux"
+		exit 1
+	fi
+
+    if [ "$IMG_TYPE" == "disk" ]; then
+        info "Creating DISK image..."
+        mkusbimg "${IMGROOT}" "${imgname}"
+    elif [ "$IMG_TYPE" = "iso" ]; then
+        info "Creating ISO image..."
+        qflag=""
+        #[ "${QUIET}" = "y" ] && qflag="-q"
+        mkisofs ${qflag} -r -l $bootflags -uid 0 -gid 0 \
+			-input-charset utf-8 -p "prepared by mkarchiso" \
+            -no-emul-boot -boot-load-size 4 -boot-info-table \
+            -publisher "Arch Pwn <info@archpwn.org>" \
+            -A "Arch Pwn Live CD" \
+            -o "${imgname}" "${IMGROOT}"
+       # This adds USB support
+       isohybrid "${imgname}"
+       md5sum "${imgname}" > "${imgname}".md5
+    else
+		error "Invalid image type '$IMG_TYPE' specified"
+		exit 1
+	fi
+}
+
+if [ "${command_name}" = "install" -o "${command_name}" = "all" ]; then
+	command_install
+fi
+if [ "${command_name}" = "overlay" -o "${command_name}" = "all" ]; then
+    command_overlay
+fi
+if [ "${command_name}" = "squash" -o "${command_name}" = "all" ]; then
+	command_squash
+fi
+if [ "${command_name}" = "imgprepare" -o "${command_name}" = "all" ]; then
+    command_imgprepare
+fi
+if [ "${command_name}" = "img" -o "${command_name}" = "all" ]; then
+    command_img
+fi
+# vim:ts=4:sw=4:et:

@@ -1,0 +1,60 @@
+#!/bin/bash
+
+hwdetect_enable_govenor() {
+		# bruteforce ;)
+		if [ -e "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor &>/dev/null
+		elif [ -e "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor &>/dev/null
+		elif [ -e "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor &>/dev/null
+		elif [ -e "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor &>/dev/null
+		elif [ -e "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor &>/dev/null
+		elif [ -e "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu5/cpufreq/scaling_governor &>/dev/null
+		elif [ -e "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu6/cpufreq/scaling_governor &>/dev/null
+		elif [ -e "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor" ] ; then
+			echo "ondemand" > /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor &>/dev/null
+		fi
+}
+
+hwdetect_power() {
+
+		KERNEL=$(cat /proc/version | cut -d " " -f 3)
+
+		if [ -e "/tmp/platform-desktop" ] ; then
+
+			printhl "Enabling powersave functions"
+
+			for i in /lib/modules/"$KERNEL"/kernel/arch/x86/kernel/cpu/cpufreq/*.ko; do 
+				if [ -r "$i" ]; then
+					case "$i" in *-lib.*) continue ;; esac
+					m="${i##*/}" ; m="${m%%.*}"
+					modprobe "${m}" >/dev/null 2>&1
+				fi
+			done
+
+			hwdetect_enable_govenor
+
+		elif [ -e "/tmp/platform-laptop" ] ; then
+
+			printhl "Enabling powersave functions"
+
+			for i in /lib/modules/"$KERNEL"/kernel/arch/x86/kernel/cpu/cpufreq/*.ko; do 
+				if [ -r "$i" ]; then
+					case "$i" in *-lib.*) continue ;; esac
+					m="${i##*/}" ; m="${m%%.*}"
+					modprobe "${m}" >/dev/null 2>&1
+				fi
+			done
+
+			hwdetect_enable_govenor
+
+		else
+			# we do nothing for now
+			/bin/true
+		fi
+}

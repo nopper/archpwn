@@ -1,0 +1,9 @@
+[Desktop Entry]
+Exec=webscarab
+Icon=preferences-web-browser-cache
+Name=Webscarab Lite
+StartupNotify=true
+Terminal=0
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Vulnerability-Identification-Web;Web-Application

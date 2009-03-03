@@ -1,0 +1,32 @@
+#!/bin/bash
+
+hwdetect_base() {
+		# check cpu
+		base_check_cpu=$(uname -p)
+		printhl "Running on a ${base_check_cpu}"
+
+		# check mem
+		base_check_mem=$(grep "MemTotal" /proc/meminfo | sed 's/[ kB]//g' | cut -f2 -d":")
+		base_mem_checked=$(($base_check_mem/1024))
+		base_needed_mem="384"
+		if [ ${base_mem_checked} -lt ${base_needed_mem} ] ; then
+			printhl "Available physical memory: ${base_mem_checked} MiB"
+			printhl "WARNING: NOT ENOUGH MEMORY. A MINIMUM OF ${base_needed_mem} MiB IS REQUIRED."
+		else
+			printhl "Available physical memory: ${base_mem_checked} MiB"
+		fi
+
+		# check diskspace, ugly hack ;)
+		base_check_disks=$(fdisk -l | grep "yte" | grep "/dev" | cut -d " " -f 3 | cut -d "." -f 1)
+		base_needed_disk="3"
+		base_tmp_array=($base_check_disks)
+		base_reported_disks=0
+		for x in ${base_tmp_array[*]}; do base_reported_disks=$(( $base_reported_disks + $x )); done 
+		if [ ${base_reported_disks} -lt ${base_needed_disk} ] ; then
+			printhl "Available disk space: $base_reported_disks GiB"
+			printhl "WARNING: NOT ENOUGH DISK SPACE. A MINIMUM OF ${base_needed_disk} GiB IS REQUIRED."
+		else
+			printhl "Available disk space: $base_reported_disks GiB"
+		fi
+}
+

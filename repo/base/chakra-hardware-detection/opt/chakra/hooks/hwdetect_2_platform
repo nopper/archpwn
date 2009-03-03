@@ -1,0 +1,24 @@
+#!/bin/bash
+
+hwdetect_platform() {
+
+		# check platform
+		/opt/chakra/bin/platform-detect &>/dev/null
+		if [ $? -ne 0 ]; then	
+			printhl "This machine seems to be a desktop computer"
+
+			# create status file for postinstall
+			touch /tmp/platform-desktop
+
+			# install platform-specific tools
+			# bla blubb
+		else
+			printhl "This machine seems to be a laptop computer"
+
+			# create status file for postinstall
+			touch /tmp/platform-laptop
+
+			# install platform-specific tools
+			# /usr/bin/pacman -Udf ${CHAKRA_PKG_PATH}/kdemod-powerdevil-* &>/dev/null
+		fi
+}

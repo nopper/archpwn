@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mcs-option SYSTEM "mcs-option.dtd">
+
+<mcs-option>
+	<option name="Cursor/ShowApplyWarning" type="int" value="0"/>
+	<option name="Mouse/Acceleration" type="int" value="2"/>
+	<option name="Mouse/Denominator" type="int" value="1"/>
+	<option name="Mouse/MouseKeys" type="int" value="0"/>
+	<option name="Mouse/MouseKeysDelay" type="int" value="200"/>
+	<option name="Mouse/MouseKeysInterval" type="int" value="200"/>
+	<option name="Mouse/MouseKeysMaxSpeed" type="int" value="200"/>
+	<option name="Mouse/MouseKeysTimeToMax" type="int" value="200"/>
+	<option name="Mouse/RightHanded" type="int" value="1"/>
+	<option name="Mouse/Threshold" type="int" value="4"/>
+</mcs-option>

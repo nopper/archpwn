@@ -1,0 +1,8 @@
+[Entry 0]
+Name=Multimedia player
+Exec=gnome-mplayer
+Terminal=false
+StartupNotify=false
+Comment=Play all sort of media
+X-XFCE-IconCategory=6
+

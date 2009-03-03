@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. /etc/rc.conf
+. /etc/rc.d/functions
+
+case "$1" in
+	start)
+		stat_busy "Configuring graphics"
+		/opt/chakra/bin/xorg-config.sh
+		stat_done
+	;;
+
+	stop)
+	;;
+
+	restart)
+		$0 stop
+		sleep 1
+		$0 start
+	;;
+
+	*)
+		echo "usage: $0 {start|stop|restart}"  
+esac 

@@ -1,0 +1,16 @@
+Gerarchia sul repo per creare un b-tree con tutti i pacchetti possibili da compile.
+Eseguire la compilazione e segnalare i falliti in xml/schema
+
+??
+PkgBuildWriter
+PKGBUILD on the fly with overlay
+??
+
+Package reader (.LIST from tar.gz)
+Leggere le varie dipendenze, md5sum e length del file in question e output su xml.
+
+Script per controllare le versioni tra il tree di abs e il nostro:
+ - emettere un warning in caso un pacchetto nel nostro tree sia piu vecchio ed eseguire una diff.
+ - emettere un warning in caso un pacchetto nel nostro tree sia piu recente.
+
+-> Packare tutto in un report xml/schema da mettere su web.

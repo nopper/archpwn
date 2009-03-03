@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Root
+Comment=The Root Filesystem base
+Comment[it]=Il filesystem principale
+Type=Link
+X-Enlightenment-Type=Mount
+URL=file:/
+Icon=fileman/root

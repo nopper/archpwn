@@ -1,0 +1,12 @@
+base-devel
+abs
+git
+subversion
+cvs
+scons
+nasm
+yaourt
+pacbuilder-svn
+devtools
+aurtools
+pkgtools
