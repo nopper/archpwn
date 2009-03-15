@@ -3,8 +3,8 @@ abs
 git
 subversion
 cvs
-scons
 nasm
+cmake
 yaourt
 pacbuilder-svn
 devtools
