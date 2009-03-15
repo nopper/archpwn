@@ -48,8 +48,10 @@ stat_done() {
 
 stat_fail() {
 	deltext
-	printf "    ${C_FAIL}failed${C_OTHER}${C_CLEAR}\n"
-	splash_verbose
+	printf "    ${C_FAIL}fail${C_OTHER}${C_CLEAR}  \n"
+    if [[ ${SPLASH_RC_SYSINIT} == 1 || ${SPLASH_RC_SHUTDOWN} == 1 ]]; then
+        splash_verbose
+    fi
 }
 
 start_daemon() {

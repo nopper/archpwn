@@ -9,6 +9,8 @@ strace
 aircrack-ng
 airsnort
 kismet
+gpsd
+gpsdrive
 # Bluetooth
 minicom
 obexftp
