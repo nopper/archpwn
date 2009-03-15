@@ -4,7 +4,7 @@ CPIOCONFIG="$(pwd)/archiso-mkinitcpio.conf"
 OVERLAY="$(pwd)/overlay"
 CACHE="/var/cache/pacman/pkg"
 PKGFILE="$(pwd)/packages.list"
-PKGLIST="$(pwd)/archpwn-packages-list.txt"
+PKGLIST=""
 QUIET="n"
 FORCE="n"
 #MOUNTFILE="$(pwd)/mounts"
@@ -15,6 +15,11 @@ BOOT=""
 error () { echo -e "\033[1;31;40m!!! \033[1;37;40m$@\033[1;0m"; }
 warn ()  { echo -e "\033[1;33;40m*** \033[1;37;40m$@\033[1;0m"; }
 info () { echo -e "\033[1;32;40m>>> \033[1;37;40m$@\033[1;0m"; }
+
+KERNEL="/etc/mkinitcpio.d/kernel26-pwn.kver"
+ROOT_MOD="$(ls -1 $(pwd)/list | head -1)"
+CDNAME="archpwn-live"
+LIVELINUX="../../linux-live/initrd"
 
 if [ -f $(pwd)/config ]; then
     . $(pwd)/config
@@ -38,6 +43,7 @@ usage ()
     #echo "    -P PKGFILE       File with list of packages to install. default: ${PKGFILE}"
     #echo "    -p PACKAGE       Additional package to install, can be used multiple times"
     echo "    -n NOLZMA        Use plain squashfs instead of squashfs+lzma."
+    echo "    -c CDNAME        The name of the data folder for liblinuxlibe script to look for. Default: archpwn-live"
     echo "    -b BOOT		Boot option (syslinux,grub,grub-gfx)"
     echo "    -M MODULES       Modules for livecd. default: ${MODULES}"
     echo "    -m MODULESCOPY   Copy modules from a folder to modules place in IMGROOT. default: none"
@@ -56,7 +62,7 @@ usage ()
 }
 
 #while getopts 'i:P:p:a:t:fvh' arg; do
-while getopts 'i:P:b:M:m:a:t:nfvh' arg; do
+while getopts 'i:P:b:M:m:a:t:c:nfvh' arg; do
     case "${arg}" in
         i) CPIOCONFIG="${OPTARG}" ;;
         #P) PKGFILE="${OPTARG}" ;;
@@ -66,13 +72,17 @@ while getopts 'i:P:b:M:m:a:t:nfvh' arg; do
 	m) MODULESCOPY="${OPTARG}" ;;
         a) ADDON_DIR="${OPTARG}" ;;
         t) IMG_TYPE="${OPTARG}" ;;
-        f) FORCE="y" ;;
+    c) CDNAME="${OPTARG}" ;;
     n) NOLZMA="n" ;;
+        f) FORCE="y" ;;
         v) QUIET="n" ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
     esac
 done
+
+#trim spaces
+PKGLIST="$(echo $MODULES)"
 
 shift $(($OPTIND - 1))
 echo "ARGS: $@"
@@ -112,7 +122,7 @@ else
 	OPTION=""
 fi
 
-info "Active configuration:"
+info "${APPNAME} : Configuration Settings"
 echo "   mkinitcpio config file:   ${CPIOCONFIG}"
 #echo "   mount description file:   ${MOUNTFILE}"
 echo "         pacman.conf file:   ${PACMANCONF}"
@@ -126,14 +136,14 @@ sleep 1
 IMGROOT="${work_dir}/img"
 union="${work_dir}/union"
 lastbr="${work_dir}/empty"
-moduleplace="${IMGROOT}/archpwn-live/base"
+moduleplace="${IMGROOT}/${CDNAME}/base"
 moduledir="${work_dir}/modules"
-INSTROOT="${moduledir}/archlive"
+INSTROOT="${moduledir}/$(basename ${ROOT_MOD} .list)"
 CDROOT="$(pwd)/cd-root"
 
 _kversion ()
 {
-    source ${INSTROOT}/etc/mkinitcpio.d/kernel26.kver
+    source ${INSTROOT}${KERNEL}
     echo ${ALL_kver}
 }
 
@@ -165,6 +175,8 @@ command_install () {
     mkdir -p "${union}"
     mkdir -p "${moduleplace}"
     mkdir -p "${moduledir}"
+    mkdir -p ${IMGROOT}/${CDNAME}/{modules,optional,rootcopy}
+    touch ${IMGROOT}/${CDNAME}/livecd.sgn
 	cp -af ${CDROOT}/* "${IMGROOT}"
 
     modprobe aufs
@@ -258,14 +270,16 @@ command_install () {
 
         # copy over kernel and grub configs for boot
         if [ "$BOOT" = "grub" -o "$BOOT" = "grub-gfx" ]; then
-            if [ -e "${union}/boot" ]; then
+            if [ -e "${union}/boot" -a -e "${OVERLAY}/boot" ]; then
                 #rm -rf "${IMGROOT}/boot"
                 cp -rf "${union}/boot" "${IMGROOT}"
+                cp -rf "${OVERLAY}/boot" "${IMGROOT}"
             fi
         else
-            if [ -e "${union}/boot" ]; then
+            if [ -e "${union}/boot" -a -e "${OVERLAY}/boot" ]; then
                 #rm -rf "${IMGROOT}/boot"
                 cp -rf "${union}/boot" "${IMGROOT}"
+                cp -rf "${OVERLAY}/boot" "${IMGROOT}"
                 rm -rf "${IMGROOT}/boot/grub"
             fi
         fi
@@ -276,7 +290,7 @@ command_install () {
         cp -r "$(pwd)/isolinux" "${IMGROOT}"
     fi
 
-    pacman -Q -r ${union} > ${PKGLIST}
+    pacman -Q -r ${union} > ${PKGFILE}
 
     # Unmount union
     info "Unmounting union."
@@ -306,13 +320,13 @@ command_overlay () {
     find "${OVERLAY}" -name ".svn" -type d > exclude
 
     if [ "${QUIET}" = "y" ]; then
-        /sbin/mksquashfs "${OVERLAY}" "${IMGROOT}/archpwn-live/modules/overlay.${EXT}" -noappend -ef exclude ${OPTION} >/dev/null
+        /sbin/mksquashfs "${OVERLAY}" "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}" -noappend -ef exclude ${OPTION} >/dev/null
     else
-		/sbin/mksquashfs "${OVERLAY}" "${IMGROOT}/archpwn-live/modules/overlay.${EXT}" -noappend -ef exclude ${OPTION}
+		/sbin/mksquashfs "${OVERLAY}" "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}" -noappend -ef exclude ${OPTION}
     fi
 
     rm exclude
-    chmod 0444 "${IMGROOT}/archpwn-live/modules/overlay.${EXT}"
+    chmod 0444 "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}"
 }
 
 # Squash is the next step.
@@ -323,7 +337,7 @@ command_squash () {
     start=$(date +%s)
 
     if [ -d "${MODULESCOPY}" ]; then
-        cp -r ${MODULESCOPY}/* "${IMGROOT}/archiso-live/modules"
+        cp -r ${MODULESCOPY}/* "${IMGROOT}/${CDNAME}/modules"
     fi
 
     for DIR in $MODULES; do
@@ -339,40 +353,17 @@ command_squash () {
 
     minutes=$(echo $start $(date +%s) | awk '{ printf "%0.2f",($2-$1)/60 }')
     info "Modules creation done in $minutes minutes."
-    
-    if [ -e ${moduleplace}/archlive.${EXT} ]; then
-        mv ${moduleplace}/archlive.${EXT} ${moduleplace}/000_archlive.${EXT}
-        mv ${moduleplace}/devel.${EXT} ${moduleplace}/000_devel.${EXT}
-    fi
 }
 
 # Finally, make the image.
 command_imgprepare () {
     info "Making compressed initrd ( assuming ../linux-live/initrd/initrd_create )"
-    pushd .
-    cd ../linux-live/initrd/
 
-    if [ $? -ne 0 ]; then
-        error "Cannot chdir into ../linux-live/initrd"
-        exit -1
-    fi
-
-    ./initrd_create
-
-    if [ $? -ne 0 ]; then
-        error "Error while creating initrd.lzm"
-        exit -1
-    fi
-
-    popd
-
-    info "Moving initrd.lzm to $IMGROOT"
-    mv -f ../linux-live/initrd/initrd.lzm $IMGROOT/
-
-    if [ $? -ne 0 ]; then
-        error "Error while copying initrd.lzm"
-        exit -1
-    fi
+    ln -sf ${LIVELINUX} initrd
+    cd initrd
+    ./initrd_create ${CDNAME}
+    cd ../
+    mv -f initrd/initrd.lzm "${IMGROOT}"
 
     info "Making bootable image"
 
@@ -412,7 +403,7 @@ command_img () {
     # Here we copy packages .lzm modules to the correct location
     for mod in packages/*.lzm; do
         info "Copying $mod ..."
-        cp $mod $IMGROOT/archpwn-live/modules/
+        cp $mod $IMGROOT/${CDNAME}/modules/
     done
 	
 	bootflags=""
