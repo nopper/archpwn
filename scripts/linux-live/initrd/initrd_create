@@ -3,7 +3,7 @@
 #
 # Author:	  Tomas M. <http://www.linux-live.org>
 
-. ../.config || exit 1
+. ./initrd.config || exit 1
 . ./liblinuxlive || exit 1
 
 if [ "$1" != "" ]; then
