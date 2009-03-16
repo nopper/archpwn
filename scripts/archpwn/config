@@ -1,4 +1,4 @@
-MODULES="archlive devel 001_xorg 002_lib 003_apps 004_xlibs 005_mono 006_kde4 007_archpwn 008_vm 009_office"
+MODULES="a.000_Core a.001_Cmdapps a.002_Xorg a.003_Lib a.004_Apps a.005_Devel ap.006_Xlibs ap.007_Xapps ap.008_Mono ap.009_KDE4 ap.010_ArchPwn ap.011_VM ap.012_Office"
 PKGLIST=""
 DELDIR="usr/share/doc usr/share/devhelp usr/share/gtk-doc usr/share/wallpapers"
 KERNEL="/etc/mkinitcpio.d/kernel26-pwn.kver"

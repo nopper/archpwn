@@ -1,3 +1,5 @@
+# Base packages
+base
 # This is the patched kernel with releative drivers for injections
 kernel26-pwn
 ipw2200-inject
@@ -8,8 +10,6 @@ rt61-cvs-daily
 rt73-k2wrlz
 rtl8187-ng
 tiacx
-# Base packages
-base
 lcms
 fbsplash
 archpwn-fbsplash
