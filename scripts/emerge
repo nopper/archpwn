@@ -1,0 +1,150 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2008 Francesco Piccinno
+#
+# Author: Francesco Piccinno <stack.box@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+import os
+import os.path
+
+import sys
+import shutil
+
+from optparse import OptionParser
+from collections import defaultdict
+
+from pylibs.pkgbuild import PkgBuild
+from pylibs.utils import ConsoleP, Animator, foreach_pkgbuild, escape_deps, Node
+
+anim = Animator()
+
+class Manager(ConsoleP):
+    def __init__(self, repodir, absdir):
+        self.dirs = [repodir, absdir]
+        self.cache = {}
+        self.graph = {}
+
+        self.provides = {
+            'sh' : 'bash',
+            'util-linux' : 'util-linux-ng',
+        }
+
+        self.substitute = {
+            'klibc-extras' : ['klibc'],
+            'klibc-udev' : ['coreutils', 'klibc'],
+            'klibc-module-init-tools' : ['klibc'],
+            'klibc-kbd' : ['klibc'],
+        }
+
+        self.cache_pkgbuilds()
+    
+    def cache_pkgbuilds(self):
+        idx = 0
+
+        for dir in self.dirs:
+            for pkgdir, category in foreach_pkgbuild(dir):
+                pname = os.path.basename(pkgdir)
+
+                if pname not in self.cache:
+                    self.cache[pname] = pkgdir
+                    idx += 1
+
+                if idx % 10 == 0:
+                    anim.update("Caching %d PKGBUILDs ..." % idx)
+
+        anim.stop("Caching %d PKGBUILDs ... DONE" % idx)
+
+    def makepkg(self, pname):
+        if pname not in self.cache:
+            self.error("Package named %s not exists" % pname)
+            sys.exit(-1)
+
+        self.create_dep_graph(pname)
+
+        dct = defaultdict(list)
+
+        for k in self.graph:
+            node = self.graph[k]
+            dct[node.get_depth()].append(node)
+
+        keys = dct.keys()
+        keys.sort()
+        #keys.reverse()
+
+        self.info("This are the PKGBUILDs that will be built in order:")
+
+        for k in keys:
+            for node in dct[k]:
+                self.info("+%s %s" % ("-" * int(k), node.pname))
+
+    def get_pkgbuild(self, pname):
+        return PkgBuild(os.path.join(self.cache[pname], "PKGBUILD"))
+    
+    def create_dep_graph(self, pname):
+        # TODO: we should support provides here?
+        #       and also version support for dependencies?
+
+        pbuild = self.get_pkgbuild(pname)
+        pdeps = escape_deps(pbuild.get("depends"))
+
+        # Provides
+        for p in self.provides.keys():
+            if p in pdeps:
+                pdeps.remove(p)
+                pdeps.append(self.provides[p])
+
+        for s in self.substitute.keys():
+            if pname == s:
+                pdeps = self.substitute[s]
+
+        node = None
+
+        if pname in self.graph:
+            node = self.graph[pname]
+        else:
+            node = Node(pname, self.cache[pname])
+            self.graph[pname] = node
+
+        for dep in pdeps:
+            child = None
+            
+            if dep in self.graph:
+                child = self.graph[dep]
+            else:
+                child = Node(dep, self.cache[dep])
+                self.graph[dep] = child
+
+            # Here we have to check for the presence of the dep in the graph
+            # If the dep is already present we have to manage at what level
+            # is located. If the current location is upper than this we have to
+            # remove that deps and add. If it's not present then simply add it.
+
+            if child.get_depth() <= node.get_depth():
+                node.add_dep(child)
+
+            self.create_dep_graph(dep)
+
+if __name__ == "__main__":
+    parser = OptionParser(usage="%s <repodir> <absdir> <pkgname>" % sys.argv[0])
+    (options, args) = parser.parse_args()
+
+    if len(args) == 3:
+        manager = Manager(args[0], args[1])
+        manager.makepkg(args[2])
+    else:
+        parser.print_help()
+        sys.exit(-1)
