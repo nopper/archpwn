@@ -4,6 +4,7 @@
 # This script support some ZenLive's cheatcodes.
 #
 
+. /etc/rc.d/functions
 . /usr/lib/liblinuxlive
 
 # passwd: Change root's password at startup
@@ -23,10 +24,9 @@ if [ "`cmdline_parameter ldconfig`" ]; then
     [[ -x /sbin/ldconfig ]] && /sbin/ldconfig
 fi
 
-if [ "`cmdline_parameter nonfreee`" ]; then
-    /etc/rc.d/xakra-nonfree start
-else
+if [ ! "`cmdline_parameter noxconfg`" ]; then
     /etc/rc.d/xakra start
+    /etc/rc.d/xakra-nonfree start
 fi
 
 # lang: Override default language
@@ -49,15 +49,6 @@ fi
 #if [ -w /usr/lib/thunderbird/greprefs/all.js ]; then
 #    sed -i -e 's/pref("intl.locale.matchOS",                 false);/pref("intl.locale.matchOS",                 true);/g' /usr/lib/thunderbird/greprefs/all.js
 #fi
-
-
-# keyb: Override default keyboard layout
-keyb="`cmdline_value keyb`"
-if [ "$keyb" ]; then
-   if [ -x /bin/loadkeys ]; then
- 	/bin/loadkeys $keyb
-   fi
-fi
 
 session="`cmdline_value session`"
 if [ "$session" != "" ]; then
