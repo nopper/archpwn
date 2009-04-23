@@ -19,7 +19,7 @@ info () { echo -e "\033[1;32;40m>>> \033[1;37;40m$@\033[1;0m"; }
 KERNEL="/etc/mkinitcpio.d/kernel26-pwn.kver"
 ROOT_MOD="$(ls -1 $(pwd)/list | head -1)"
 CDNAME="archpwn-live"
-LIVELINUX="../../linux-live/initrd"
+LIVELINUX="../linux-live/initrd"
 
 if [ -f $(pwd)/config ]; then
     . $(pwd)/config
@@ -270,13 +270,13 @@ command_install () {
 
         # copy over kernel and grub configs for boot
         if [ "$BOOT" = "grub" -o "$BOOT" = "grub-gfx" ]; then
-            if [ -e "${union}/boot" -a -e "${OVERLAY}/boot" ]; then
+            if [ -e "${union}/boot" ]; then
                 #rm -rf "${IMGROOT}/boot"
                 cp -rf "${union}/boot" "${IMGROOT}"
                 cp -rf "${OVERLAY}/boot" "${IMGROOT}"
             fi
         else
-            if [ -e "${union}/boot" -a -e "${OVERLAY}/boot" ]; then
+            if [ -e "${union}/boot" ]; then
                 #rm -rf "${IMGROOT}/boot"
                 cp -rf "${union}/boot" "${IMGROOT}"
                 cp -rf "${OVERLAY}/boot" "${IMGROOT}"
@@ -360,10 +360,12 @@ command_imgprepare () {
     info "Making compressed initrd ( assuming ../linux-live/initrd/initrd_create )"
 
     ln -sf ${LIVELINUX} initrd
+    cp initrd.config initrd/
     cd initrd
     ./initrd_create ${CDNAME}
     cd ../
     mv -f initrd/initrd.lzm "${IMGROOT}"
+    rm initrd/initrd.config
 
     info "Making bootable image"
 
@@ -431,8 +433,8 @@ command_img () {
 		mkdir -p "${IMGROOT}/boot/isolinux"
 		cp /usr/lib/syslinux/* "${IMGROOT}/boot/isolinux"
 		
-		if [ -f "${IMGROOT}/boot/vmlinuz26" ]; then
-			mv -f "${IMGROOT}/boot/vmlinuz26" "${IMGROOT}/boot/vmlinuz"
+		if [ -f "${IMGROOT}/boot/vmlinuz26-pwn" ]; then
+			mv -f "${IMGROOT}/boot/vmlinuz26-pwn" "${IMGROOT}/boot/vmlinuz"
 		fi
 		
 		bootflags="-b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat"
