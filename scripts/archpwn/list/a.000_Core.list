@@ -25,9 +25,8 @@ inetutils
 crda
 aif
 archlinux-installer
+chakra-xakra
 chakra-hardware-detection
-chakra-initscripts
-chakra-sysvinit
 libtool
 pkgconfig
 syslinux

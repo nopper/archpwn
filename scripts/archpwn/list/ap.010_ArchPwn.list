@@ -37,6 +37,7 @@ ddrescue
 rkhunter
 sleuthkit
 # Already present
+clamav
 dnsutils
 tcptraceroute
 fping

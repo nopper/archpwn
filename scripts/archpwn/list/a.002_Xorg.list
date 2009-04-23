@@ -48,6 +48,7 @@ mesa
 freeglut
 #fonts
 ttf-dejavu
+ttf-droid
 gsfonts
 #libs
 libxres
