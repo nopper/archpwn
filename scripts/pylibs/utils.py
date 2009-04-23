@@ -21,6 +21,8 @@
 import os
 import os.path
 
+import sys
+
 from logging import Logger, StreamHandler, Formatter, addLevelName
 
 if os.name == 'posix':
@@ -98,3 +100,91 @@ class Singleton(object):
                 pass
             cls.__init__ = nothing
         return Singleton.instances[cls]
+
+class Animator:
+    def __init__(self):
+        self.idx = 0
+        self.status = ('-', '\\', '|', '/')
+
+    def update(self, txt):
+        sys.stdout.write("%s %s\r" % (self.status[self.idx], txt))
+        self.idx += 1
+        self.idx %= 4
+
+    def stop(self, txt):
+        self.idx = 0
+        self.update(txt + "\n")
+
+def escape_deps(l):
+    if not l:
+        return []
+
+    r = []
+    for d in l:
+        ops = (">=", "<=", "=", ">", "<")
+
+        for op in ops:
+            if op in d:
+                r.append(d.split(op)[0])
+                break
+        else:
+            r.append(d)
+    return r
+
+class Node(object):
+    def __init__(self, name, pdir=None):
+        self.pname = name
+        self.pdir = pdir
+        self.deps = []
+        self.root = None
+
+    def add_dep(self, node):
+        if node not in self.deps:
+            self.deps.append(node)
+        
+        node.root = self
+
+    def get_depth(self):
+        idx = 0
+        root = self.root
+        
+        while root:
+            root = root.root
+            idx += 1
+
+        return idx
+    
+    def __iter__(self):
+        yield self
+
+        for dep in self.deps:
+            yield dep
+
+    def __repr__(self):
+        return "%s -> %s" % (self.root, self.pname)
+
+class RNode(object):
+    def __init__(self, name, pdir=None):
+        self.pname = name
+        self.pdir = pdir
+        self.deps = []
+        self.rdeps = []
+
+    def add_deps(self, lst):
+        for dep in lst:
+            self.add_dep(dep)
+
+    def add_dep(self, node):
+        if node not in self.deps:
+            self.deps.append(node)
+        if self not in node.rdeps:
+            node.rdeps.append(self)
+
+    def __iter__(self):
+        yield self
+
+        for child in self.rdeps:
+            yield child
+
+    def __repr__(self):
+        return self.pname
