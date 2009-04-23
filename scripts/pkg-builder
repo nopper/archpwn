@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008 Francesco Piccinno
+# Copyright (C) 2008-2009 Francesco Piccinno
 #
 # Author: Francesco Piccinno <stack.box@gmail.com>
 #
