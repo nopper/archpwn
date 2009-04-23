@@ -60,7 +60,9 @@ DB_CHECKSUMS=(md5)
 OUTFILE = os.path.join(os.getenv("HOME", "/root"), ".makepkg.conf")
 
 class Builder(ConsoleP):
-    def __init__(self, src, tmp, dst):
+    def __init__(self, src, tmp, dst, \
+                 verbose=True, nodeps=False, force=False):
+
         self.src, self.tmp, self.dst = os.path.abspath(src), \
                                        os.path.abspath(tmp), \
                                        os.path.abspath(dst)
@@ -74,12 +76,15 @@ class Builder(ConsoleP):
                   .replace("%PKGDEST%", self.dst) \
                   .replace("%SRCDEST%", self.tmp)
 
+        self.verbose = verbose
+        self.nodeps = nodeps
+        self.force = force
         
         f = open(OUTFILE, "w+")
         f.write(mkp)
         f.close()
 
-    def build_all(self, verbose):
+    def build_all(self):
         category = None
 
         for root, dirs, files in os.walk(self.src):
@@ -95,7 +100,10 @@ class Builder(ConsoleP):
             for dir in (dir for dir in dirs if os.path.isfile(
                         os.path.join(self.src, root, dir, "PKGBUILD"))):
 
-                self.build_pkg(os.path.join(self.src, root, dir), category, verbose)
+                if root.endswith('lkm-skel'):
+                    continue
+
+                self.build_pkg(os.path.join(self.src, root, dir), category)
 
             category = None
 
@@ -103,7 +111,7 @@ class Builder(ConsoleP):
         os.chdir(self.dst)
         os.system("repo-add archpwn.db.tar.gz %s" % " ".join(glob.glob("*.pkg.tar.gz")))
 
-    def build_pkg(self, dir_path, category, verbose=True):
+    def build_pkg(self, dir_path, category):
         dir = os.path.basename(dir_path)
         try:
             outfile = PkgBuild(os.path.join(dir_path, "PKGBUILD")).get_output()
@@ -111,14 +119,17 @@ class Builder(ConsoleP):
             self.error("Problem while building %s (PKGBUILD malformed)" % dir)
             return
 
-        if os.path.isfile(os.path.join(self.dst, outfile)):
+        if not self.force and os.path.isfile(os.path.join(self.dst, outfile)):
             self.info("Package %s already built" % dir)
             return
 
         self.info("Building package %s" % dir)
 
         os.chdir(dir_path)
-        ret = os.system("makepkg -s --asroot%s" % ((not verbose) and (" > /dev/null") or ""))
+        ret = os.system("makepkg -s %s %s --asroot%s" % \
+                        ((self.force) and "-f" or "",
+                         (self.nodeps) and "-d" or "",
+                         (not self.verbose) and " > /dev/null" or ""))
 
         if ret != 0:
             self.info("Error building %s (Error status: %d)" % (dir, ret))
@@ -129,11 +140,15 @@ class Builder(ConsoleP):
 
 if __name__ == "__main__":
     parser = OptionParser(usage="%s [options] <repodir> <srcdest> <pkgdest>" % sys.argv[0])
-    parser.add_option("-f", "--file", dest="filename",
-                      help="write report to FILE", metavar="FILE")
     parser.add_option("-q", "--quiet",
                       action="store_true", dest="quiet", default=False,
                       help="don't print status messages to stdout")
+    parser.add_option("-d", "--nodeps",
+                      action="store_true", dest="nodeps", default=False,
+                      help="don't include dependecy checking")
+    parser.add_option("-f", "--force",
+                      action="store_true", dest="force", default=False,
+                      help="force rebuild if package is already present")
 
     (options, args) = parser.parse_args()
 
@@ -141,8 +156,10 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(-1)
 
-    builder = Builder(args[0], args[1], args[2])
-    builder.build_all(not options.quiet)
+    builder = Builder(args[0], args[1], args[2], \
+                      not options.quiet, options.nodeps, options.force)
+
+    builder.build_all()
     builder.create_repo()
 
     os.remove(OUTFILE)
