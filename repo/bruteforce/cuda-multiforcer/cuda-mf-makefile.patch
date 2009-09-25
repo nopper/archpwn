@@ -1,0 +1,17 @@
+--- Makefile.orig	2009-07-05 16:40:35.000000000 +0200
++++ Makefile	2009-07-05 16:41:26.000000000 +0200
+@@ -33,7 +33,7 @@
+ #
+ ################################################################################
+ # Add source files here
+-EXECUTABLE	:= CUDA-Multiforcer
++EXECUTABLE	:= cuda-multiforcer
+ # Cuda source files (compiled with cudacc)
+ CUFILES		:= Multiforcer.cu
+ # C/C++ source files (compiled with gcc / c++)
+@@ -44,4 +45,4 @@
+ # Rules and targets
+ 
+ 
+-include ../../common/common.mk
++include /opt/cuda/common/common.mk
