@@ -1,0 +1,12 @@
+--- mdk3.c.orig	2009-07-19 16:16:03.000000000 +0200
++++ mdk3.c	2009-07-19 16:16:18.000000000 +0200
+@@ -65,9 +65,6 @@
+ }
+ 
+ 
+-// Avoid GCC Warnings (Implicit Declarations)
+-extern int getline(char **string, int *size, FILE *f);
+-
+ static struct wif *_wi_in, *_wi_out;
+ 
+ struct devices
