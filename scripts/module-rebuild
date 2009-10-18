@@ -85,7 +85,7 @@ class ModuleRebuild(ConsoleP):
         )
 
         forced = (
-            'aufs-utils',
+            'aufs2-util',
         )
 
         for child in self.graph['kernel26']:
