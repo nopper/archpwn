@@ -1,1 +1,8 @@
 *.pyc
+*.o
+*.gz
+*.bz2
+*.swp
+*.part
+*.tar
+repo/*/*/[pkg,src]
