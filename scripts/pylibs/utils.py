@@ -31,7 +31,7 @@ if os.name == 'posix':
     green = "\033[1;32m"
     brown = "\033[0;33m"
     red = "\033[1;31m"
-else:                    
+else:
     reset = yellow = green = brown = red = ''
 
 addLevelName(10, '%sDBG%s' % (brown, reset))
@@ -81,7 +81,7 @@ class ConsoleP(object):
     def write(self, txt): print txt
     def info(self, txt): log.info(txt)
     def error(self, txt): log.error(txt)
-    def warning(self, txt): pass#log.warning(txt)
+    def warning(self, txt): log.warning(txt)
     def debug(self, txt): pass#log.debug(txt)
 
 class Singleton(object):
@@ -141,19 +141,19 @@ class Node(object):
     def add_dep(self, node):
         if node not in self.deps:
             self.deps.append(node)
-        
+
         node.root = self
 
     def get_depth(self):
         idx = 0
         root = self.root
-        
+
         while root:
             root = root.root
             idx += 1
 
         return idx
-    
+
     def __iter__(self):
         yield self
 

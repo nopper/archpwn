@@ -109,12 +109,12 @@ class Scope(ConsoleP):
 
         self.debug("Parsed `%s` => `%s`" % (txt, ret))
         return ret
-    
+
     def increase_level(self):
         pass
     def decrease_level(self):
         pass
-    
+
     def dump(self):
         for k, v in self.cscope.items():
             self.debug("%s => %s" % (k, v))
@@ -186,7 +186,7 @@ class Interpreter(ConsoleP):
                 if token == '(' or \
                    token == ')':
                     continue
-                
+
                 if token == '{':
                     self.state = self.ST_FNC
                     continue
@@ -217,7 +217,7 @@ class Interpreter(ConsoleP):
                         if token != '\n':
                             arr_val.append(self.scope.escape(token))
                         token = self.eval.get_token()
-                    
+
                     self.scope.parse_assign(var, operator, tuple(arr_val))
                 else:
                     self.scope.parse_assign(var, operator, self.scope.escape(token))

@@ -63,6 +63,7 @@ class Builder(ConsoleP):
     def __init__(self, src, tmp, dst, \
                  verbose=True, nodeps=False, force=False):
 
+        self.failed = []
         self.src, self.tmp, self.dst = os.path.abspath(src), \
                                        os.path.abspath(tmp), \
                                        os.path.abspath(dst)
@@ -79,7 +80,7 @@ class Builder(ConsoleP):
         self.verbose = verbose
         self.nodeps = nodeps
         self.force = force
-        
+
         f = open(OUTFILE, "w+")
         f.write(mkp)
         f.close()
@@ -133,6 +134,7 @@ class Builder(ConsoleP):
 
         if ret != 0:
             self.info("Error building %s (Error status: %d)" % (dir, ret))
+            self.failed.append(dir)
 
         # Cleaning up the dir by removing 'pkg' and 'src' directories
         shutil.rmtree("src", True)
@@ -160,6 +162,11 @@ if __name__ == "__main__":
                       not options.quiet, options.nodeps, options.force)
 
     builder.build_all()
-    builder.create_repo()
+
+    if not builder.failed:
+        builder.create_repo()
+    else:
+        builder.warning("Not all packages have been generated successfully.")
+        builder.warning("These are the missing: %s" % str(builder.failed))
 
     os.remove(OUTFILE)
