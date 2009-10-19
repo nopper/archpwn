@@ -5,4 +5,5 @@
 *.swp
 *.part
 *.tar
-repo/*/*/[pkg,src]
+repo/*/*/[pkg,src] # this doesn't seem to work as expected...
+src/
