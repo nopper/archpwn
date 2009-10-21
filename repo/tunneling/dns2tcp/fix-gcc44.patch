@@ -1,0 +1,22 @@
+--- a/common/includes/dns.h	2009-10-21 20:41:54.000000000 +0200
++++ b/common/includes/dns.h	2009-10-21 20:43:49.000000000 +0200
+@@ -139,7 +139,7 @@
+ void    dns_simple_decode(char *input, char *output, int max_len);
+ void	dns_encode(char *);
+ void	*jump_end_query(void *, int, int);
+-#ifndef _WIN32
++#ifdef _WIN32
+ int	strnlen(char *, int len);
+ #endif
+ 
+diff -ur a/server/includes/server.h b/server/includes/server.h
+--- a/server/includes/server.h	2009-10-21 20:52:27.000000000 +0200
++++ b/server/includes/server.h	2009-10-21 20:52:45.000000000 +0200
+@@ -48,7 +48,6 @@
+ }			t_conf;
+ 
+ int	do_server(t_conf *);
+-int	strnlen(char *, int); /* not present ?*/
+ int	delete_client(t_conf *conf, struct s_simple_list *client);
+ void	delete_zombie(t_conf *conf);
+ 
