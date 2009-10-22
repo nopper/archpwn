@@ -24,7 +24,7 @@ from pylibs.utils import Singleton
 class LibALPM(Singleton):
     def __init__(self):
         self.libalpm = ctypes.cdll.LoadLibrary("libalpm.so")
-    
+
     def vercmp(self, a, b):
         if not isinstance(a, basestring) or \
            not isinstance(b, basestring):

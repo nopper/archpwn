@@ -136,6 +136,9 @@ class Interpreter(ConsoleP):
     ST_VAL, \
     ST_ERR = range(5)
 
+    def warning(self, x):
+        pass
+
     def __init__(self, path, data=None):
         if path is None:
             self.eval = shlex.shlex(data, posix=True)

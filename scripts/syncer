@@ -112,7 +112,7 @@ class Syncer(ConsoleP):
                 cur.execute("""SELECT V.name, V.work_ver FROM versions AS V
                                  JOIN aur_pkg AS A ON V.name = A.name
                                  WHERE V.orig_ver IS NULL""").fetchall()):
-                
+
                 # Let's download the pkgbuild from aur.archlinux.org and
                 # parse the versions.
 
@@ -132,7 +132,7 @@ class Syncer(ConsoleP):
                                      WHERE name = ?""", (pver, ts, pname))
                 except AurException, err:
                     err_pkgs += 1
-                
+
             self.info("=" * 50)
             self.info("%d total HTTP GETs:" % tot_pkgs)
             self.info("%d packages correctly downloaded, %d not found." \
@@ -211,7 +211,7 @@ class Syncer(ConsoleP):
 
             if oldver is not None:
                 ret = libalpm.vercmp(oldver, pver)
-            
+
                 if ret is -1:
                     self.write("U %s %s -> %s" % (pname, oldver, pver))
                 elif ret is 0:
@@ -248,6 +248,10 @@ class Syncer(ConsoleP):
             ts = datetime.datetime.fromtimestamp(os.stat(pkgdir)[stat.ST_MTIME])
             tot_pkgs += 1
 
+            if isinstance(pname, tuple):
+                # Splitted package
+                pname = pname[0]
+
             # Check the presence of our package
             cur.execute("SELECT work_ver FROM versions WHERE name=?", (pname, ))
 
@@ -256,7 +260,7 @@ class Syncer(ConsoleP):
             if oldver is not None:
                 oldver = str(oldver[0])
                 ret = libalpm.vercmp(oldver, pver)
-            
+
                 if ret is -1:
                     self.write("U %s %s -> %s" % (pname, oldver, pver))
                 elif ret is 0:

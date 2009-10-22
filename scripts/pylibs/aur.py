@@ -26,7 +26,8 @@ from datetime import datetime
 from pylibs.pkgbuild import PkgBuild
 
 re_href = compile('.a href=.(\S+)\/">')
-re_time = compile('(\d{2})-(\S{3})-(\d{4}) (\d{2}):(\d{2})\s+')
+#re_time = compile('(\d{2})-(\S{3})-(\d{4}) (\d{2}):(\d{2})\s+')
+re_time = compile('(\d{4})-(\S{3})-(\d{2}) (\d{2}):(\d{2}):(\d{2})')
 
 def foreach_aur():
     f = urlopen("http://aur.archlinux.org/packages/?")
@@ -42,9 +43,9 @@ def foreach_aur():
         if time:
             yield (href.group(1), \
                    datetime.fromtimestamp(mktime(
-                       strptime("%s %s %s %s:%s" % (time.group(1),
+                       strptime("%s %s %s %s:%s" % (time.group(3),
                                                     time.group(2),
-                                                    time.group(3),
+                                                    time.group(1),
                                                     time.group(4),
                                                     time.group(5)),
                                 "%d %b %Y %H:%M"))))
