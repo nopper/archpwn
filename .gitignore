@@ -6,3 +6,5 @@
 *.part
 *.tar
 repo/*/*/[pkg,src]
+pacman/src/*
+pacman/pkg/*
