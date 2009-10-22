@@ -1,0 +1,209 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2008-2009 Francesco Piccinno
+#
+# Author: Francesco Piccinno <stack.box@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+import os
+import os.path
+import re
+import sys
+import sqlite3
+
+from urllib2 import build_opener, Request, HTTPError
+from optparse import OptionParser
+from pylibs.pkgbuild import PkgBuild
+from pylibs.utils import foreach_pkgbuild, ConsoleP
+from pylibs.libalpm import libalpm
+
+class Updater(ConsoleP):
+    def __init__(self, repodir):
+        self.repodir = repodir
+        self.db = sqlite3.connect('update.db')
+        self.check_db()
+
+    def check_db(self):
+        cur = self.db.cursor()
+        cur.execute("""SELECT sql FROM sqlite_master
+                         WHERE type='table'
+                           AND name='update'
+                           AND tbl_name='update'""")
+
+        if not cur.fetchone():
+            cur.execute("""CREATE TABLE 'update' (
+                             'name' VARCHAR NOT NULL PRIMARY KEY,
+                             'header' VARCHAR NOT NULL)""")
+
+        self.db.commit()
+
+    def new_request(self, url, pname):
+        req = Request(url)
+
+        # Now get the cached headers from sqlite database
+        cur = self.db.cursor()
+        cur.execute("SELECT header FROM 'update' WHERE name=?", (pname, ))
+
+        headers = cur.fetchone()
+
+        if headers:
+            for header in headers[0].splitlines():
+                key, value = header.split(': ', 1)
+                req.add_header(key, value)
+
+        return req
+
+    def save_headers(self, pname, headers):
+        cur = self.db.cursor()
+        cur.execute("SELECT name FROM 'update' WHERE name=?", (pname, ))
+
+        if not cur.fetchone():
+            cur.execute("INSERT INTO 'update'(name, header) VALUES(?, ?)",
+                        (pname, headers))
+        else:
+            cur.execute("UPDATE 'update' SET header=? WHERE name=?",
+                        (headers, pname))
+
+        self.db.commit()
+
+    def get_update_url(self, pkgbuild):
+        """
+        @return (url_to_check, regex_to_find) or None
+        """
+        pupdate, purl, psource = pkgbuild.get('updateurl'), \
+                                 pkgbuild.get('url'),       \
+                                 pkgbuild.get('source')
+
+        if pupdate:
+            try:
+                url, rex = pupdate.split('=>', 1)
+            except ValueError: 
+                url, rex = pupdate, None
+
+            return (url, rex)
+        else:
+            is_sf = lambda x: ('sf.net' in x or 'sourceforge.net' in x)
+
+            sf_sources = filter(is_sf, psource)
+
+            if is_sf(purl) and filter(is_sf, psource):
+                pver = pkgbuild.get('pkgver')
+                pname, pfile = sf_sources[0].split('/')[-2:]
+
+                # We have the name and the link.
+                # Now try to get the correct separator
+
+                sep = '-'
+                sepdefaults = '-_'
+
+                if pname in pfile:
+                    sep = pfile[pfile.index(pname) + len(pname)]
+                else:
+                    pkgname = pkgbuild.get('pkgname')
+                    
+                    if pkgname in pfile:
+                        sep = pfile[pfile.index(pkgname) + len(pkgname)]
+                
+                if sep not in sepdefaults:
+                    sep = sepdefaults[0]
+
+                return ('http://sf.net/projects/' + pname + '/files/', pname + sep + self.extract_regex(pver))
+
+    def extract_regex(self, pkgver):
+        valid = '.-'
+        out = ''
+        set = False
+
+        for i in pkgver:
+            if i in valid:
+                out += "\\" + i
+                set = False
+            elif not set:
+                out += r"\S"
+                set = True
+
+        try:
+            re.compile(out)
+            return '(%s)' % out
+        except re.error:
+            self.error('Bogus regex: %s' % out)
+
+    def check(self):
+        opener = build_opener()
+
+        for pkgdir, category in foreach_pkgbuild(self.repodir):
+            pkg = PkgBuild(os.path.join(pkgdir, 'PKGBUILD'))
+
+            pname, pver = pkg.get('pkgname'), \
+                          pkg.get('pkgver')
+
+            try:
+                url, rex = self.get_update_url(pkg)
+            except TypeError:
+                continue
+
+            try:
+                request = self.new_request(url, pname)
+
+                try:
+                    data = opener.open(request)
+
+                    if rex:
+                        html = data.read()
+                        vers = re.findall(rex, html, re.IGNORECASE)
+                        vers = frozenset(vers)
+
+                        for ver in vers:
+                            if libalpm.vercmp(pver, ver) < 0:
+                                self.info('%s-%s => %s %s' % (pname, pver,
+                                                              ver, list(vers)))
+                                break
+                    else:
+                        self.warning('%s-%s => probably updated' % \
+                                     (pname, pver))
+
+                    etag = data.headers.dict.get('etag', None)
+                    lastmod = data.headers.dict.get('last-modified', None)
+
+                    headers = []
+
+                    if etag:
+                        headers.append('If-None-Match: ' + etag)
+                    if lastmod:
+                        headers.append('If-Modified-Since: ' + lastmod)
+
+                    self.save_headers(pname, '\n'.join(headers))
+
+                except HTTPError, err:
+                    if err.code != 304:
+                        self.error('Error while checking updates for %s (%s -> %s)' % \
+                                   (pname, url, err.code))
+                    else:
+                        self.warning('%s-%s => cached' % (pname, pver))
+            except Exception, exc:
+                self.error('Error in updateurl of %s' % pkgdir)
+
+if __name__ == "__main__":
+    parser = OptionParser(usage="""%s <repodir>
+
+Small script to take track updates of PKGBUILDs by using updateurl field""" % sys.argv[0])
+    (options, args) = parser.parse_args()
+
+    if len(args) == 1:
+        updater = Updater(args[0])
+        updater.check()
+    else:
+        parser.print_help()
