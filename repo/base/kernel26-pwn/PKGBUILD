@@ -83,6 +83,7 @@ package_kernel26-pwn() {
   optdepends=('crda: to set the correct wireless channels of your country')
 
   # start actual packaging now
+  KARCH=x86
   cd "$srcdir"/linux-$_basekernel
   _kernver="$(make kernelrelease)"
   mkdir -p ${pkgdir}/{lib/modules,boot}
@@ -92,6 +93,7 @@ package_kernel26-pwn() {
 }
 
 package_kernel26-pwn-sources() {
+  KARCH=x86
   cd "$srcdir"/linux-$_basekernel
   _kernver="$(make kernelrelease)"
 

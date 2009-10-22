@@ -1,12 +1,8 @@
 *.pyc
 *.o
-*.tgz
 *.gz
 *.bz2
 *.swp
 *.part
 *.tar
-repo/*/*/src
-repo/*/*/pkg
-pacman/src/*
-pacman/pkg/*
+repo/*/*/[pkg,src]
