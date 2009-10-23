@@ -23,15 +23,17 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
         # reiser4
         http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/reiser4-for-2.6.31.patch.bz2
         # openlog patch, required for "defragmenting" livecd
-        openlog.patch)
-
+        openlog.patch
+	# add squashfs-lzma support
+	add-squashfs-lzma.patch)
 md5sums=('84c077a37684e4cbfa67b18154390d8a'
          '02078f4231baee4f0004212f2875df2b'
-         '17cf9fe38ee4979123f81695bdd3c540'
+         'b8375a3578ed295b551f21d952fb09db'
          '3d9f083140021939d22ab8a3d5748c77'
          'ca85d39144f07b0500c663779dda9259'
          'f43c1e626c8ac83e20f200998d3a818b'
-         'a49390dd08e4f7702b8f4b550f1ad84e')
+         'a49390dd08e4f7702b8f4b550f1ad84e'
+         'e6b389be495f2fedc9d25c883bbf28f1')
 
 build() {
   KARCH=x86
@@ -43,6 +45,9 @@ build() {
   patch -Np1 -i "$srcdir"/reiser4-for-2.6.31.patch || return 1
   # openlog
   patch -Np0 -i "$srcdir"/openlog.patch || return 1
+  # squashfs with lzma
+  patch -Np1 -i "$srcdir"/super.patch || return 1
+  patch -Np1 -i "$srcdir"/add-squashfs-lzma.patch || return 1
   cat ../config >./.config
   if [ "${_kernelname}" != "" ]; then
     sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
@@ -90,6 +95,8 @@ package_kernel26-pwn() {
   make INSTALL_MOD_PATH=${pkgdir} modules_install || return 1
   cp System.map ${pkgdir}/boot/System.map26${_kernelname}
   cp arch/$KARCH/boot/bzImage ${pkgdir}/boot/vmlinuz26${_kernelname} || return 1
+  cd ${pkgdir}/lib/modules/${_kernver} && \
+	(rm -f source build; ln -sf ../../../usr/src/linux-${_kernver} build)
 }
 
 package_kernel26-pwn-sources() {
@@ -189,8 +196,6 @@ package_kernel26-pwn-sources() {
 
   chown -R root.root ${pkgdir}/usr/src/linux-${_kernver}
   find ${pkgdir}/usr/src/linux-${_kernver} -type d -exec chmod 755 {} \;
-  cd ${pkgdir}/lib/modules/${_kernver} && \
-    (rm -f source build; ln -sf ../../../usr/src/linux-${_kernver} build)
   # install fallback mkinitcpio.conf file and preset file for kernel
   install -m644 -D ${srcdir}/$pkgname.preset ${pkgdir}/etc/mkinitcpio.d/${pkgname}.preset || return 1
   # set correct depmod command for install
