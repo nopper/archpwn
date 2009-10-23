@@ -29,6 +29,8 @@ class Scope(ConsoleP):
         self.scopes.append({"pkgdir" : "", "srcdir" : "", "startdir" : ""})
         self.current = 0
 
+        ConsoleP.__init__(self, 'pkgbuild')
+
     def allocate_var(self, token):
         self.debug("Allocating variable `%s`" % token)
         return (self.cscope, token)
@@ -136,10 +138,9 @@ class Interpreter(ConsoleP):
     ST_VAL, \
     ST_ERR = range(5)
 
-    def warning(self, x):
-        pass
-
     def __init__(self, path, data=None):
+        ConsoleP.__init__(self, 'pkgbuild')
+
         if path is None:
             self.eval = shlex.shlex(data, posix=True)
         else:

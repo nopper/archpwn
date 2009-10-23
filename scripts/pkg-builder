@@ -62,6 +62,7 @@ OUTFILE = os.path.join(os.getenv("HOME", "/root"), ".makepkg.conf")
 class Builder(ConsoleP):
     def __init__(self, src, tmp, dst, \
                  verbose=True, nodeps=False, force=False):
+        ConsoleP.__init__(self, 'pkgbuilder')
 
         self.failed = []
         self.src, self.tmp, self.dst = os.path.abspath(src), \
@@ -127,7 +128,7 @@ class Builder(ConsoleP):
         self.info("Building package %s" % dir)
 
         os.chdir(dir_path)
-        ret = os.system("makepkg -s %s %s --asroot%s" % \
+        ret = os.system("makepkg -s %s %s%s" % \
                         ((self.force) and "-f" or "",
                          (self.nodeps) and "-d" or "",
                          (not self.verbose) and " > /dev/null" or ""))

@@ -33,6 +33,8 @@ anim = Animator()
 
 class ModuleRebuild(ConsoleP):
     def __init__(self, absdir, regendir, all=False):
+        ConsoleP.__init__(self, 'modulerebuild')
+
         self.absdir = os.path.abspath(absdir)
         self.regendir = os.path.abspath(regendir)
 
@@ -47,7 +49,7 @@ class ModuleRebuild(ConsoleP):
 
             self.info("Regenarating all packages:")
 
-            for pkgdir, category in foreach_pkgbuild(self.absdir):
+            for pkgdir in foreach_pkgbuild(self.absdir):
                 try:
                     pbuild = PkgBuild(os.path.join(pkgdir, 'PKGBUILD'))
                     pname = pbuild.get('pkgname')
@@ -131,12 +133,12 @@ class ModuleRebuild(ConsoleP):
 
             elif file.endswith('.install'):
                 os.system('sed -i "s|\(KERNEL_VERSION=.*\)-ARCH|\\1-pwn|g" %s' % os.path.join(dirname, file))
-    
+
     def create_dep_graph(self, root='kernel26'):
         idx = 0
         self.graph = {root : RNode(root)}
 
-        for pkgdir, category in foreach_pkgbuild(self.absdir):
+        for pkgdir in foreach_pkgbuild(self.absdir):
             try:
                 pbuild = PkgBuild(os.path.join(pkgdir, 'PKGBUILD'))
 

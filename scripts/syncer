@@ -36,6 +36,8 @@ from pylibs.utils import ConsoleP, foreach_pkgbuild
 
 class Syncer(ConsoleP):
     def __init__(self, absdir, repodir, db, abs, verbose):
+        ConsoleP.__init__(self, 'syncer')
+
         self.orig_dir = absdir
         self.work_dir = repodir
         self.verbose = verbose
@@ -182,7 +184,7 @@ class Syncer(ConsoleP):
         work_lst = map(lambda x: x[0],
                        cur.execute("SELECT name FROM versions").fetchall())
 
-        for pkgdir, category in foreach_pkgbuild(self.orig_dir):
+        for pkgdir in foreach_pkgbuild(self.orig_dir):
             # Check the presence in the db.
 
             key = os.path.basename(pkgdir)
@@ -238,7 +240,7 @@ class Syncer(ConsoleP):
         tot_pkgs = 0
         cur = self.db.cursor()
 
-        for pkgdir, category in foreach_pkgbuild(self.work_dir):
+        for pkgdir in foreach_pkgbuild(self.work_dir):
             pkg = PkgBuild(os.path.join(pkgdir, "PKGBUILD"))
 
             pname, pver, pdir = pkg.get("pkgname"), \

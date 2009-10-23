@@ -34,6 +34,8 @@ anim = Animator()
 
 class Manager(ConsoleP):
     def __init__(self, repodir, absdir):
+        ConsoleP.__init__(self, 'emerge')
+
         self.dirs = [repodir, absdir]
         self.cache = {}
         self.graph = {}
@@ -51,12 +53,12 @@ class Manager(ConsoleP):
         }
 
         self.cache_pkgbuilds()
-    
+
     def cache_pkgbuilds(self):
         idx = 0
 
         for dir in self.dirs:
-            for pkgdir, category in foreach_pkgbuild(dir):
+            for pkgdir in foreach_pkgbuild(dir):
                 pname = os.path.basename(pkgdir)
 
                 if pname not in self.cache:
@@ -93,7 +95,7 @@ class Manager(ConsoleP):
 
     def get_pkgbuild(self, pname):
         return PkgBuild(os.path.join(self.cache[pname], "PKGBUILD"))
-    
+
     def create_dep_graph(self, pname):
         # TODO: we should support provides here?
         #       and also version support for dependencies?
@@ -121,7 +123,7 @@ class Manager(ConsoleP):
 
         for dep in pdeps:
             child = None
-            
+
             if dep in self.graph:
                 child = self.graph[dep]
             else:

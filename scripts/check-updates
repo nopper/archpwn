@@ -32,6 +32,8 @@ from pylibs.libalpm import libalpm
 
 class Updater(ConsoleP):
     def __init__(self, repodir):
+        ConsoleP.__init__(self, 'updates')
+
         self.repodir = repodir
         self.db = sqlite3.connect('update.db')
         self.check_db()
@@ -83,14 +85,15 @@ class Updater(ConsoleP):
         """
         @return (url_to_check, regex_to_find) or None
         """
-        pupdate, purl, psource = pkgbuild.get('updateurl'), \
-                                 pkgbuild.get('url'),       \
-                                 pkgbuild.get('source')
-
+        pupdate, purl, psource, pver = pkgbuild.get('updateurl'), \
+                                       pkgbuild.get('url'),       \
+                                       pkgbuild.get('source'),    \
+                                       pkgbuild.get('pkgver')
         if pupdate:
             try:
                 url, rex = pupdate.split('=>', 1)
-            except ValueError: 
+                rex += self.extract_regex(pver)
+            except ValueError:
                 url, rex = pupdate, None
 
             return (url, rex)
@@ -100,7 +103,6 @@ class Updater(ConsoleP):
             sf_sources = filter(is_sf, psource)
 
             if is_sf(purl) and filter(is_sf, psource):
-                pver = pkgbuild.get('pkgver')
                 pname, pfile = sf_sources[0].split('/')[-2:]
 
                 # We have the name and the link.
@@ -113,14 +115,15 @@ class Updater(ConsoleP):
                     sep = pfile[pfile.index(pname) + len(pname)]
                 else:
                     pkgname = pkgbuild.get('pkgname')
-                    
+
                     if pkgname in pfile:
                         sep = pfile[pfile.index(pkgname) + len(pkgname)]
-                
+
                 if sep not in sepdefaults:
                     sep = sepdefaults[0]
 
-                return ('http://sf.net/projects/' + pname + '/files/', pname + sep + self.extract_regex(pver))
+                return ('http://sf.net/projects/' + pname + '/files/',
+                        pname + sep + self.extract_regex(pver))
 
     def extract_regex(self, pkgver):
         valid = '.-'
@@ -144,7 +147,7 @@ class Updater(ConsoleP):
     def check(self):
         opener = build_opener()
 
-        for pkgdir, category in foreach_pkgbuild(self.repodir):
+        for pkgdir in foreach_pkgbuild(self.repodir):
             pkg = PkgBuild(os.path.join(pkgdir, 'PKGBUILD'))
 
             pname, pver = pkg.get('pkgname'), \
@@ -152,6 +155,7 @@ class Updater(ConsoleP):
 
             try:
                 url, rex = self.get_update_url(pkg)
+                self.debug('URL: %s REGEX: %s' % (url, rex))
             except TypeError:
                 continue
 
@@ -168,8 +172,9 @@ class Updater(ConsoleP):
 
                         for ver in vers:
                             if libalpm.vercmp(pver, ver) < 0:
-                                self.info('%s-%s => %s %s' % (pname, pver,
-                                                              ver, list(vers)))
+                                self.info('%s/%s-%s => %s %s' % \
+                                          (pkgdir, pname, pver,
+                                           ver, list(vers)))
                                 break
                     else:
                         self.warning('%s-%s => probably updated' % \
@@ -197,9 +202,9 @@ class Updater(ConsoleP):
                 self.error('Error in updateurl of %s' % pkgdir)
 
 if __name__ == "__main__":
-    parser = OptionParser(usage="""%s <repodir>
-
-Small script to take track updates of PKGBUILDs by using updateurl field""" % sys.argv[0])
+    parser = OptionParser(usage="%s <repodir>\n\nSmall script to take track"
+                                "updates of PKGBUILDs by using updateurl "
+                                "field" % sys.argv[0])
     (options, args) = parser.parse_args()
 
     if len(args) == 1:
