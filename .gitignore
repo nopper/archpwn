@@ -5,6 +5,7 @@
 *.swp
 *.part
 *.tar
-repo/*/*/[pkg,src]
+repo/*/*/src/
+repo/*/*/pkg/
 pacman/src/*
 pacman/pkg/*
