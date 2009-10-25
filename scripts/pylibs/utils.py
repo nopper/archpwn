@@ -45,7 +45,7 @@ logging.config.fileConfig(os.path.join(os.path.dirname(__file__), 'logging.ini')
 
 def foreach_pkgbuild(pdir):
     for root, dirs, files in os.walk(pdir):
-        if len(files) == 1 and files[0] == 'PKGBUILD':
+        if 'PKGBUILD' in files:
             yield root
 
 class ConsoleP(object):
