@@ -64,7 +64,9 @@ class Builder(ConsoleP):
     def __init__(self, src, tmp, dst, nodeps=False, force=False):
         ConsoleP.__init__(self, 'pkgbuilder')
 
+        self.built = 0
         self.failed = []
+
         self.src, self.tmp, self.dst = os.path.abspath(src), \
                                        os.path.abspath(tmp), \
                                        os.path.abspath(dst)
@@ -102,8 +104,8 @@ class Builder(ConsoleP):
         f.close()
 
         if installed:
-            self.info('These packages were installed as dependencies:')
-            self.debug(installed)
+            self.info('These packages were installed as dependencies' \
+                      'and will be dropped:')
 
             packs = re.findall(
                 r"\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}\]\s(\w+)\s([^\s]+)\s(.*)$",
@@ -111,8 +113,12 @@ class Builder(ConsoleP):
             packs = map(lambda x: x[1], filter(lambda x: x[0] == 'installed', packs))
 
             self.info('%s' % packs)
+            os.system('sudo pacman -Rd %s' % ' '.join(packs))
 
     def create_repo(self):
+        if self.built == 0:
+            return
+
         origdir = os.getcwd()
 
         os.chdir(self.dst)
@@ -144,7 +150,7 @@ class Builder(ConsoleP):
 
         os.chdir(dir_path)
 
-        mkpkg = "LC_ALL=C makepkg -s%s%s > %s" % (
+        mkpkg = "LC_ALL=C makepkg --noconfirm -s%s%s > %s" % (
             (self.force) and " -f" or "",
             (self.nodeps) and " -d" or "", logfile)
 
@@ -154,6 +160,8 @@ class Builder(ConsoleP):
             self.error("Error building %s. (Error status: %d)" % (dir, ret))
             self.warning("Take a look to logs/build_%s.log" % dir)
             self.failed.append(dir)
+        else:
+            self.built += 1
 
         # Cleaning up the dir by removing 'pkg' and 'src' directories
         shutil.rmtree("src", True)
