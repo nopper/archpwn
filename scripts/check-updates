@@ -92,7 +92,9 @@ class Updater(ConsoleP):
         if pupdate:
             try:
                 url, rex = pupdate.split('=>', 1)
-                rex += self.extract_regex(pver)
+
+                if '(' not in rex or ')' not in rex:
+                    rex += self.extract_regex(pver)
             except ValueError:
                 url, rex = pupdate, None
 
