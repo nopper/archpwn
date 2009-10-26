@@ -105,7 +105,7 @@ class Builder(ConsoleP):
         f.close()
 
         if installed:
-            self.info('These packages were installed as dependencies' \
+            self.info('These packages were installed as dependencies ' \
                       'and will be dropped:')
 
             packs = re.findall(
