@@ -104,14 +104,14 @@ class Updater(ConsoleP):
 
             sf_sources = filter(is_sf, psource)
 
-            if is_sf(purl) and filter(is_sf, psource):
+            if sf_sources:
                 pname, pfile = sf_sources[0].split('/')[-2:]
 
                 # We have the name and the link.
                 # Now try to get the correct separator
 
                 sep = '-'
-                sepdefaults = '-_'
+                sepdefaults = '-_.'
 
                 if pname in pfile:
                     sep = pfile[pfile.index(pname) + len(pname)]
@@ -137,12 +137,12 @@ class Updater(ConsoleP):
                 out += "\\" + i
                 set = False
             elif not set:
-                out += r"\S"
+                out += r"[^\. /]+"
                 set = True
 
         try:
             re.compile(out)
-            return '(%s)' % out
+            return '(%s)\\.' % out
         except re.error:
             self.error('Bogus regex: %s' % out)
 
