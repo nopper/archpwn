@@ -162,25 +162,24 @@ class Builder(ConsoleP):
 
         proc = Popen(mkpkg, env=env, shell=True, stdout=PIPE, stderr=STDOUT)
 
-        while ret is None:
-            buff = os.read(proc.stdout.fileno(), 1024)
+        try:
+            while ret is None:
+                buff = os.read(proc.stdout.fileno(), 1024)
 
-            if buff:
-                sys.stdout.write(buff)
-                sys.stdout.flush()
+                if buff:
+                    sys.stdout.write(buff)
+                    sys.stdout.flush()
 
-                logf.write(buff)
+                    logf.write(buff)
 
-            ret = proc.poll()
+                ret = proc.poll()
+
+        except KeyboardInterrupt:
+            proc.kill()
+            ret = -1
+            self.warning("makepkg process killed.")
 
         logf.close()
-
-        if ret != 0:
-            self.error("Error building %s. (Error status: %d)" % (dir, ret))
-            self.warning("Take a look to logs/build_%s.log" % dir)
-            self.failed.append(dir)
-        else:
-            self.built += 1
 
         # Cleaning up the dir by removing 'pkg' and 'src' directories
         shutil.rmtree("src", True)
@@ -188,6 +187,18 @@ class Builder(ConsoleP):
 
         # Restore original directory
         os.chdir(origdir)
+
+        if ret != 0:
+            self.error("Error building %s. (Error status: %d)" % (dir, ret))
+            self.warning("Take a look to logs/build_%s.log" % dir)
+            self.failed.append(dir)
+        else:
+            self.built += 1
+            output = os.path.join(self.dst, outfile)
+
+            if os.system("namcap %s > logs/namcap_%s.log" % (output, dir)):
+                self.warning("Namcap has detected some problems. Take "
+                             "a look to logs/namcap_%s.log" % dir)
 
 if __name__ == "__main__":
     parser = OptionParser(usage="%s [options] <repodir> <srcdest> <pkgdest>" % sys.argv[0])
