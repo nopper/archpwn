@@ -1,6 +1,4 @@
 warvox-svn fails to compile, probably due to ruby19 incompability
-windows dir (no reason, just find it boring ;) )
-netdiscover switch to svn version (live build or snapshot?)
 wait for sqlmap version 0.8rc1
 exploit tree and milw0rm exploits should be build before the realease
 
