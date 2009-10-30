@@ -33,6 +33,7 @@ SKIPHOOKS=""
 PRESETDIR="$CWD/mkinitcpio.d"
 QUIET="y"
 SHOW_AUTOMODS="n"
+COMPRESSION="bzip2"
 
 # Add /{,usr}/sbin to path
 # works around undetected problems like in #8448
@@ -222,7 +223,7 @@ if [ "${SHOW_AUTOMODS}" = "y" ]; then
     exit 0
 fi
 
-if [ -n "${GENIMG}" ]; then
+if [ -z "${GENIMG}" ]; then
     echo ":: Begin dry run"
 else
     echo ":: Begin build"
@@ -276,7 +277,7 @@ fi
 status=0
 if [ -n "${GENIMG}" ]; then
     echo -n ":: Generating image '${GENIMG}'..."
-    if ! /sbin/gen_init_cpio ${FILELIST} | gzip -9 > "${GENIMG}"; then
+    if ! /sbin/gen_init_cpio ${FILELIST} | ${COMPRESSION} -9 > "${GENIMG}"; then
         echo "FAILED"
         status=1
     else
