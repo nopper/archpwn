@@ -94,7 +94,7 @@ class Builder(ConsoleP):
         for pkgdir in foreach_pkgbuild(self.src):
             rootdir = os.path.basename(pkgdir)
 
-            if rootdir.endswith('lkm-skel'):
+            if 'lkm-skel' in pkgdir:
                 continue
 
             self.build_pkg(pkgdir)
@@ -104,15 +104,14 @@ class Builder(ConsoleP):
         installed = f.read()
         f.close()
 
-        if installed:
+        packs = re.findall(
+            r"\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}\]\s(\w+)\s([^\s]+)\s(.*)$",
+            installed, re.MULTILINE)
+        packs = map(lambda x: x[1], filter(lambda x: x[0] == 'installed', packs))
+
+        if packs:
             self.info('These packages were installed as dependencies ' \
                       'and will be dropped:')
-
-            packs = re.findall(
-                r"\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}\]\s(\w+)\s([^\s]+)\s(.*)$",
-                installed, re.MULTILINE)
-            packs = map(lambda x: x[1], filter(lambda x: x[0] == 'installed', packs))
-
             self.info('%s' % packs)
             os.system('sudo pacman -Rd %s' % ' '.join(packs))
 
