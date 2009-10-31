@@ -27,7 +27,10 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
         # add squashfs-lzma support
         add-squashfs-lzma.patch
         # fbcondecor
-        http://dev.gentoo.org/~spock/projects/fbcondecor/archive/fbcondecor-0.9.6-2.6.31.2.patch)
+        http://dev.gentoo.org/~spock/projects/fbcondecor/archive/fbcondecor-0.9.6-2.6.31.2.patch
+        # aufs2 patch
+        aufs2-standalone.patch
+        aufs2-base.patch)
 md5sums=('84c077a37684e4cbfa67b18154390d8a'
          '6cac5e59d5562b591cdda485941204d5'
          '6e2ce3bce9e1e01a76313df4ba6f917b'
@@ -36,7 +39,9 @@ md5sums=('84c077a37684e4cbfa67b18154390d8a'
          'f43c1e626c8ac83e20f200998d3a818b'
          'a49390dd08e4f7702b8f4b550f1ad84e'
          'e6b389be495f2fedc9d25c883bbf28f1'
-         'b3fcdde7375c0e44f64a48736b2f45f0')
+         'b3fcdde7375c0e44f64a48736b2f45f0'
+         '3be85d2fe0cb1249a3eb6a932f680f7d'
+         '7e0062f5d03e2216deee1e6a272db3a4')
 
 build() {
   KARCH=x86
@@ -52,6 +57,9 @@ build() {
   patch -Np1 -i "$srcdir"/add-squashfs-lzma.patch || return 1
   # fbcondecor
   patch -Np1 -i "$srcdir"/fbcondecor-0.9.6-2.6.31.2.patch || return 1
+  # aufs2
+  patch -Np1 -i "$srcdir"/aufs2-standalone.patch || return 1
+  patch -Np1 -i "$srcdir"/aufs2-base.patch || return 1
   cat ../config >./.config
   if [ "${_kernelname}" != "" ]; then
     sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
@@ -61,15 +69,15 @@ build() {
   _kernver="$(make kernelrelease)"
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.
-  # make menuconfig # CLI menu for configuration
+  #make menuconfig # CLI menu for configuration
   #make xconfig # X-based configuration
   #make oldconfig # using old config from previous kernel version
   # ... or manually edit .config
   ####################
   # stop here
   # this is useful to configure the kernel
-  # msg "Stopping build"
-  # return 1
+  #msg "Stopping build"
+  #return 1
   ####################
   yes "" | make config
   # build!
