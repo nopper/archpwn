@@ -1,0 +1,168 @@
+diff --git a/fs/namei.c b/fs/namei.c
+index 60c01b1..64a5060 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -337,6 +337,7 @@ int deny_write_access(struct file * file)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(deny_write_access);
+ 
+ /**
+  * path_get - get a reference to a path
+@@ -1209,6 +1210,7 @@ struct dentry *lookup_hash(struct nameidata *nd)
+ 		return ERR_PTR(err);
+ 	return __lookup_hash(&nd->last, nd->path.dentry, nd);
+ }
++EXPORT_SYMBOL(lookup_hash);
+ 
+ int __lookup_one_len(const char *name, struct qstr *this,
+ 		struct dentry *base, int len)
+@@ -1231,6 +1233,7 @@ int __lookup_one_len(const char *name, struct qstr *this,
+ 	this->hash = end_name_hash(hash);
+ 	return 0;
+ }
++EXPORT_SYMBOL(__lookup_one_len);
+ 
+ /**
+  * lookup_one_len - filesystem helper to lookup single pathname component
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 134d494..5a6d038 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -38,6 +38,7 @@
+ 
+ /* spinlock for vfsmount related operations, inplace of dcache_lock */
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
++EXPORT_SYMBOL(vfsmount_lock);
+ 
+ static int event;
+ static DEFINE_IDA(mnt_id_ida);
+diff --git a/fs/open.c b/fs/open.c
+index bdfbf03..81c39b3 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -221,6 +221,7 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
+ 	mutex_unlock(&dentry->d_inode->i_mutex);
+ 	return err;
+ }
++EXPORT_SYMBOL(do_truncate);
+ 
+ static long do_sys_truncate(const char __user *pathname, loff_t length)
+ {
+diff --git a/fs/splice.c b/fs/splice.c
+index 35beccd..fbc3f77 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -925,6 +925,7 @@ long do_splice_from(struct pipe_inode_info *pipe, struct file *out,
+ 
+ 	return out->f_op->splice_write(pipe, out, ppos, len, flags);
+ }
++EXPORT_SYMBOL(do_splice_from);
+ 
+ /*
+  * Attempt to initiate a splice from a file to a pipe.
+@@ -947,6 +948,7 @@ long do_splice_to(struct file *in, loff_t *ppos,
+ 
+ 	return in->f_op->splice_read(in, ppos, pipe, len, flags);
+ }
++EXPORT_SYMBOL(do_splice_to);
+ 
+ /**
+  * splice_direct_to_actor - splices data directly between two non-pipes
+diff --git a/security/device_cgroup.c b/security/device_cgroup.c
+index 5fda7df..440e476 100644
+--- a/security/device_cgroup.c
++++ b/security/device_cgroup.c
+@@ -512,6 +512,7 @@ acc_check:
+ 
+ 	return -EPERM;
+ }
++EXPORT_SYMBOL(devcgroup_inode_permission);
+ 
+ int devcgroup_inode_mknod(int mode, dev_t dev)
+ {
+diff --git a/security/security.c b/security/security.c
+index 5284255..ed62ecd 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -389,6 +389,7 @@ int security_path_mkdir(struct path *path, struct dentry *dentry, int mode)
+ 		return 0;
+ 	return security_ops->path_mkdir(path, dentry, mode);
+ }
++EXPORT_SYMBOL(security_path_mkdir);
+ 
+ int security_path_rmdir(struct path *path, struct dentry *dentry)
+ {
+@@ -396,6 +397,7 @@ int security_path_rmdir(struct path *path, struct dentry *dentry)
+ 		return 0;
+ 	return security_ops->path_rmdir(path, dentry);
+ }
++EXPORT_SYMBOL(security_path_rmdir);
+ 
+ int security_path_unlink(struct path *path, struct dentry *dentry)
+ {
+@@ -403,6 +405,7 @@ int security_path_unlink(struct path *path, struct dentry *dentry)
+ 		return 0;
+ 	return security_ops->path_unlink(path, dentry);
+ }
++EXPORT_SYMBOL(security_path_unlink);
+ 
+ int security_path_symlink(struct path *path, struct dentry *dentry,
+ 			  const char *old_name)
+@@ -411,6 +414,7 @@ int security_path_symlink(struct path *path, struct dentry *dentry,
+ 		return 0;
+ 	return security_ops->path_symlink(path, dentry, old_name);
+ }
++EXPORT_SYMBOL(security_path_symlink);
+ 
+ int security_path_link(struct dentry *old_dentry, struct path *new_dir,
+ 		       struct dentry *new_dentry)
+@@ -419,6 +423,7 @@ int security_path_link(struct dentry *old_dentry, struct path *new_dir,
+ 		return 0;
+ 	return security_ops->path_link(old_dentry, new_dir, new_dentry);
+ }
++EXPORT_SYMBOL(security_path_link);
+ 
+ int security_path_rename(struct path *old_dir, struct dentry *old_dentry,
+ 			 struct path *new_dir, struct dentry *new_dentry)
+@@ -429,6 +434,7 @@ int security_path_rename(struct path *old_dir, struct dentry *old_dentry,
+ 	return security_ops->path_rename(old_dir, old_dentry, new_dir,
+ 					 new_dentry);
+ }
++EXPORT_SYMBOL(security_path_rename);
+ 
+ int security_path_truncate(struct path *path, loff_t length,
+ 			   unsigned int time_attrs)
+@@ -437,6 +443,7 @@ int security_path_truncate(struct path *path, loff_t length,
+ 		return 0;
+ 	return security_ops->path_truncate(path, length, time_attrs);
+ }
++EXPORT_SYMBOL(security_path_truncate);
+ #endif
+ 
+ int security_inode_create(struct inode *dir, struct dentry *dentry, int mode)
+@@ -508,6 +515,7 @@ int security_inode_readlink(struct dentry *dentry)
+ 		return 0;
+ 	return security_ops->inode_readlink(dentry);
+ }
++EXPORT_SYMBOL(security_inode_readlink);
+ 
+ int security_inode_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+@@ -522,6 +530,7 @@ int security_inode_permission(struct inode *inode, int mask)
+ 		return 0;
+ 	return security_ops->inode_permission(inode, mask);
+ }
++EXPORT_SYMBOL(security_inode_permission);
+ 
+ int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+@@ -622,6 +631,7 @@ int security_file_permission(struct file *file, int mask)
+ {
+ 	return security_ops->file_permission(file, mask);
+ }
++EXPORT_SYMBOL(security_file_permission);
+ 
+ int security_file_alloc(struct file *file)
+ {
