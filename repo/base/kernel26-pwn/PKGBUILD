@@ -30,7 +30,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
         http://dev.gentoo.org/~spock/projects/fbcondecor/archive/fbcondecor-0.9.6-2.6.31.2.patch)
 md5sums=('84c077a37684e4cbfa67b18154390d8a'
          '6cac5e59d5562b591cdda485941204d5'
-         '845631601af41e937725650987929111'
+         '6e2ce3bce9e1e01a76313df4ba6f917b'
          '3d9f083140021939d22ab8a3d5748c77'
          'ca85d39144f07b0500c663779dda9259'
          'f43c1e626c8ac83e20f200998d3a818b'
