@@ -150,7 +150,11 @@ class Updater(ConsoleP):
         opener = build_opener()
 
         for pkgdir in foreach_pkgbuild(self.repodir):
-            pkg = PkgBuild(os.path.join(pkgdir, 'PKGBUILD'))
+            try:
+                pkg = PkgBuild(os.path.join(pkgdir, 'PKGBUILD'))
+            except:
+                self.error('Error while parsing %s' % pkgdir)
+                continue
 
             pname, pver = pkg.get('pkgname'), \
                           pkg.get('pkgver')

@@ -98,7 +98,7 @@ class ModuleRebuild(ConsoleP):
                 continue
 
             self.add_pkg(child)
-        
+
         for force in forced:
             self.add_pkg(self.graph[force])
 
@@ -122,17 +122,21 @@ class ModuleRebuild(ConsoleP):
         # We use sed command against various files
         # because it's the more rapid approach
 
+        kver = os.popen('uname -r').read().strip()
+        kver = kver.replace('ARCH', 'pwn')
+
         for file in os.listdir(dirname):
             if file == 'PKGBUILD':
                 path = os.path.join(dirname, file)
 
-                os.system('sed -i "s|\(_kernelver=\)\\`uname -r\\`|\\1%s|g" %s' % ('2.6.28-pwn', path))
-                os.system('sed -i "s|^\(_kernver=.*\)-ARCH|\\1-pwn|g" %s' % path)
-                os.system('sed -i "s|\(kernelver=.*\)-ARCH|\\1-pwn|g" %s' % path)
-                os.system('sed -i "s|\(KERNEL_VERSION=.*\)-ARCH|\\1-pwn|g" %s' % path)
+                os.system('sed -i "s|\(_kernelver=\)\\`uname -r\\`|\\1%s|g" %s' % (kver, path))
+                os.system('sed -i "s|^\(_kernver=\).*-ARCH|\\1%s|g" %s' % (kver, path))
+                os.system('sed -i "s|\(kernelver=\).*-ARCH|\\1%s|g" %s' % (kver, path))
+                os.system('sed -i "s|\(KERNEL_VERSION=\).*-ARCH|\\1%s|g" %s' % (kver, path))
 
             elif file.endswith('.install'):
-                os.system('sed -i "s|\(KERNEL_VERSION=.*\)-ARCH|\\1-pwn|g" %s' % os.path.join(dirname, file))
+                os.system('sed -i "s|\(KERNEL_VERSION=\).*-ARCH|\\1%s|g" %s' \
+                          % (kver, os.path.join(dirname, file)))
 
     def create_dep_graph(self, root='kernel26'):
         idx = 0
