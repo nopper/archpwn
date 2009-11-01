@@ -2,7 +2,7 @@
 # arg 2:  the old package version
 
 KERNEL_NAME=-pwn
-KERNEL_VERSION=2.6.31.5-pwn
+KERNEL_VERSION=2.6.31-pwn
 
 post_install () {
   # updating module dependencies
