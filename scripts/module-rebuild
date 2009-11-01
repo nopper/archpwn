@@ -32,11 +32,17 @@ from pylibs.utils import Animator, ConsoleP, RNode, foreach_pkgbuild, escape_dep
 anim = Animator()
 
 class ModuleRebuild(ConsoleP):
-    def __init__(self, absdir, regendir, all=False):
+    def __init__(self, absdir, regendir, kver, all=False):
         ConsoleP.__init__(self, 'modulerebuild')
 
         self.absdir = os.path.abspath(absdir)
         self.regendir = os.path.abspath(regendir)
+
+        if not kver:
+            kver = os.popen('uname -r').read().strip()
+            kver = kver.replace('ARCH', 'pwn')
+
+        self.kver = kver
 
         if not all:
             self.graph = {}
@@ -122,21 +128,18 @@ class ModuleRebuild(ConsoleP):
         # We use sed command against various files
         # because it's the more rapid approach
 
-        kver = os.popen('uname -r').read().strip()
-        kver = kver.replace('ARCH', 'pwn')
-
         for file in os.listdir(dirname):
             if file == 'PKGBUILD':
                 path = os.path.join(dirname, file)
 
-                os.system('sed -i "s|\(_kernelver=\)\\`uname -r\\`|\\1%s|g" %s' % (kver, path))
-                os.system('sed -i "s|^\(_kernver=\).*-ARCH|\\1%s|g" %s' % (kver, path))
-                os.system('sed -i "s|\(kernelver=\).*-ARCH|\\1%s|g" %s' % (kver, path))
-                os.system('sed -i "s|\(KERNEL_VERSION=\).*-ARCH|\\1%s|g" %s' % (kver, path))
+                os.system('sed -i "s|\(_kernelver=\)\\`uname -r\\`|\\1%s|g" %s' % (self.kver, path))
+                os.system('sed -i "s|^\(_kernver=\).*-ARCH|\\1%s|g" %s' % (self.kver, path))
+                os.system('sed -i "s|\(kernelver=\).*-ARCH|\\1%s|g" %s' % (self.kver, path))
+                os.system('sed -i "s|\(KERNEL_VERSION=\).*-ARCH|\\1%s|g" %s' % (self.kver, path))
 
             elif file.endswith('.install'):
                 os.system('sed -i "s|\(KERNEL_VERSION=\).*-ARCH|\\1%s|g" %s' \
-                          % (kver, os.path.join(dirname, file)))
+                          % (self.kver, os.path.join(dirname, file)))
 
     def create_dep_graph(self, root='kernel26'):
         idx = 0
@@ -190,10 +193,12 @@ if __name__ == '__main__':
     parser.add_option('-a', '--all',
                       action='store_true', dest='all', default=False,
                       help="Don't look for kernel26 dep graph. Regen all PKGBUILD contained in the absdir")
+    parser.add_option('-k', '--kver', dest='kver', default=None,
+                      help="Kernel revision to use (Default will be `uname -r`)")
     (options, args) = parser.parse_args()
 
     if len(args) == 2:
-        rebuild = ModuleRebuild(args[0], args[1], options.all)
+        rebuild = ModuleRebuild(args[0], args[1], options.kver, options.all)
     else:
         parser.print_help()
         sys.exit(-1)
