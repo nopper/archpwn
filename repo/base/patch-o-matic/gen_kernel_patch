@@ -1,0 +1,65 @@
+#!/bin/bash
+
+cat_patch() {
+  file=${startdir}/src/$(basename ${1})
+  ftype=$(file -bizL "${file}")
+  case "$ftype" in
+    *application/x-gzip*)
+      zcat ${file} ;;
+    *application/x-bzip*)
+      bzcat ${file} ;;
+    *)
+      cat ${file} ;;
+  esac
+}
+
+get_file() {
+  file=$(basename ${1})
+  OPWD=${PWD}
+  if [ "${file}" != "${1}" ]; then
+    cd ${SRCDEST}
+    [ ! -f ${file} ] && wget -c ${1}
+    cd ${startdir}/src
+    ln -s ${SRCDEST}/${file} .
+  else
+    cd ${startdir}/src
+    ln -s ../patches/${file} .
+  fi
+  cd ${OPWD}
+}
+
+source /etc/makepkg.conf
+source PATCHCFG
+
+export SRCNAME
+
+export startdir=${PWD}
+mkdir ${startdir}/src
+cd ${startdir}/src
+
+get_file ${SRC}
+echo "Extracting $(basename $SRC) ..."
+bsdtar -xf $(basename ${SRC})
+echo "Copying ${SRCORIG} to ${SRCNAME} ..."
+cp -a ${SRCORIG} ${SRCNAME}
+cd ${SRCNAME}
+
+pre_apply
+echo "Start patching the kernel tree ..."
+
+for p in ${PATCHES[@]}; do
+  patchname=$(echo ${p} | cut -d% -f1)
+  patchstrip=$(echo ${p} | cut -d% -f2)
+  get_file ${patchname}
+  echo "Applying ${patchname} ..."
+  cat_patch ${patchname} | patch -Np${patchstrip} || exit 1
+done
+
+post_apply
+
+echo "Generating patchset ..."
+cd ${startdir}/src
+diff -Nur ${SRCORIG} ${SRCNAME} > $startdir/${PATCHNAME}
+bzip2 --best $startdir/${PATCHNAME}
+
+echo "Patchset generated under $startdir/${PATCHNAME}.bz2"
