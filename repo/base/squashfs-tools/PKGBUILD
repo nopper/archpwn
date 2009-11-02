@@ -1,0 +1,29 @@
+# $Id$
+# Maintainer: Aaron Griffin <aaron@archlinux.org>
+# Original TU: Jeff Mickey <j@codemac.net>
+# Contributor: ciccio.a
+# Contributor: Francesco Piccinno <stack.box@gmail.com>
+
+pkgname=squashfs-tools
+pkgver=4.0.lzma
+pkgrel=1
+pkgdesc="Tools for squashfs, a highly compressed read-only filesystem for Linux."
+url="http://squashfs.sourceforge.net"
+license=("GPL")
+arch=('i686' 'x86_64')
+depends=('zlib' 'glibc')
+source=(squashfs4.0-lzma-snapshot.tgz
+        http://downloads.sourceforge.net/sevenzip/lzma465.tar.bz2
+        Makefile)
+md5sums=('a2e01bcd59a56cf17587d6481f341b64'
+         '29d5ffd03a5a3e51aef6a74e9eafb759'
+         'cab649b3898afa2fa2174ca731df24c7')
+
+build()
+{
+    cd $startdir/src/squashfs4.0-lzma-snapshot/$pkgname
+    cp -f $srcdir/Makefile $srcdir/squashfs4.0-lzma-snapshot/$pkgname
+    make CUSTOM_CFLAGS="$CFLAGS" || return 1
+    mkdir -p $pkgdir/sbin
+    cp -a mksquashfs unsquashfs $pkgdir/sbin
+}
