@@ -146,18 +146,20 @@ class ModuleRebuild(ConsoleP):
         # We use sed command against various files
         # because it's the more rapid approach
 
+        sep = '\(\'\|\\"\)*'
+
         for file in os.listdir(dirname):
             if file == 'PKGBUILD':
                 path = os.path.join(dirname, file)
 
-                os.system('sed -i "s|\(_kernelver=\)\\`uname -r\\`|\\1%s|g" %s' % (self.kver, path))
-                os.system('sed -i "s|^\(_kernver=\).*-ARCH|\\1%s|g" %s' % (self.kver, path))
-                os.system('sed -i "s|\(kernelver=\).*-ARCH|\\1%s|g" %s' % (self.kver, path))
-                os.system('sed -i "s|\(KERNEL_VERSION=\).*-ARCH|\\1%s|g" %s' % (self.kver, path))
+                os.system('sed -i "s:\(_kernelver=%s\)\\`uname -r\\`:\\1%s:g" %s' % (sep, self.kver, path))
+                os.system('sed -i "s:^\(_kernver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
+                os.system('sed -i "s:\(kernelver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
+                os.system('sed -i "s:\(KERNEL_VERSION=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
 
             elif file.endswith('.install'):
-                os.system('sed -i "s|\(KERNEL_VERSION=\).*-ARCH|\\1%s|g" %s' \
-                          % (self.kver, os.path.join(dirname, file)))
+                os.system('sed -i "s|\(KERNEL_VERSION=%s\).*-ARCH|\\1%s|g" %s' \
+                          % (sep, self.kver, os.path.join(dirname, file)))
 
     def create_dep_graph(self, root='kernel26'):
         idx = 0
