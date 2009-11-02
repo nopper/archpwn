@@ -12,7 +12,7 @@ url="http://squashfs.sourceforge.net"
 license=("GPL")
 arch=('i686' 'x86_64')
 depends=('zlib' 'glibc')
-source=(squashfs4.0-lzma-snapshot.tgz
+source=(http://chaox.net/~jens/squashfs4.0-lzma-snapshot.tgz
         http://downloads.sourceforge.net/sevenzip/lzma465.tar.bz2
         Makefile)
 md5sums=('a2e01bcd59a56cf17587d6481f341b64'
