@@ -74,6 +74,24 @@ class ModuleRebuild(ConsoleP):
             'madwifi',
             'openswan-klips',
 
+            # Unused
+            'archboot',
+            'acerhk',
+            'lirc',
+            'kqemu',
+
+            # Modems? :D
+            'fcpci',
+            'fcpcmcia',
+            'intel-536ep',
+            'intel-537',
+            'martian',
+            'slmodem',
+
+            # Misc
+            'pyinotify',
+            'speakup',
+
             # Compilation error or version mismatch
             'nilfs',
             'shfs',
@@ -93,7 +111,7 @@ class ModuleRebuild(ConsoleP):
         )
 
         forced = (
-            'aufs2-util',
+            # 'aufs2-util',
         )
 
         for child in self.graph['kernel26']:
