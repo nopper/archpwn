@@ -1,4 +1,4 @@
-_kernver='2.6.31-chaox'
+_kernver=2.6.31-ARCH
 
 post_install()
 {
