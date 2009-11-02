@@ -5,8 +5,10 @@
 *.swp
 *.part
 *.tar
+*.log
 repo/*/*/src/
 repo/*/*/pkg/
+repo/regen-modules/*
 pacman/src/*
 pacman/pkg/*
 logs/*.log
