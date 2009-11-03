@@ -186,7 +186,7 @@ command_install () {
     fi
 
     mount -t aufs -o br:${lastbr}=rw aufs ${union}
-    if [ $? -ne 0 ]; then 
+    if [ $? -ne 0 ]; then
         error "Error mounting $UNION."
         exit 1
     fi
@@ -200,14 +200,14 @@ command_install () {
         if [ -e "${union}/var/lib/pacman/db.lck" ]; then
             rm -f ${union}/var/lib/pacman/db.lck
         fi
-        
-        mkdir -p "${union}/var/lib/pacman"	
+
+        mkdir -p "${union}/var/lib/pacman"
 
         mkdir -p "${union}/dev"
         mknod ${union}/dev/console c 5 1 >/dev/null
         mknod ${union}/dev/null c 1 3 >/dev/null
         mknod ${union}/dev/zero c 1 5 >/dev/null
-        
+
         pacman -Sy --noprogressbar --noconfirm --config "${PACMANCONF}" -fr "${union}"
 
         cat  "$(pwd)/list/${mod}.list" | grep -v "^#" | while read pkgname; do
@@ -219,14 +219,14 @@ command_install () {
                 cat current.log >> errors.log
             fi
         done
-	
+
         if [ -e "$(pwd)/list/${mod}.removelist" ]; then
             cat "$(pwd)/list/${mod}.removelist" | grep -v "^#" | while read pkgname; do
                 info "Removing package $pkgname"
                 pacman -R -d -n --noprogressbar --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname &> /dev/null
             done
         fi
-	
+
         if [ -e "${union}/etc/ld.so.conf" ]; then
             ldconfig -r ${union}
         fi
@@ -241,7 +241,7 @@ command_install () {
 
         #info "Creating default home directory"
         #install -d -o1001 -g100 -m0755 "${union}/home/arch"
-	
+
         #if [ -d "${OVERLAY}/home/arch" ]; then
         #    chown -R arch:users "${OVERLAY}/home/arch"
         #    chmod -R 755 "${OVERLAY}/home/arch"
@@ -283,7 +283,7 @@ command_install () {
                 rm -rf "${IMGROOT}/boot/grub"
             fi
         fi
-        
+
     done
 
     if [ -e "$(pwd)/isolinux" ]; then
@@ -299,7 +299,7 @@ command_install () {
     info "Updating kernel module dependencies"
     kernelver=$(_kversion)
     depmod -a -b "${INSTROOT}" "${kernelver}"
-        
+
     # Clean up unionfs whiteout files
     #echo "Removing unionfs .wh. files."
     find ${moduledir} -type f -name ".wh.*" -exec rm {} \;
@@ -407,7 +407,7 @@ command_img () {
         info "Copying $mod ..."
         cp $mod $IMGROOT/${CDNAME}/modules/
     done
-	
+
 	bootflags=""
 	if [ "$BOOT" = "grub" -o "$BOOT" = "grub-gfx" ]; then
 		tst=0
@@ -419,24 +419,24 @@ command_img () {
 			error "grub or grub-gfx not found on host system. Cannot install!"
 			exit 1
 		fi
-	
+
 		mkdir -p "${IMGROOT}/boot/grub"
 		cp -r /usr/lib/grub/i386-pc/* "${IMGROOT}/boot/grub"
-    
+
 		bootflags="-b boot/grub/stage2_eltorito"
 	elif [ "$BOOT" = "syslinux" ]; then
 		if ! pacman -Qi syslinux >/dev/null 2>&1; then
 			error "$BOOT not found on host system. Cannot install!"
 			exit 1
 		fi
-		
+
 		mkdir -p "${IMGROOT}/boot/isolinux"
 		cp /usr/lib/syslinux/* "${IMGROOT}/boot/isolinux"
-		
+
 		if [ -f "${IMGROOT}/boot/vmlinuz26-pwn" ]; then
 			mv -f "${IMGROOT}/boot/vmlinuz26-pwn" "${IMGROOT}/boot/vmlinuz"
 		fi
-		
+
 		bootflags="-b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat"
 	else
 		error "No bootloader specified. Use the -b flag to specify"
