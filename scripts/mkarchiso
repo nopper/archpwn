@@ -136,6 +136,7 @@ sleep 1
 IMGROOT="${work_dir}/img"
 union="${work_dir}/union"
 lastbr="${work_dir}/empty"
+repodir="${work_dir}/repos"
 moduleplace="${IMGROOT}/${CDNAME}/base"
 moduledir="${work_dir}/modules"
 INSTROOT="${moduledir}/$(basename ${ROOT_MOD} .list)"
@@ -173,6 +174,7 @@ command_install () {
     mkdir -p "${INSTROOT}"
     mkdir -p "${lastbr}"
     mkdir -p "${union}"
+    mkdir -p "${repodir}"
     mkdir -p "${moduleplace}"
     mkdir -p "${moduledir}"
     mkdir -p ${IMGROOT}/${CDNAME}/{modules,optional,rootcopy}
@@ -191,6 +193,9 @@ command_install () {
         exit 1
     fi
 
+    info "Global syncing repositories ..."
+    pacman -Sy --noprogressbar --noconfirm --config "${PACMANCONF}" -fr "${repodir}"
+
     for mod in ${MODULES}; do
         mkdir -p "${moduledir}/${mod}"
         mount -o remount,add:0:${moduledir}/${mod}=rw aufs ${union}
@@ -208,7 +213,8 @@ command_install () {
         mknod ${union}/dev/null c 1 3 >/dev/null
         mknod ${union}/dev/zero c 1 5 >/dev/null
 
-        pacman -Sy --noprogressbar --noconfirm --config "${PACMANCONF}" -fr "${union}"
+        # Ok now let's copy repo directory from repodir
+        cp -rf "${union}/var/lib/pacman/sync" "{union}/var/lib/pacman"
 
         cat  "$(pwd)/list/${mod}.list" | grep -v "^#" | while read pkgname; do
             info "Installing package $pkgname"
@@ -216,6 +222,7 @@ command_install () {
 
             if [ $? -ne 0 ]; then
                 warn "Package $pkgname not correctly installed"
+                echo "Error while installing: $pkgname" >> errors.log
                 cat current.log >> errors.log
             fi
         done
