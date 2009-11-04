@@ -127,20 +127,23 @@ class ModuleRebuild(ConsoleP):
             self.add_pkg(self.graph[force])
 
     def add_pkg(self, child):
-        self.write(child.pname)
+        try:
+            origdir = os.path.join(child.pdir)
+            dirname = os.path.abspath(os.path.join(self.regendir, child.pname))
 
-        origdir = os.path.join(child.pdir)
-        dirname = os.path.abspath(os.path.join(self.regendir, child.pname))
+            if os.path.exists(dirname):
+                shutil.rmtree(dirname, True)
 
-        if os.path.exists(dirname):
-            shutil.rmtree(dirname, True)
+            shutil.copytree(child.pdir, dirname)
 
-        shutil.copytree(child.pdir, dirname)
+            # We have copied now we have to do text
+            # substitutions inside PKGBUILD, and .install files
 
-        # We have copied now we have to do text
-        # substitutions inside PKGBUILD, and .install files
+            self.text_processing(dirname)
 
-        self.text_processing(dirname)
+            self.info("%20s => done" % child.pname)
+        except:
+            self.error("%20s => fail" % child.pname)
 
     def text_processing(self, dirname):
         # We use sed command against various files
@@ -156,6 +159,9 @@ class ModuleRebuild(ConsoleP):
                 os.system('sed -i "s:^\(_kernver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
                 os.system('sed -i "s:\(kernelver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
                 os.system('sed -i "s:\(KERNEL_VERSION=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
+
+                # Let's adjust the depends=()
+                os.system('sed -i "s:\([\'\\"]\)kernel26\([\'\\"><=]\):\\1kernel26-pwn\\2:g" %s' % path)
 
             elif file.endswith('.install'):
                 os.system('sed -i "s|\(KERNEL_VERSION=%s\).*-ARCH|\\1%s|g" %s' \
