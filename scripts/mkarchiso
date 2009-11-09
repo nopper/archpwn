@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export LC_ALL="C"
+
 CPIOCONFIG="$(pwd)/archiso-mkinitcpio.conf"
 OVERLAY="$(pwd)/overlay"
 CACHE="/var/cache/pacman/pkg"
@@ -52,12 +54,13 @@ usage ()
     echo "    -v               Enable verbose output."
     echo "    -h               This message."
     echo " commands:"
-    echo "     install <working dir>        : install packages to the working dir"
-    echo "     overlay <working dir>        : generate the default overlay.sqfs"
-    echo "     squash <working dir>         : generate a squashfs image of the installed root"
-    echo "     imgprepare <working dir>     : prepare the image"
-    echo "     img <working dir> <image name> : build an image from the working directory"
-    echo "     all <working dir> <image name> : perform all of the above, in order"
+    echo "     reposync   <working dir>              : sync repositories before installing"
+    echo "     install    <working dir>              : install packages to the working dir"
+    echo "     overlay    <working dir>              : generate the default overlay.sqfs"
+    echo "     squash     <working dir>              : generate a squashfs image of the installed root"
+    echo "     imgprepare <working dir>              : prepare the image"
+    echo "     img        <working dir> <image name> : build an image from the working directory"
+    echo "     all        <working dir> <image name> : perform all of the above, in order"
     exit $1
 }
 
@@ -77,7 +80,7 @@ while getopts 'i:P:b:M:m:a:t:c:nfvh' arg; do
         f) FORCE="y" ;;
         v) QUIET="n" ;;
         h|?) usage 0 ;;
-        *) echo "invalid argument '${arg}'"; usage 1 ;;
+        *) echo "Invalid argument '${arg}'"; usage 1 ;;
     esac
 done
 
@@ -100,6 +103,7 @@ work_dir=""
 imgname=""
 
 case "${command_name}" in
+    reposync) work_dir="${2}" ;;
     install) work_dir="${2}" ;;
     overlay) work_dir="${2}" ;;
     squash) work_dir="${2}" ;;
@@ -133,6 +137,7 @@ echo "               image type:   ${IMG_TYPE}"
 echo "            squashfs type:   ${EXT}"
 sleep 1
 
+logdir="$(pwd)/logs"
 IMGROOT="${work_dir}/img"
 union="${work_dir}/union"
 lastbr="${work_dir}/empty"
@@ -159,6 +164,13 @@ remove()
    return
 }
 
+command_reposync () {
+    mkdir -p "${repodir}"/var/lib/pacman/
+
+    info "Global syncing repositories ..."
+    pacman -Sy --noprogressbar --noconfirm --config "${PACMANCONF}" -fr "${repodir}"
+}
+
 # Go through the main commands in order. If 'all' was specified, then we want
 # to do everything. Start with 'install'.
 #if [ "${command_name}" = "install" -o "${command_name}" = "all" ]; then
@@ -170,11 +182,14 @@ command_install () {
         exit 1
     fi
 
+    if [ ! -d "${repodir}" ]; then
+        command_reposync
+    fi
+
     mkdir -p "${IMGROOT}"
     mkdir -p "${INSTROOT}"
     mkdir -p "${lastbr}"
     mkdir -p "${union}"
-    mkdir -p "${repodir}"
     mkdir -p "${moduleplace}"
     mkdir -p "${moduledir}"
     mkdir -p ${IMGROOT}/${CDNAME}/{modules,optional,rootcopy}
@@ -193,9 +208,6 @@ command_install () {
         exit 1
     fi
 
-    info "Global syncing repositories ..."
-    pacman -Sy --noprogressbar --noconfirm --config "${PACMANCONF}" -fr "${repodir}"
-
     for mod in ${MODULES}; do
         mkdir -p "${moduledir}/${mod}"
         mount -o remount,add:0:${moduledir}/${mod}=rw aufs ${union}
@@ -206,25 +218,27 @@ command_install () {
             rm -f ${union}/var/lib/pacman/db.lck
         fi
 
-        mkdir -p "${union}/var/lib/pacman"
-
         mkdir -p "${union}/dev"
         mknod ${union}/dev/console c 5 1 >/dev/null
         mknod ${union}/dev/null c 1 3 >/dev/null
         mknod ${union}/dev/zero c 1 5 >/dev/null
 
         # Ok now let's copy repo directory from repodir
-        cp -rf "${union}/var/lib/pacman/sync" "{union}/var/lib/pacman"
+        mkdir -p "${union}/var/lib/pacman"
+        cp -rf "${repodir}/var/lib/pacman/sync" "${union}/var/lib/pacman/"
 
         cat  "$(pwd)/list/${mod}.list" | grep -v "^#" | while read pkgname; do
             info "Installing package $pkgname"
-            pacman -S -f --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname | tee current.log
+            pacman -S -f --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname 2>&1| tee "$logdir"/current.log
 
-            if [ $? -ne 0 ]; then
+
+            if [ ${PIPESTATUS[0]} -ne 0 ]; then
                 warn "Package $pkgname not correctly installed"
-                echo "Error while installing: $pkgname" >> errors.log
-                cat current.log >> errors.log
+                echo "Error while installing: $pkgname" >> "$logdir"/errors.log
+                cat "$logdir"/current.log >> "$logdir"/errors.log
             fi
+
+            cat "$logdir"/current.log >> "$logdir"/build_$mod.log
         done
 
         if [ -e "$(pwd)/list/${mod}.removelist" ]; then
@@ -233,6 +247,8 @@ command_install () {
                 pacman -R -d -n --noprogressbar --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname &> /dev/null
             done
         fi
+
+        rm "${union}/var/cache/pacman/pkg"
 
         if [ -e "${union}/etc/ld.so.conf" ]; then
             ldconfig -r ${union}
@@ -366,13 +382,15 @@ command_squash () {
 command_imgprepare () {
     info "Making compressed initrd ( assuming ../linux-live/initrd/initrd_create )"
 
-    ln -sf ${LIVELINUX} initrd
-    cp initrd.config initrd/
-    cd initrd
-    ./initrd_create ${CDNAME}
+    ln -sf ${LIVELINUX} linux-live
+    cp initrd.config linux-live/
+    cd linux-live
+    rootdir="$(dirname `pwd`)/$moduledir/a.000_Core/"
+    echo $rootdir
+    ./initrd_create "${CDNAME}" "" "$rootdir"
     cd ../
-    mv -f initrd/initrd.lzm "${IMGROOT}"
-    rm initrd/initrd.config
+    mv -f linux-live/initrd.lzm "${IMGROOT}"/base.lzm
+    rm linux-live/initrd.config linux-live
 
     info "Making bootable image"
 
@@ -393,7 +411,7 @@ command_imgprepare () {
     kernelver=$(_kversion)
     basedir=${INSTROOT}
     [ "${INSTROOT:0:1}" != "/" ] && basedir="$(pwd)/${INSTROOT}"
-    info "Generating initcpio for image..."
+    info "Generating initcpio for image ($kernelver)..."
     if [ "${QUIET}" = "y" ]; then
         mkinitcpio -c "${CPIOCONFIG}" -b "${basedir}" -k "${kernelver}" -g "${IMGROOT}/boot/archlive.img" >/dev/null
         ret=$?
@@ -476,6 +494,9 @@ command_img () {
 	fi
 }
 
+if [ "${command_name}" = "reposync" ]; then
+    command_reposync
+fi
 if [ "${command_name}" = "install" -o "${command_name}" = "all" ]; then
 	command_install
 fi
