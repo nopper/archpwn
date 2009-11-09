@@ -62,7 +62,8 @@ DB_CHECKSUMS=(md5)
 OUTFILE = os.path.join(os.getenv("HOME", "/root"), ".makepkg.conf")
 
 class Builder(ConsoleP):
-    def __init__(self, src, tmp, dst, nodeps=False, force=False):
+    def __init__(self, src, tmp, dst, nodeps=False, force=False, \
+                 nonamcap=False):
         ConsoleP.__init__(self, 'pkgbuilder')
 
         self.built = 0
@@ -82,6 +83,7 @@ class Builder(ConsoleP):
                   .replace("%SRCDEST%", self.tmp)
 
         self.nodeps = nodeps
+        self.nonamcap = nonamcap
         self.force = force
 
         f = open(OUTFILE, "w+")
@@ -191,7 +193,7 @@ class Builder(ConsoleP):
             self.error("Error building %s. (Error status: %d)" % (dir, ret))
             self.warning("Take a look to logs/build_%s.log" % dir)
             self.failed.append(dir)
-        else:
+        elif not self.nonamcap:
             self.built += 1
             output = os.path.join(self.dst, outfile)
 
@@ -208,6 +210,9 @@ if __name__ == "__main__":
     parser.add_option("-f", "--force",
                       action="store_true", dest="force", default=False,
                       help="force rebuild if package is already present")
+    parser.add_option("-x", "--exclude-namcap",
+                      action="store_true", dest="nonamcap", default=False,
+                      help="exclude namcap checking")
 
     (options, args) = parser.parse_args()
 
@@ -216,7 +221,7 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     builder = Builder(args[0], args[1], args[2], \
-                      options.nodeps, options.force)
+                      options.nodeps, options.force, options.nonamcap)
 
     builder.build_all()
     builder.create_repo()
