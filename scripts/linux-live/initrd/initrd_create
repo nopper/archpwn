@@ -28,6 +28,7 @@ rcopy()
    CWD=$(pwd)
    if [ "$ROOT" = "" ]; then cd /; else cd $ROOT; fi
    SOURCE="./${1:${#ROOT}}"
+   echo $SOURCE
    DEST="$2"
    if [ -L "$SOURCE" ]; then
       REALPATH=$(readlink -f "$SOURCE")
@@ -116,7 +117,6 @@ chmod ago+x $INITRD_TREE/{linuxrc,cleanup}
 # handle the fuse filesystems here
 #
 cp -a fuse/* $INITRD_TREE
-cp -a httpfs/* $INITRD_TREE
 
 if [ "$USEPOSIXOVL" = "yes" ]; then
    cp -a posixovl/* $INITRD_TREE
@@ -137,7 +137,7 @@ ln -sf bin $INITRD_TREE/sbin
 
 # necessary modules and dependency files
 mkdir -p $INITRD_TREE/$LMK/kernel/fs
-rcopy $ROOT/$LMK/fs/aufs25 $INITRD_TREE
+rcopy $ROOT/$LMK/kernel/fs/aufs $INITRD_TREE
 rcopy $ROOT/$LMK/kernel/fs/squashfs $INITRD_TREE
 
 # copy filesystem modules, if not directly copied into kernel
@@ -177,7 +177,7 @@ rcopy_ex $ROOT/$LMK/kernel/drivers/pcmcia/yenta_socket.* $INITRD_TREE 2>>$DEBUG
 for mod in $(list_network_drivers); do
    cat $ROOT/$LMK/modules.dep | fgrep /$mod.ko | while read LINE; do
       for dep in $(echo $LINE | tr -d ":"); do
-         rcopy_ex $dep $INITRD_TREE 2>>$DEBUG
+         rcopy_ex $ROOT/$dep $INITRD_TREE 2>>$DEBUG
       done
    done
 done
@@ -239,12 +239,12 @@ rm -Rf $INITRD_TREE/$LMK/kernel/drivers/*
 
 mksquashfs $INITRD_TREE $INITRDIMG.lzm >/dev/null 2>&1
 chmod ago-x $INITRDIMG.lzm
+
 #debug "gzipping $INITRDIMG"
 #gzip --best $INITRDIMG
 
 #debug "deleting directory $MOUNTDIR"
 #rmdir $MOUNTDIR
-
 
 debug "deleting directory $INITRD_TREE"
 rm -Rf $INITRD_TREE

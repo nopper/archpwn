@@ -254,7 +254,7 @@ locale_id()
       if [ "$i" != "1" ]; then LOCALE=""; fi
    fi
 
-   if [ "$LOCALE" != "" -a -e /usr/share ]; then
+   if [ "$LOCALE" != "" -a -e /usr/share/locale/locale.alias ]; then
       cat /usr/share/locale/locale.alias | sed -r "s/#.*//" | egrep "$LOCALE|$LOCALE""_" | tail -n 1 | tr -s "[[:space:]]" " " | cut -d " " -f 2- | tr -d " "
    fi
 }
@@ -508,7 +508,6 @@ union_insert_dir()
 find_modules()
 {
    debug_log "find_modules" "$*"
-   find "$1/base" "$1/modules" "$1/optional" -name "*.sqfs" 2>/dev/null | sort
    find "$1/base" "$1/modules" "$1/optional" -name "*.lzm" 2>/dev/null | sort
 }
 
@@ -606,7 +605,7 @@ list_network_drivers()
    # so I'll be happy if you report any particular one to be not working
    # (eg. causing hangups) in order to remove it from this list.
 
-   echo 3c59x acenic atl1 de4x5 dgrs eepro100 e1000 epic100 hp100 ne2k-pci \
+   echo 3c59x acenic atl1 b44 bnx2 de4x5 dgrs e100 eepro100 e1000 epic100 hp100 ne2k-pci \
    olympic pcnet32 r8169 rcpci 8139too 8139cp sktr skge sky2 tulip via-rhine \
    yellowfin tg3 dl2k ns83820 depca ibmtr 3c501 3c503 3c505 3c507 3c509 3c515 \
    ac3200 acenic at1700 cosa cs89x0 de4x5 de600 de620 e2100 eepro eexpress \
@@ -881,7 +880,7 @@ modprobe_usb_modules()
       return 0
    fi
 
-   echolog "Loading USB modules ..."
+   echolog "Loading usb modules ..."
    if [ "$(echo $LSPCI | grep -i ehci)" != "" ]; then
       modprobe_module ehci-hcd
    fi
@@ -903,7 +902,7 @@ modprobe_pcmcia_modules()
    # skip module loading if nohotplug bootparam is present
    if [ "$(cmdline_parameter nohotplug)" ]; then return 0; fi
 
-   echolog "Loading PCMCIA CardBus modules ..."
+   echolog "Loading pcmcia modules ..."
    modprobe_module pcmcia_core
    modprobe_module pcmcia
    modprobe_module rsrc_nonstatic
@@ -948,22 +947,9 @@ init_dhcp()
    fi
 }
 
-# Mount http filesystem from the given server
-# $1 = server
-# $2 = mountdir
-#
-mount_httpfs()
-{
-   debug_log "mount_httpfs" "$*"
-
-   mkdir -p $2
-   httpfs $1 $2
-}
-
-
 # Unload modules loaded to kernel which are not used
 # This function used to unload more modules, but it may cause
-# problems to auto-remove some of them (eg. a network module 
+# problems to auto-remove some of them (eg. a network module
 # can seem unneeded even if network is to be used very soon.
 #
 rmmod_unused_modules()
@@ -1044,18 +1030,15 @@ fstab_update()
    debug_log "fstab_update" "$*"
    local FSTAB FSTABTMP
 
-   # AP: Remove old fstab
-   #rm "$1/etc/fstab"
-
    FSTAB="$1/etc/fstab"
    FSTABTMP=$FSTAB$$
    mkdir -p $1/etc $1/mnt
    cat $FSTAB 2>/dev/null | grep -v "$FSTABLLFLAG" >$FSTABTMP
 
-   fstab_add_line $FSTABTMP none / unionfs defaults
-   fstab_add_line $FSTABTMP none /proc proc defaults
-   fstab_add_line $FSTABTMP none /sys sysfs defaults
-   fstab_add_line $FSTABTMP none /dev/pts devpts defaults
+   fstab_add_line $FSTABTMP aufs / aufs defaults
+   fstab_add_line $FSTABTMP proc /proc proc defaults
+   fstab_add_line $FSTABTMP sysfs /sys sysfs defaults
+   fstab_add_line $FSTABTMP devpts /dev/pts devpts gid=5,mode=620
    fstab_add_line $FSTABTMP tmpfs /dev/shm tmpfs defaults
 
    list_cdrom_devices | while read DEVICE; do
@@ -1081,26 +1064,5 @@ fstab_update()
       fi
    done
 
-   mv -f $FSTABTMP $FSTAB
-}
-
-# create correct fstab file in $1/etc/fstab only with aufs,proc,sysfs and devpts
-# No partition will be mounted and mount point created
-# HAL is going to manage mount points and medias
-fstab_clean()
-{
-   debug_log "fstab_update" "$*"
-   local FSTAB FSTABTMP
-
-   FSTAB="$1/etc/fstab"
-   FSTABTMP=$FSTAB$$
-   mkdir -p $1/etc $1/mnt
-   cat $FSTAB 2>/dev/null | grep -v "$FSTABLLFLAG" >$FSTABTMP
-
-   fstab_add_line $FSTABTMP aufs / aufs defaults
-   fstab_add_line $FSTABTMP proc /proc proc defaults
-   fstab_add_line $FSTABTMP sysfs /sys sysfs defaults
-   fstab_add_line $FSTABTMP devpts /dev/pts devpts gid=5,mode=620
-   fstab_add_line $FSTABTMP tmpfs /dev/shm tmpfs defaults
    mv -f $FSTABTMP $FSTAB
 }
