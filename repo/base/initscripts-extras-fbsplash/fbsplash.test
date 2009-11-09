@@ -1,0 +1,316 @@
+
+#
+# fbsplash.test
+#
+
+if [ "$EUID" != 0 ]; then
+	echo "You need to call this as root !" >&2
+	exit 1
+fi
+
+unset RUNLEVEL
+
+/etc/rc.d/fbsplash kill
+
+case "$1"
+in boot )
+	/etc/rc.d/acpid stop
+	/etc/rc.d/cups stop
+	
+	umount -n /lib/splash/cache
+	
+	export PREVLEVEL=N
+	export RUNLEVEL=S
+	splash_script_path=/etc/rc.sysinit
+;; reboot )
+	export PREVLEVEL=5
+	export RUNLEVEL=6
+	splash_script_path=/etc/rc.shutdown
+;; shutdown )
+	if [ "${2}" = "fail" ] ; then
+		/etc/rc.d/cups stop
+		/etc/rc.d/acpid stop
+		touch /var/run/daemons/cups
+		touch /var/run/daemons/acpid
+	fi
+	
+	export PREVLEVEL=5
+	export RUNLEVEL=0
+	splash_script_path=/etc/rc.shutdown
+;; * )
+	echo "Usage: ${0##*/} boot|reboot|shutdown [fail]" >&2
+	exit 1
+esac
+
+deltext() { return ; }
+
+echo_time() {
+	echo 000000000$1 | sed -r \
+		-e 's,([0-9]{3})([0-9]{6})$,.\1,' \
+		-e 's,^0*([0-9]+\.),\1,'
+}
+
+simul_start() {
+	f0=$( fgconsole )
+	t0=$( date +%s%N )
+	echo "$@" >> "${0##*/}.log"
+}
+
+simul_stop() {
+	td=$(( $( date +%s%N ) - t0 - ${1:-0} ))
+	((t+=td))
+	echo "Time: $( echo_time $td ) - fgconsole: $f0 -> $( fgconsole )" >> "${0##*/}.log"
+}
+
+simul() {
+	simul_start stat_busy "${3}"
+	{ time -p stat_busy "${3}" ; } 2>>"${0##*/}.log"
+	simul_stop
+	
+	#[ -z "${4}" ] || killall -s "${4}" fbsplashd.static
+	if [ -n "${4}" ]; then
+		! [ -e "${spl_pidfile}" ] || kill -s "${4}" "$( cat "${spl_pidfile}" )"
+	fi
+	
+	sleep $1.$2
+	
+	simul_start stat_done
+	{ time -p stat_done ; } 2>> "${0##*/}.log" 
+	simul_stop
+	
+	((s++))
+}
+
+simul_fail() {
+	simul_start stat_busy "${3}"
+	{ time -p stat_busy "${3}" ; } 2>>"${0##*/}.log"
+	simul_stop
+	
+	sleep $1.$2
+	
+	simul_start stat_done
+	{ time -p stat_fail ; } 2>> "${0##*/}.log" 
+	simul_stop
+	
+	((s++))
+}
+
+: > "${0##*/}.log" 2>&1
+
+(
+
+	. /etc/rc.conf
+	. /etc/rc.d/functions
+
+	s=0
+	t=0
+	case "$1"
+	in boot )
+		busy_msgs=(
+			"Starting UDev Daemon"
+			#"Using static /dev filesystem"
+			"Loading Modules"
+			"Loading standard ACPI modules"
+			"Loading UDev uevents"
+			"Bringing up loopback interface"
+			#"Activating RAID arrays"
+			#"Activating LVM2 groups"
+			#"Unlocking encrypted volumes:"
+			"Mounting Root Read-only"
+		)
+		for b in "${busy_msgs[@]}" ; do
+			simul 0 100 "${b}"
+		done
+		
+		simul 10 0 "Checking Filesystems"
+
+		busy_msgs=(
+			"Mounting Local Filesystems"
+			"Activating Swap"
+			"Configuring System Clock"
+			"Initializing Random Seed"
+			"Removing Leftover Files"
+			#"Updating Shared Library Links"
+			"Setting Hostname: $HOSTNAME"
+			"Setting NIS Domain Name: $NISDOMAINNAME"
+			"Updating Module Dependencies"
+		)
+		for b in "${busy_msgs[@]}" ; do
+			simul 0 100 "${b}"
+		done
+		
+		busy_msgs=(
+			"Setting Locale: $LOCALE"
+			"Setting Consoles to UTF-8 mode"
+			#"Setting Consoles to legacy mode"
+			#"Loading Console Font: $CONSOLEFONT"
+			#"Adding persistent cdrom udev rules"
+			#"Adding persistent network udev rules"
+		)
+
+		if [ "$2" = fail ]; then
+			for b in "${busy_msgs[@]}" ; do
+				simul_fail 2 000 "${b}"
+			done
+		else
+			for b in "${busy_msgs[@]}" ; do
+				simul 2 000 "${b}"
+			done
+		fi
+		
+	;; reboot | shutdown )
+		
+		simul_d_stop() {
+			simul_start stop_daemon "${1}"
+			{ time -p stop_daemon "${1}" ; } 2>> "${0##*/}.log"
+			simul_stop
+
+			((s++))
+		}
+
+		simul_d_stop cups  #; sleep 1
+		simul_d_stop acpid #; sleep 1
+		
+		if [ "${2}" = "fail" ] ; then
+			sleep 2
+			simul_d_stop cups  #; sleep 1
+			simul_d_stop acpid #; sleep 1
+		fi
+		
+		simul 3 000 "Sending SIGTERM To Processes" 15
+		
+		simul 1 000 "Sending SIGKILL To Processes" 9
+		
+		busy_msgs=(
+			#"Sending SIGTERM To Processes"
+			#"Sending SIGKILL To Processes"
+			"Saving Random Seed"
+			"Saving System Clock"
+			"Deactivating Swap"
+		)
+		for b in "${busy_msgs[@]}" ; do
+			simul 0 100 "${b}"
+		done
+		
+		busy_msgs=(
+			"Unmounting Filesystems"
+			#"Deactivating encrypted volumes:"
+			"Deactivating LVM2 groups"
+			"Remounting Root Filesystem Read-only"
+		)
+		for b in "${busy_msgs[@]}" ; do
+			simul 2 000 "${b}"
+		done
+		
+		/usr/bin/beep
+		
+		if [ "${2}" = "fail" ] ; then
+			rm_daemon acpid
+			rm_daemon cups
+		fi
+		/etc/rc.d/acpid start
+		/etc/rc.d/cups start
+	esac
+
+	echo  $s $t > "${0##*/}.tmp"
+
+)
+
+(
+	read  s t < "${0##*/}.tmp"
+
+	rm -f "${0##*/}.tmp"
+
+	case "${1}"
+	in boot )
+	
+		export PREVLEVEL=N
+		export RUNLEVEL=5
+
+		splash_script_path=/etc/rc.multi
+
+		. /etc/rc.conf
+		. /etc/rc.d/functions
+		
+		simul_d_start() {
+			simul_start start_daemon "${1}"
+			{ time -p start_daemon "${1}" ; } 2>> "${0##*/}.log"
+			simul_stop
+
+			((s++))
+		}
+
+		simul_d_start_bkgd() {
+			simul_start start_daemon_bkgd "${1}"
+			{ time -p start_daemon_bkgd "${1}" ; } 2>> "${0##*/}.log"
+			simul_stop
+
+			((s++))
+		}
+
+		for ((d=0; d<5; d++)) ; do
+			simul_d_start alsa
+			simul_d_start cpufreq
+		done
+		
+#		NETWORKS=(menu)
+#		simul_d_start net-profiles
+		
+		simul_d_start_bkgd acpid
+		simul_d_start cups
+
+		if [ "${2}" = "fail" ] ; then
+			simul_d_start cups
+		fi
+		
+		simul_start
+		{ time -p simul_d_start fbsplash ; } 2>> "${0##*/}.log"
+		simul_stop
+
+		/usr/bin/beep
+
+#		simul_d_start acpid
+	esac
+
+	echo  $s $t > "${0##*/}.tmp"
+
+)
+
+msgs="$(
+	t_real=0
+	t_sys=0
+	t_user=0
+
+	exec 3<"${0##*/}.log"
+	while IFS=$' \t.' read -r -u 3 word seconds decimals ; do
+		ns="$( 
+			echo "${seconds}.${decimals}000000000" | 
+			sed -r -e '
+				s,([0-9]+)\.([0-9]{9}).*,\1\2,
+				s,^0*([0-9]+),\1,
+			'
+		)"
+		case "${word}" in
+			( real ) (( t_real = t_real + ns )) ;;
+			( sys  ) ((  t_sys =  t_sys + ns )) ;;
+			( user ) (( t_user = t_user + ns )) ;;
+		esac
+	done 
+	exec 3<&-
+
+	read s t < "${0##*/}.tmp"
+	rm -f "${0##*/}.tmp"
+
+	echo -------------
+	echo Steps done: $s
+	echo Time      sum: $( echo_time $t )
+	echo time real sum: $( echo_time ${t_real} )
+	echo time sys  sum: $( echo_time ${t_sys}  )
+	echo time user sum: $( echo_time ${t_user} )
+	echo "'splash' Mounted:" $( cat /proc/mounts | grep splash )
+	echo "'splashd' Running:" $( ps -Af | grep splashd | grep -v grep )
+)"
+
+echo "${msgs}" | tee -a "${0##*/}.log"
+
+# EOF #

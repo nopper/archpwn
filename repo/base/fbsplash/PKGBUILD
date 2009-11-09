@@ -1,53 +1,45 @@
-# Maintainer: Greg Helton <gt@fallendusk.org>
+# Maintainer: Heiko Baums <heiko@baums-on-web.de>
+# Contributor: Kurt J. Bosch <kujub [at] quantentunnel [dot] de>
 
 pkgname=fbsplash
 pkgver=1.5.4.3
-pkgrel=1
+pkgrel=20
 pkgdesc="A userspace implementation of a splash screen for Linux (formerly known as gensplash)"
 arch=('i686' 'x86_64')
 url="http://fbsplash.berlios.de"
 license=('GPL')
-backup=('/etc/conf.d/fbsplash.conf')
-depends=('initscripts' 'miscsplashutils' 'libjpeg' 'libpng' 'freetype2' 'gpm' 'libmng') 
+makedepends=('klibc')
+depends=('miscsplashutils' 'freetype2' 'libjpeg' 'libpng' 'libmng' 'lcms')
+optdepends=('kernel26-fbcondecor: enable console background images'
+            'uswsusp-fbsplash: suspend to disk with fbsplash'
+            'initscripts-extras-fbsplash: boot/shutdown with fbsplash'
+            'python: convert themes from splashy fbsplash')
 conflicts=('bootsplash' 'gensplash')
+options=( '!makeflags' )
 install=fbsplash.install
-source=(http://download.berlios.de/fbsplash/splashutils-${pkgver}.tar.bz2 \
-	http://code.thewrecker.net/files/darch.tar.bz2 \
-	fbsplash.inithooks \
-	splash-functions-arch.sh \
-	fbsplash.conf \
-	fbsplash.initcpio_install \
-	fbsplash.daemon)
-md5sums=('c722cd4148817b9c50381d9bdc1ea6ef'
-         '4ea33e99330abf4a9a468ac8c0ba48ca'
-         '44375e92025ce07b3434773efb282127'
-         '8ffb29400a2518b16f3dbca653855268'
-         'b1b45761b2a5899a4fe8255fc9cfaf9c'
-         '5cce2373181193207d105e150a7f371c'
-         'edf12b534e256bd360f761056295c6c5')
+#source=(http://download.berlios.de/fbsplash/splashutils-${pkgver}.tar.bz2)
+source=(http://dev.gentoo.org/~spock/projects/gensplash/archive/splashutils-${pkgver}.tar.bz2)
+md5sums=('c722cd4148817b9c50381d9bdc1ea6ef')
 
 build() {
-	cd ${startdir}/src/splashutils-${pkgver}
+  cd ${srcdir}/splashutils-${pkgver}
 
-	# Configure, make, and install
-	./configure --prefix=/usr --sysconfdir=/etc --enable-fbcondecor --with-gpm --with-mng --with-png --with-ttf --with-ttf-kernel
-	make || return 1
-	make DESTDIR=${startdir}/pkg install || return 1
-	
-	# Create directories
-	mkdir -p ${startdir}/pkg/lib/splash/cache
-	mkdir -p ${startdir}/pkg/etc/splash
-	mkdir -p ${startdir}/pkg/etc/rc.d/functions.d
+  # fix fbcondecor_ctl splash type
+  sed -e 's,fbsplash_lib_init(fbspl_bootup),fbsplash_lib_init(fbspl_undef),' -i src/fbcon_decor_ctl.c
 
-	# Install scripts
-	install -D -m644 ${startdir}/src/fbsplash.initcpio_install ${startdir}/pkg/lib/initcpio/install/fbsplash
-	install -D -m644 ${startdir}/src/fbsplash.conf ${startdir}/pkg/etc/conf.d/fbsplash.conf
-	install -D -m744 ${startdir}/src/fbsplash.daemon ${startdir}/pkg/etc/rc.d/fbsplash
-	install -D -m744 ${startdir}/src/splash-functions-arch.sh ${startdir}/pkg/sbin/splash-functions-arch.sh
+  # we do not make use of the gpm stuff in our scripts by now
+  ./configure --prefix=/usr --sysconfdir=/etc --enable-fbcondecor --without-gpm --with-mng --with-png --with-ttf --with-ttf-kernel || return 1
+  make || return 1
+  make DESTDIR=${startdir}/pkg install || return 1
 
-	# install darch fbsplash theme
-	cp -r ${startdir}/src/darch ${startdir}/pkg/etc/splash/darch
-	
-	# install initscripts hooks
-	install -D -m744 ${startdir}/src/fbsplash.inithooks ${startdir}/pkg/etc/rc.d/functions.d/fbsplash.sh
+  cd ${pkgdir}
+
+  # fix duplicate slashes to get splash_cache_cleanup grep to work
+  sed -r -e 's,^(export spl_.*="/)/+,\1,' -i sbin/splash-functions.sh
+
+  # fix the path to splash_util
+  sed -r -e 's,^(export spl_util=)\"/bin/,\1"/sbin/,' -i sbin/splash-functions.sh
+
+  # provide the mountpoint needed by splash-functions.sh
+  mkdir -p lib/splash/cache
 }

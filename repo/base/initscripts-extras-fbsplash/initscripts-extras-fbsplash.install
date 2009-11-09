@@ -1,0 +1,25 @@
+
+post_install() {
+	cat <<EOT
+==============================================================================
+==> Early bootup splash screen:
+==>   Add fbsplash to mkinitcpio HOOKS after udev and update your initcpio.
+==> Kernel parameters example:
+==>   ... video=vesafb vga=792 logo.nologo 
+==>   quiet console=tty1 splash=silent,theme:arch-black,fadein,fadeout
+==> /etc/rc.conf: 'fbsplash' is needed to be in DAEMONS to *stop* the splash
+==>   daemon. Running it in background will *not* work !
+==>   Example: DAEMONS=(syslog-ng ... fbsplash gpm gdm)
+==============================================================================
+EOT
+}
+
+post_upgrade() {
+	post_install
+}
+
+op=$1
+shift
+$op $*
+
+#EOF

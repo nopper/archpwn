@@ -1,25 +1,17 @@
-
 post_install() {
 	echo ">"
-	echo "> ATTENTION!!!:"
+	echo "> ATTENTION!!!"
 	echo "----------------------------------------------"
-	echo "> fbsplash has been rewritten and no longer depends "
-	echo "> on using a special initscripts. "
+	echo "> the scripts for fbsplash have been rewritten"
+	echo "> again and are now provided by the package"
+	echo ">  >  >  initscripts-extras-fbsplash  <  <  <"
+	echo "----------------------------------------------"
+	echo "> This package doesn't include a theme anymore."
+	echo "> You need to install one separately."
+	echo "----------------------------------------------"
 	echo "> Please read http://wiki.archlinux.org/fbsplash "
 	echo "> for more details on the changes. "
 	echo "----------------------------------------------"
-	if ! [ -e /etc/conf.d/fbsplash.bootsteps ]; then
-		echo ""
-		echo "Creating step count files..."
-		echo "Note: The first boot's percentage will be wrong. "
-		echo "The scripts will update with the right steps after first boot"
-		echo ""
-		touch /etc/conf.d/fbsplash.bootsteps
-		touch /etc/conf.d/fbsplash.shutdownsteps
-		echo 20 > /etc/conf.d/fbsplash.bootsteps
-		echo 10 > /etc/conf.d/fbsplash.shutdownsteps
-	fi
-	
 }
 
 post_upgrade() {

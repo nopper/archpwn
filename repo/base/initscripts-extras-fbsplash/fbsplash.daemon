@@ -1,0 +1,61 @@
+#!/bin/bash
+
+#
+# /etc/rc.d/fbsplash
+#
+# Set FbConDecor Backgrounds and Stop the Silent Splash Daemon Magically
+# ------------------------------------------------------------------------
+# After this is run from /etc/rc.multi, the start_daemon hook function
+# in /etc/rc.d/functions.d/fbsplash.sh will stop the silent splash daemon.
+# The silent splash will not be started if this is missing in DAEMONS.
+#
+
+. /etc/rc.conf
+. /etc/rc.d/functions
+
+splash_setup force
+
+start() {
+	if fbcondecor_supported && [ "${SPLASH_MODE_REQ}" != "off" ]; then
+		stat_busy "Setting fbcondecor console images"
+		for tty in ${SPLASH_TTYS}; do
+			# don't set background again to avoid blinking
+			if [[ "$( fbcondecor_ctl --tty=${tty} -c getstate )" \
+					!= *\ on ]] ; then
+				fbcondecor_set_theme ${SPLASH_THEME} ${tty}
+			fi
+		done
+		stat_done
+	fi
+}
+
+off() {
+	if fbcondecor_supported ; then
+		stat_busy "Disabling fbcondecor console images"
+		for tty in ${SPLASH_TTYS}; do
+			fbcondecor_ctl --tty=${tty} -c off
+		done
+		stat_done
+	fi
+}
+
+case "$1" in
+	start)	start ;;
+	off)	off  ;;
+	stop )	: ;;
+	restart)
+		off
+		sleep .1
+		# don't swallow our status line
+		echo
+		start
+	;;
+	kill )	# stop any Fbsplash daemon
+		RUNLEVEL="kill" splash rc_exit ;;
+	*)	echo "usage: $0 {start|off|restart|kill}" ;;
+esac
+
+exit 0
+
+#EOF
+
