@@ -1,32 +1,50 @@
 #!/bin/bash
 
-hwdetect_base() {
-		# check cpu
-		base_check_cpu=$(uname -p)
-		printhl "Running on a ${base_check_cpu}"
+hwdetect_base()
+{
+	# check if we are running inside a virtual machine
+	local base_check_virtualbox=`dmidecode | grep innotek`
+	local base_check_vmware=`dmidecode | grep VMware`
+	local base_check_qemu=`dmidecode | grep QEMU`
+	local base_check_vpc=`dmidecode | grep Microsoft`
 
-		# check mem
-		base_check_mem=$(grep "MemTotal" /proc/meminfo | sed 's/[ kB]//g' | cut -f2 -d":")
-		base_mem_checked=$(($base_check_mem/1024))
-		base_needed_mem="384"
-		if [ ${base_mem_checked} -lt ${base_needed_mem} ] ; then
-			printhl "Available physical memory: ${base_mem_checked} MiB"
-			printhl "WARNING: NOT ENOUGH MEMORY. A MINIMUM OF ${base_needed_mem} MiB IS REQUIRED."
-		else
-			printhl "Available physical memory: ${base_mem_checked} MiB"
-		fi
+	if [ -n "$base_check_virtualbox" ]; then
+		printhl "Virtualization detected: VirtualBox"
+	elif [ -n "$base_check_vmware" ]; then
+		printhl "Virtualization detected: VMware"
+	elif [ -n "$base_check_qemu" ]; then
+		printhl "Virtualization detected: QEMU"
+	elif [ -n "$base_check_vpc" ]; then
+		printhl "Virtualization detected: MS Virtual PC"
+	fi
 
-		# check diskspace, ugly hack ;)
-		base_check_disks=$(fdisk -l | grep "yte" | grep "/dev" | cut -d " " -f 3 | cut -d "." -f 1)
-		base_needed_disk="3"
-		base_tmp_array=($base_check_disks)
-		base_reported_disks=0
-		for x in ${base_tmp_array[*]}; do base_reported_disks=$(( $base_reported_disks + $x )); done 
-		if [ ${base_reported_disks} -lt ${base_needed_disk} ] ; then
-			printhl "Available disk space: $base_reported_disks GiB"
-			printhl "WARNING: NOT ENOUGH DISK SPACE. A MINIMUM OF ${base_needed_disk} GiB IS REQUIRED."
-		else
-			printhl "Available disk space: $base_reported_disks GiB"
-		fi
+
+	# check cpu
+	local base_check_cpu=$(uname -p)
+	local base_check_cores=$(grep ^processor /proc/cpuinfo | awk '{a++} END {print a}')
+	printhl "Running on a ${base_check_cpu}"
+	if [ "$base_check_cores" = "1" ]; then
+		printhl "${base_check_cores} CPU core detected"
+	else
+		printhl "${base_check_cores} CPU cores detected"
+	fi
+
+
+	# check memory
+	local base_check_mem=$(grep "MemTotal" /proc/meminfo | sed 's/[ kB]//g' | cut -f2 -d":")
+	local base_mem_checked=$(($base_check_mem/1024))
+	printhl "Physical memory: ${base_mem_checked} MiB"
+
+
+	# check diskspace, oh damn it needs bc ;)
+	local base_reported_disks=0
+	local base_check_disks=$(fdisk -l $drive | grep "yte" | grep "/dev" | cut -d " " -f 5)
+
+	for x in ${base_check_disks[*]}; do 
+		base_reported_disks=$(( $base_reported_disks + $x ))
+	done
+
+	local base_disk_capacity=$(echo "scale=1; $base_reported_disks/1000/1000/1000" | bc -l)
+
+	printhl "Total disk space: $base_disk_capacity GiB"
 }
-

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+hwdetect_network()
+{
+	# check available network devices
+	local network_check=$(cat /proc/net/dev | awk '{ print  $1 }' | egrep '^(eth|ath|wlan)' | cut -d: -f1 | sed -e :a -e '$!N;s/\n/ /')	
+	printhl "Available network devices: ${network_check}" 
+}

@@ -36,6 +36,9 @@ else
 fi
 unset TERM_COLORS
 
+# clear the TZ envvar, so daemons always respect /etc/localtime
+unset TZ
+
 # colors:
 if [ "$USECOLOR" = "YES" -o "$USECOLOR" = "yes" ]; then
 	C_MAIN="\033[1;37;40m"      # main text
@@ -85,7 +88,7 @@ printhl3() {
 }
 
 printsep() {
-	printf "\n${C_SEPARATOR}   --------------------------------------------------------\n"
+	printf "\n${C_SEPARATOR}   ------------------------------\n"
 }
 
 stat_bkgd() {
@@ -164,7 +167,7 @@ ck_depends() {
 start_daemon() {
 	/etc/rc.d/$1 start
 }
- 
+
 start_daemon_bkgd() {
 	stat_bkgd "Starting $1"
 	(/etc/rc.d/$1 start) &>/dev/null &
@@ -174,12 +177,33 @@ stop_daemon() {
 	/etc/rc.d/$1 stop
 }
 
+# Status functions
+status_started() {
+  deltext
+  echo -ne "$C_OTHER[${C_STRT}STARTED$C_OTHER]$C_CLEAR "
+}
+
+status_stopped() {
+  deltext
+  echo -ne "$C_OTHER[${C_STRT}STOPPED$C_OTHER]$C_CLEAR "
+}
+
+ck_status() {
+  ck_daemon $1
+  if [ $? -eq 1 ]; then
+    status_started
+  else
+    status_stopped
+  fi		
+}
+
+
 #Source additional functions at the end to allow overrides
-if [ -d /etc/rc.d/functions.d/ ]; then
-    for f in $(/bin/ls /etc/rc.d/functions.d/); do
-        . /etc/rc.d/functions.d/$f
-    done
-fi
+for f in /etc/rc.d/functions.d/*; do
+  if [ -e $f ]; then
+    . $f
+  fi
+done
 
 # End of file
-# vim: set ts=2 noet:
+# vim: set ft=sh sw=2 ts=2 et:

@@ -30,6 +30,12 @@ get_xres()
 	echo $XRES
 }
 
+get_xdisplay()
+{
+	local XDISP=`get_bootparam_value xdisplay`
+	echo $XDISP
+}
+
 get_nonfree()
 {
 	local NONFREE=`get_bootparam_value nonfree`

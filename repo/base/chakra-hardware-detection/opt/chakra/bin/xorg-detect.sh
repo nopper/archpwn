@@ -1,37 +1,63 @@
 #!/bin/bash
+#
+#**************************************************************************
+#   Copyright (C) 2008 Jan Mette                                          *
+#   <jan[dot]mette[at]berlin[dot]de>                                      *
+#                                                                         *
+#   This script is free software; you can redistribute it and/or modify   *
+#   it under the terms of the GNU General Public License as published by  *
+#   the Free Software Foundation; either version 2 of the License, or     *
+#   (at your option) any later version.                                   *
+#                                                                         *
+#   This program is distributed in the hope that it will be useful,       *
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+#   GNU General Public License for more details.                          *
+#                                                                         *
+#   You should have received a copy of the GNU General Public License     *
+#   along with this program; if not, write to the                         *
+#   Free Software Foundation, Inc.,                                       *
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
+#**************************************************************************
 
+
+
+#
+# source needed functions and configs
+#
+# rc.conf
 . /etc/rc.conf
+# for message stuff like printhl
 . /etc/rc.d/functions
-. /etc/rc.d/functions.d/cmdline 
-. /etc/rc.d/functions.d/splash
+# for kernel cmdline parsing
+. /etc/rc.d/functions.d/cmdline
 
-disable_splash() {
-	if /bin/grep -q " splash" /proc/cmdline; then
-		splash_exit
-		sleep 0.5
-		/usr/bin/chvt 1
-	else
-		/bin/true
-	fi
-}
 
-# PREEMPTIVE CLEAN UP AT FIRST
+
+#
+# functions
+#
+# preemptive cleanup, just to be sure (tm)
 preemptive_cleanup() {
 		rm -rf /etc/X11/xorg.con* &>/dev/null
-		rm -rf /xorg.* &>/dev/null
 }
 
-# GENERATE INITIAL CONFIG
+
+# start xorg builtin autodetection
 generate_initial_config() {
-		printhl2 "Your screen will probably flicker for a moment, dont panic :)"
+		printhl2 "Your screen will probably flicker for a moment, don't panic :)"
 		sleep 2
-		LANG=C /usr/bin/Xorg -configure -novtswitch :1 > /tmp/xorg_detection.log 2>&1
+		LANG=C /usr/bin/Xorg -configure > /tmp/xorg_detection.log 2>&1
+
+		# as there is no $HOME yet, the config will be generated in /, lets copy it where it belongs
 		mv /xorg.conf.new /etc/X11/xorg.conf.plain
 }
 
-# CHECK THE DETECTED DRIVER
-output_initial_detected_driver() {
-		XORG_DRIVERS="amd apm ark ati chips cirrus glint i128 i740 intel mach64 mga neomagic nv r128 radeon radeonhd rendition s3 s3virge savage siliconmotion sisusb tdfx trident tseng v4l voodoo ztv fbdev vesa"
+
+# output the detected graphics driver
+output_detected_driver() {
+		# keep in sync with the addedpacks list inside the profile
+		XORG_DRIVERS="apm ark ati chips cirrus geode glint i128 i740 intel-legacy intel mach64 mga neomagic nouveau nv openchrome r128 radeonhd rendition s3 s3virge savage siliconmotion sis sisusb tdfx trident tseng v4l vesa voodoo"
 
 		for i in $XORG_DRIVERS ; do
 			if grep -q ${i} /etc/X11/xorg.conf.plain ; then
@@ -39,100 +65,28 @@ output_initial_detected_driver() {
 			fi
 		done
 
-		printhl "Detected video device: $USED_DRIVER"
+		printhl "Using display driver: $USED_DRIVER"
 }
 
-# DETECT RESOLUTIONS FROM KERNEL COMMANDLINE AND PUT IT INTO XORG.CONF
-setup_resolution() {
-		# at first, add the sane default (tm)
-		sed -i '/Viewport/ a\                Modes "default"' /etc/X11/xorg.conf.plain
 
-		# now check if the user has specified a resolution on kernel commandline, and apply it
-		XRES=`get_xres`
-			[ -n "$XRES" ] || XRES="default"
+# setup display and resolution
+# damn, this is hacky ;)
+setup_display() {
 
-		case "$XRES" in
-			640x480)
-				sed -i 's/^.*Modes.*/                Modes      "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			800x600)
-				sed -i 's/^.*Modes.*/                Modes      "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1024x768)
-				sed -i 's/^.*Modes.*/                Modes      "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1152x864)
-				sed -i 's/^.*Modes.*/                Modes      "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1280x1024)
-				sed -i 's/^.*Modes.*/                Modes      "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1400x1050)
-				sed -i 's/^.*Modes.*/                Modes      "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1600x1200)
-				sed -i 's/^.*Modes.*/                Modes      "1600x1200" "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1680x1050)
-				sed -i 's/^.*Modes.*/                Modes      "1680x1050" "1600x1200" "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1280x800)
-				sed -i 's/^.*Modes.*/                Modes      "1280x800" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			1280x960)
-				sed -i 's/^.*Modes.*/                Modes      "1280x960" "1280x800" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
-			;;
-			default)
-				/bin/true
-				# we do nothing (tm)
-				# default has already been applied...
-			;;
-			*)
-				/bin/true
-				# we do nothing (tm)
-				# default has already been applied...
-			;;
-		esac
-}
-
-# DETECT COLOR DEPTH FROM KERNEL COMMANDLINE
-setup_depth() {
-XDEPTH=`get_xdepth`
-		[ -n "$XDEPTH" ] || XDEPTH="24"
-
-		case "$XDEPTH" in
-			8)
-			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
-			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
-			;;
-			15)
-			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
-			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
-			;;
-			16)
-			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
-			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
-			;;
-			24)
-			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
-			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
-			;;
-			32)
-			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
-			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
-			;;
-		esac
-}
-
-setup_monitor() {
+		# check if a good monitor has been detected or if we are using a generic "monitor" entry, because the monitor is non-ddc/broken or whatnot
+		# at first, extract the autodetected monitor section from xorg.conf and write it into a tmpfile
 		X_MON=`sed -n '/^Section "Monitor"$/,/^EndSection$/ p' /etc/X11/xorg.conf.plain`
-		echo "$X_MON" > /tmp/mon
-		MON_DET=`cat /tmp/mon | grep VendorName | awk  '{print (substr($2,2,7))}'`
-		rm -f /tmp/mon
+		echo "$X_MON" > /tmp/mon_det
+		sleep 1
+		# now grep for the vendor
+		MON_DET=`cat /tmp/mon_det | grep VendorName | awk '{print $2}' | sed 's/"//g' | sed 's/ //g'`
 
 		if [ "$MON_DET" = "Monitor" ] ; then
-		sed -i '/Section "Monitor"/,/EndSection/d' /etc/X11/xorg.conf.plain
 
+			# remove the standard monitor section and add our own one with standard timings etc
+			sed -i '/Section "Monitor"/,/EndSection/d' /etc/X11/xorg.conf.plain
+
+# new monitor section with standard vesa timings
 X_MON='
 Section "Monitor"
 	Identifier   "Monitor0"
@@ -274,158 +228,207 @@ Section "Monitor"
 	ModeLine "1600x1200"  280.64  1600 1728 1904 2208  1200 1201 1204 1271  -HSync +Vsync
 EndSection
 '
-fi
 
-printf "$X_MON\n\n" >> /etc/X11/xorg.conf.plain
+			# add the new monitor section to xorg.xonf
+			printf "$X_MON\n\n" >> /etc/X11/xorg.conf.plain
+
+			# add a default mode setting
+			sed -i '/Viewport/ a\                Modes "default"' /etc/X11/xorg.conf.plain
+
+			# now check if the user has specified a resolution on kernel commandline, and apply it
+			XRES=`get_xres`
+				[ -n "$XRES" ] || XRES="default"
+
+			case "$XRES" in
+				640x480)
+					sed -i 's/^.*Modes.*/                Modes      "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				800x600)
+					sed -i 's/^.*Modes.*/                Modes      "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1024x768)
+					sed -i 's/^.*Modes.*/                Modes      "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1152x864)
+					sed -i 's/^.*Modes.*/                Modes      "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1280x1024)
+					sed -i 's/^.*Modes.*/                Modes      "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1400x1050)
+					sed -i 's/^.*Modes.*/                Modes      "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1600x1200)
+					sed -i 's/^.*Modes.*/                Modes      "1600x1200" "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1680x1050)
+					sed -i 's/^.*Modes.*/                Modes      "1680x1050" "1600x1200" "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1280x800)
+					sed -i 's/^.*Modes.*/                Modes      "1280x800" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1280x960)
+					sed -i 's/^.*Modes.*/                Modes      "1280x960" "1280x800" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				default)
+					# because the monitor hasnt been detected properly, we use a sane default resolution instead of letting Xorg decide
+					sed -i 's/^.*Modes.*/                Modes      "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				*)
+					# because the monitor hasnt been detected properly, we use a sane default resolution instead of letting Xorg decide
+					sed -i 's/^.*Modes.*/                Modes      "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+			esac
+
+			# clean up tmpfile 
+			rm -rf /tmp/mon_det &>/dev/null
+
+		else
+			# ok, the monitor seems to be detected properly, so no workarounds
+
+			# at first, add the sane default (tm)
+			sed -i '/Viewport/ a\                Modes "default"' /etc/X11/xorg.conf.plain
+
+			# now check if the user has specified a resolution on kernel commandline, and apply it
+			XRES=`get_xres`
+				[ -n "$XRES" ] || XRES="default"
+
+			case "$XRES" in
+				640x480)
+					sed -i 's/^.*Modes.*/                Modes      "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				800x600)
+					sed -i 's/^.*Modes.*/                Modes      "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1024x768)
+					sed -i 's/^.*Modes.*/                Modes      "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1152x864)
+					sed -i 's/^.*Modes.*/                Modes      "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1280x1024)
+					sed -i 's/^.*Modes.*/                Modes      "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1400x1050)
+					sed -i 's/^.*Modes.*/                Modes      "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1600x1200)
+					sed -i 's/^.*Modes.*/                Modes      "1600x1200" "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1680x1050)
+					sed -i 's/^.*Modes.*/                Modes      "1680x1050" "1600x1200" "1400x1050" "1280x1024" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1280x800)
+					sed -i 's/^.*Modes.*/                Modes      "1280x800" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				1280x960)
+					sed -i 's/^.*Modes.*/                Modes      "1280x960" "1280x800" "1152x864" "1024x768" "800x600" "640x480"/' /etc/X11/xorg.conf.plain
+				;;
+				default)
+					/bin/true
+					# we do nothing (tm)
+					# default has already been applied...
+				;;
+				*)
+					/bin/true
+					# we do nothing (tm)
+					# default has already been applied...
+				;;
+			esac
+
+			# clean up tmpfile 
+			rm -rf /tmp/mon_det &>/dev/null
+
+		fi
 }
 
-# DETECT LANGUAGE FROM KERNEL COMMANDLINE AND PUT IT INTO XORG.CONF...
-setup_keyboard_layout() {
-		COUNTRY=`get_country`
-		[ -n "$COUNTRY" ] || COUNTRY="en"
 
-		case "$COUNTRY" in
-			be)
-			# Belgian version
-			XKEYBOARD="be"
+# use colordepth specified at the kernel commandline
+setup_colordepth() {
+                XDEPTH=`get_xdepth`
+		[ -n "$XDEPTH" ] || XDEPTH="24"
+
+		case "$XDEPTH" in
+			8)
+			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
+			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
 			;;
-			bg)
-			# Bulgarian version
-			XKEYBOARD="bg"
+			15)
+			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
+			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
 			;;
-			cn)
-			# Simplified Chinese version
-			XKEYBOARD="us"
+			16)
+			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
+			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
 			;;
-			cz)
-			# Czech version
-			XKEYBOARD="cs"
+			24)
+			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
+			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
 			;;
-			de)
-			# German version
-			XKEYBOARD="de"
-			;;
-			dk)
-			# Danish version
-			XKEYBOARD="dk"
-			;;
-			en)
-			# English version
-			XKEYBOARD="en"
-			;;
-			es)
-			# Spanish version
-			XKEYBOARD="es"
-			;;
-			fi)
-			# Finnish version
-			XKEYBOARD="fi"
-			;;
-			fr)
-			# Francais version
-			XKEYBOARD="fr"
-			;;
-			hu)
-			# Hungarian version
-			XKEYBOARD="hu"
-			;;
-			it)
-			# German version
-			XKEYBOARD="it"
-			;;
-			ja)
-			# Japanese version
-			XKEYBOARD="us"
-			;;
-			nl)
-			# Dutch version
-			XKEYBOARD="us"
-			;;
-			no)
-			# Norway version
-			XKEYBOARD="no"
-			;;
-			pl)
-			# Polish version
-			XKEYBOARD="pl"
-			;;
-			ru)
-			# Russian version
-			XKEYBOARD="ru"
-			;;
-			sk)
-			# Slovakian version
-			XKEYBOARD="sk"
-			;;
-			sl)
-			# Slovenian version
-			XKEYBOARD="sl"
-			;;
-			tr)
-			# Turkish version
-			XKEYBOARD="tr"
-			;;
-			uk)
-			# British version
-			XKEYBOARD="uk"
-			;;
-			*)
-			# American version
-			XKEYBOARD="us"
+			32)
+			COLORDEPTH="DefaultDepth $XDEPTH\n\tSubSection \"Display\""
+			sed -i 1,/'SubSection "Display"'/s/'SubSection "Display"'/"$COLORDEPTH"/ /etc/X11/xorg.conf.plain
 			;;
 		esac
-
-		# TODO - hardcoded values here, need to add kernel options
-		test -z "$XKBRULES" && XKBRULES="xorg"
-		test -z "$XKBMODEL" && XKBMODEL="pc105"
-
-		KEYBOARD_SETTINGS="Option      \"XkbRules\" \"$XKBRULES\"\n\tOption      \"XkbModel\" \"$XKBMODEL\"\n\tOption      \"XkbLayout\" \"$XKEYBOARD\""
-		sed -i /'Driver.*"kbd"'/a\ "\\\t$KEYBOARD_SETTINGS" /etc/X11/xorg.conf.plain
 }
 
-#
-# LETS START
-#
-disable_splash
-preemptive_cleanup
-printhl "Detecting video & input hardware"
-generate_initial_config
-output_initial_detected_driver
-setup_resolution
-setup_depth
-setup_monitor
-printhl "Configuring input"
-setup_keyboard_layout
 
 #
-# FINAL TOUCHES
+# lets start the fun (tm) ;)
 #
+printhl "Detecting video & input hardware"
+preemptive_cleanup
+generate_initial_config
+output_detected_driver
+	XDISP=`get_xdisplay`
+	[ -n "$XDISP" ] || XDISP="auto"
+	case "$XDISP" in
+		auto)
+			printhl3 "Using builtin X.org display detection"
+			/bin/true
+			;;
+		old)
+			printhl3 "Using fallback mode for old displays"
+			setup_display
+			setup_colordepth
+
+			# enable DPMS for the monitor
+			sed -i /'Section "Monitor"'/,/'EndSection'/s/'EndSection'/"\tOption       \"DPMS\"\nEndSection"/g /etc/X11/xorg.conf.plain
+			;;
+	esac
+
+
+
+#
+# final touches
+#
+# add some more extensions
 cat <<EOF >> /etc/X11/xorg.conf.plain
 Section "Extensions"
 	Option "Composite" "Enable"
 	Option "RENDER" "Enable"
 EndSection
 
-Section "ServerFlags"
-	    Option      "AutoAddDevices"         "false"
-	    Option      "AutoEnableDevices"      "false"
-EndSection
-
 EOF
 
- # prepend the AIGLX option the first occurence of EndSection, which should be in the ServerLayout section, where it belongs
-ADD_AIGLX="        Option         \"AIGLX\" \"true\"\n\tEndSection"
-sed -i 1,/'EndSection'/s/'EndSection'/"$ADD_AIGLX"/ /etc/X11/xorg.conf.plain
-
-# enable DPMS for the monitor
-sed -i /'Section "Monitor"'/,/'EndSection'/s/'EndSection'/"\tOption       \"DPMS\"\nEndSection"/g /etc/X11/xorg.conf.plain
+# remove any input sections and device definitions, not needed anymore because we are using xorg input hotplugging with HAL
+# (the hal config is done in rc.sysinit, needs to be applied before hal starts)
+sed -i '/Section "InputDevice"/,/EndSection/d' /etc/X11/xorg.conf.plain
+sed -i '/InputDevice/d' /etc/X11/xorg.conf.plain
 
 # add some standard device options
-sed -i /'Section "Device"'/,/'EndSection'/s/'EndSection'/"\tOption      \"VBERestore\"    \"true\"\nEndSection"/g /etc/X11/xorg.conf.plain
 sed -i /'Section "Device"'/,/'EndSection'/s/'EndSection'/"\tOption      \"DRI\"    \"true\"\nEndSection"/g /etc/X11/xorg.conf.plain
-sed -i /'Section "Device"'/,/'EndSection'/s/'EndSection'/"\tOption      \"XAANoOffscreenPixmaps\"    \"true\"\nEndSection"/g /etc/X11/xorg.conf.plain
+
+# visual cleanup ;)
+# at first, remove all empty lines
+sed -i '/^$/d' /etc/X11/xorg.conf.plain
+# and add a new empty line after every EndSection
+sed -i '/EndSection/G' /etc/X11/xorg.conf.plain
+
+
 
 #
-# CLEANUP AND APPLY CONFIG
+# at last, copy the new xorg.conf where it belongs
 #
 mv /etc/X11/xorg.conf.plain /etc/X11/xorg.conf &>/dev/null
+

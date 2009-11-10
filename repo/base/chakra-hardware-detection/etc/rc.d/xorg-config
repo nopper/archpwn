@@ -5,7 +5,7 @@
 
 case "$1" in
 	start)
-		stat_busy "Configuring graphics"
+		stat_busy "Configuring video driver"
 		/opt/chakra/bin/xorg-config.sh
 		stat_done
 	;;

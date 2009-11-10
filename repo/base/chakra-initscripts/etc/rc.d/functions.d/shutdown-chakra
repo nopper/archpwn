@@ -38,11 +38,13 @@ f_swapoff ()
 f_remountro ()
 {
     if [ -n "${ejectdev}" ]; then
-        echo "Ejecting live CD"
         eject ${ejectdev}
-        echo "========================================"
-        echo "It's safe to switch the computer off now"
-        echo -ne "Press Enter to continue"
+	echo " "
+        echo "   ----------------------------------------"
+        echo "   Please remove the CD now and press ENTER"
+	echo "   to shut down the machine..."
+	echo "   ----------------------------------------"
+        echo -ne " "
         read junk
     fi
 }

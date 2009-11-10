@@ -1,0 +1,43 @@
+#!/bin/bash
+
+hwdetect_quirks()
+{
+	# This file is for all the hacks and stuff we might
+	# need for certain hardware.
+
+
+	# eeepc stuff
+	local i
+	for i in camera cardr wlan; do
+		[ -r /sys/bus/platform/drivers/eeepc/eeepc/"$i" ] && echo 1 > /sys/bus/platform/drivers/eeepc/eeepc/"$i"
+	done
+
+	# try to fix some problems with realtek network cards
+	local network_check_8139=$(lsmod | grep 8139cp || lsmod | grep 8139too)
+	if [ -n "${network_check_8139}" ]; then
+
+		local network_8139cp=$(dmesg | grep -i 'Try the "8139too" driver instead')
+		local network_8139too=$(dmesg | grep -i 'Try the "8139cp" driver instead')
+
+		if [ -n "${network_8139cp}" ]; then
+			printhl3 "Detected broken network driver: 8139cp"
+			printhl "Trying to fix it, loading driver: 8139too"
+			rmmod 8139cp &>/dev/null
+			touch /etc/modprobe.d/realtek_blacklist.conf &>/dev/null
+			echo "blacklist 8139cp" >> /etc/modprobe.d/realtek_blacklist.conf &>/dev/null
+			modprobe 8139too &>/dev/null
+		fi
+
+		if [ -n "${network_8139too}" ]; then
+			printhl3 "Detected broken network driver: 8139too"
+			printhl "Trying to fix it, loading driver: 8139cp"
+			rmmod 8139too &>/dev/null
+			touch /etc/modprobe.d/realtek_blacklist.conf &>/dev/null 
+			echo "blacklist 8139too" >> /etc/modprobe.d/realtek_blacklist.conf &>/dev/null
+			modprobe 8139cp &>/dev/null
+                               echo " "
+                               dmesg | grep 8139
+                               echo " "
+		fi
+	fi
+}

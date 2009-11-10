@@ -9,7 +9,7 @@
 . /etc/chakra-hwdetect.conf
 
 # needed hooks (located in /opt/chakra/hooks)
-LOAD_HOOKS="hwdetect_1_base hwdetect_2_platform hwdetect_3_power hwdetect_4_network hwdetect_5_alsa hwdetect_6_graphics"
+LOAD_HOOKS="hwdetect_1_base hwdetect_2_platform hwdetect_3_quirks hwdetect_4_power hwdetect_5_network hwdetect_6_alsa hwdetect_7_graphics"
 
 # load hooks
 for hook in ${LOAD_HOOKS}
@@ -23,14 +23,18 @@ case "$1" in
 		stat_busy "Inspecting hardware"
 		hwdetect_base
 		hwdetect_platform
+		hwdetect_quirks
 		hwdetect_power
 		hwdetect_network
+		stat_done
 
-		stat_busy "Detecting graphics hardware"
+		stat_busy "Inspecting graphics hardware"
 		hwdetect_graphics
+		stat_done
 
 		stat_busy "Setting up audio volume levels"
 		hwdetect_alsa
+		stat_done
 	;;
 
 	stop)

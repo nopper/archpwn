@@ -13,23 +13,13 @@
 #F Print header
 f_header
 
-# mount /proc and our RAM /dev
+# mount /proc, /sys and our RAM /dev
 /bin/mount -n -t ramfs none /dev
 /bin/mount -n -t proc none /proc
+/bin/mount -n -t sysfs none /sys
 
-# Create our default nodes that minilogd may need
-/bin/mknod /dev/null c 1 3
-/bin/mknod /dev/zero c 1 5
-/bin/mknod /dev/console c 5 1
-
-# More initial /dev setup that udev doesn't do
-/bin/ln -snf /proc/self/fd /dev/fd
-/bin/ln -snf /proc/self/fd/0 /dev/stdin
-/bin/ln -snf /proc/self/fd/1 /dev/stdout
-/bin/ln -snf /proc/self/fd/2 /dev/stderr
-/bin/ln -snf /proc/kcore /dev/core
-/bin/mkdir /dev/pts
-/bin/mkdir /dev/shm
+# Copy static device nodes to /dev
+/bin/cp -a /lib/udev/devices/* /dev/
 
 # start up our mini logger until syslog takes over
 /sbin/minilogd
@@ -37,13 +27,11 @@ f_header
 # anything more serious than KERN_WARNING goes to the console
 # 'verbose' cmdline parameter enables more messages
 if /bin/grep -q " verbose" /proc/cmdline; then
-    /bin/dmesg -n 8
+	/bin/dmesg -n 8
 else
-    /bin/dmesg -n 3
+	/bin/dmesg -n 3
 fi
 
-# mount /sys
-/bin/mount -n -t sysfs none /sys
 # mount usbfs
 /sbin/modprobe usbcore >/dev/null 2>&1
 /bin/grep -qw usbfs /proc/filesystems && /bin/mount -n -t usbfs none /proc/bus/usb
@@ -52,235 +40,283 @@ fi
 /sbin/modprobe rtc-cmos >/dev/null 2>&1
 RTC_MAJOR=$(/bin/grep -w rtc /proc/devices 2>/dev/null); RTC_MAJOR="${RTC_MAJOR%% *}"
 if [ -n "$RTC_MAJOR" ]; then
-    /bin/mkdir /dev/misc/
-    /bin/mknod /dev/misc/rtc0 c $RTC_MAJOR 0
-    /bin/ln -s /dev/misc/rtc0 /dev/rtc
+	/bin/mknod /dev/rtc0 c $RTC_MAJOR 0
+	/bin/ln -s /dev/rtc0 /dev/rtc
 fi
 
 HWCLOCK_PARAMS="--hctosys"
 if [ "$HARDWARECLOCK" = "UTC" ]; then
-    HWCLOCK_PARAMS="$HWCLOCK_PARAMS --utc"
+	HWCLOCK_PARAMS="$HWCLOCK_PARAMS --utc"
 else
-    HWCLOCK_PARAMS="$HWCLOCK_PARAMS --localtime"
+	HWCLOCK_PARAMS="$HWCLOCK_PARAMS --localtime"
 fi
-if [ "$USEDIRECTISA" != "no" ]; then
-    HWCLOCK_PARAMS="$HWCLOCK_PARAMS --directisa"
+if [ "$USEDIRECTISA" = "yes" -o "$USEDIRECTISA" = "YES" ]; then
+	HWCLOCK_PARAMS="$HWCLOCK_PARAMS --directisa"
 fi
 
 # Set clock early to fix some bugs with filesystem checks
 # Clock is set again later to match rc.conf
 if [ -f /etc/localtime ]; then
-    /sbin/hwclock $HWCLOCK_PARAMS --noadjfile
+	/sbin/hwclock $HWCLOCK_PARAMS --noadjfile
 fi
 
-if [ -x /sbin/udevadm -a -d /sys/block ]; then
-    # We have udev and /sys appears to be mounted, use UDev
+echo > /proc/sys/kernel/hotplug
 
-    stat_busy "Starting UDev Daemon"
-    /sbin/udevd --daemon
-    stat_done
+if [ -x /sbin/udevadm ]; then
+	stat_busy "Starting UDev Daemon"
+	/sbin/udevd --daemon
+	stat_done
 else
-    # Static /dev, our last resort
-    status "Using static /dev filesystem" true
+	# Static /dev, our last resort
+	status "Using static /dev filesystem" true
+fi
+
+# Trigger udev uevents
+if /bin/pidof -o %PPID /sbin/udevd >/dev/null; then
+  stat_busy "Triggering UDev uevents"
+  /sbin/udevadm trigger &
+  stat_done
 fi
 
 # Load modules from the MODULES array defined in rc.conf
 if ! [ "$load_modules" = "off" ]; then
-    if [ -f /proc/modules ]; then
-        stat_busy "Loading Modules"
-        for mod in "${MODULES[@]}"; do
-            if [ "$mod" = "${mod#!}" ]; then
-                /sbin/modprobe $mod
-            fi
-        done
-        stat_done
-    fi
-    if [ -d /proc/acpi ]; then
-        stat_busy "Loading standard ACPI modules"
-        ACPI_MODULES="ac battery button fan processor thermal"
-        k="$(echo $BLACKLIST ${MOD_BLACKLIST[@]} | /bin/sed 's|-|_|g')"
-        j="$(echo ${MODULES[@]} | /bin/sed 's|-|_|g')"
-        #add disabled MODULES (!) to blacklist - much requested feature
-        for m in ${j}; do
-                [ "$m" != "${m#!}" ] && k="${k} ${m#!}"
-        done
-        # add disablemodules= from commandline to blacklist
-        k="${k} $(echo ${disablemodules} | /bin/sed 's|-|_|g' | /bin/sed 's|,| |g')"
-        for n in ${ACPI_MODULES}; do
-                    if ! echo ${k} | /bin/grep "\<$n\>" 2>&1 >/dev/null; then
-                        /sbin/modprobe $n > /dev/null 2>&1
-                    fi
-        done
-        stat_done
-    fi
+	if [ -f /proc/modules ]; then
+		stat_busy "Loading Modules"
+		for mod in "${MODULES[@]}"; do
+			if [ "$mod" = "${mod#!}" ]; then
+				/sbin/modprobe $mod
+			fi
+		done
+		stat_done
+	fi
+	if [ -d /proc/acpi ]; then
+		stat_busy "Loading standard ACPI modules"
+		ACPI_MODULES="ac battery button fan processor thermal"
+		k="$(echo $BLACKLIST ${MOD_BLACKLIST[@]} | /bin/sed 's|-|_|g')"
+		j="$(echo ${MODULES[@]} | /bin/sed 's|-|_|g')"
+		#add disabled MODULES (!) to blacklist - much requested feature
+		for m in ${j}; do
+    			[ "$m" != "${m#!}" ] && k="${k} ${m#!}"
+		done
+		# add disablemodules= from commandline to blacklist
+		k="${k} $(echo ${disablemodules} | /bin/sed 's|-|_|g' | /bin/sed 's|,| |g')"
+		for n in ${ACPI_MODULES}; do
+			if ! echo ${k} | /bin/grep "\<$n\>" 2>&1 >/dev/null; then
+				/sbin/modprobe $n > /dev/null 2>&1
+			fi
+		done
+		stat_done
+	fi
 fi
 
-# run udev uevents
+# Wait for udev uevents
 if /bin/pidof -o %PPID /sbin/udevd >/dev/null; then
-    stat_busy "Loading UDev uevents"
-    udevstart="$(/bin/date +%s%0N)"
-    /sbin/udevadm trigger
-    /sbin/udevadm settle
-    stat_done
-    udevend="$(/bin/date +%s%0N)"
-    printhl "UDev uevent processing time: $((($udevend-$udevstart)/1000000))ms\n"
+	stat_busy "Waiting for UDev uevents to be processed"
+	udevstart="$(/bin/date +%s%0N)"
+	/sbin/udevadm settle
+	stat_done
+	udevend="$(/bin/date +%s%0N)"
+	printhl "   UDev uevent processing time: $((($udevend-$udevstart)/1000000))ms"
 fi
 
 # bring up the loopback interface
 if [ -d /sys/class/net/lo ]; then
-    stat_busy "Bringing up loopback interface"
-    /sbin/ifconfig lo 127.0.0.1 up
-    if [ $? -ne 0 ]; then
-        stat_fail
-    else
-        stat_done
-    fi
-fi
-
-# If using an encrypted root fs, we should find the root dev in the initrd
-# FIXME: obsoleted by initramfs and udev
-if [ -e /initrd/dev/mapper/root ]; then
-    /bin/mkdir /dev/mapper 2>/dev/null
-    /bin/cp -a /initrd/dev/mapper/root /dev/mapper/root
+	stat_busy "Bringing up loopback interface"
+	/sbin/ifconfig lo 127.0.0.1 up
+	if [ $? -ne 0 ]; then
+		stat_fail
+	else
+		stat_done
+	fi
 fi
 
 # If necessary, find md devices and manually assemble RAID arrays
 if [ -f /etc/mdadm.conf -a "$(/bin/grep ^ARRAY /etc/mdadm.conf 2>/dev/null)" ]; then
-    # udev won't create these md nodes, so we do it ourselves
-    for dev in $(/bin/grep ^ARRAY /etc/mdadm.conf | /bin/awk '{print $2}'); do
-        path=$(echo $dev | /bin/sed 's|/[^/]*$||')
-        node=$(echo $dev | /bin/sed "s|^$path/||")
-        minor=$(echo $node | /bin/sed 's|^[^0-9]*||')
-        [ ! -e $path/$node ] && /bin/mknod $path/$node b 9 $minor
-    done
-    status "Activating RAID arrays" /sbin/mdadm --assemble --scan
-fi
-
-# Unmount and free up the old initrd if it exists
-# FIXME: obsoleted by initramfs
-if [ -f /initrd/linuxrc ]; then
-    stat_busy "Freeing memory from Initial Ramdisk"
-    /bin/umount /initrd 2>/dev/null
-    /sbin/blockdev --flushbufs /dev/rd/0 2>/dev/null
-    stat_done
+	# udev won't create these md nodes, so we do it ourselves
+	for dev in $(/bin/grep ^ARRAY /etc/mdadm.conf | /bin/awk '{print $2}'); do
+		path=$(echo $dev | /bin/sed 's|/[^/]*$||')
+		node=$(echo $dev | /bin/sed "s|^$path/||")
+		minor=$(echo $node | /bin/sed 's|^[^0-9]*||')
+		[ ! -e $path/$node ] && /bin/mknod $path/$node b 9 $minor
+	done
+	status "Activating RAID arrays" /sbin/mdadm --assemble --scan
 fi
 
 if [ "$USELVM" = "yes" -o "$USELVM" = "YES" ]; then
-    if [ -x /sbin/lvm -a -d /sys/block ]; then
-        # Kernel 2.6.x, LVM2 groups
-        /sbin/modprobe -q dm-mod 2>/dev/null
-        stat_busy "Activating LVM2 groups"
-        /sbin/lvm vgscan --ignorelockingfailure --mknodes >/dev/null
-        /sbin/lvm vgchange --ignorelockingfailure -a y >/dev/null
-        if [ $? -ne 0 ]; then
-            stat_fail
-        else
-            stat_done
-        fi
-    fi
+	if [ -x /sbin/lvm -a -d /sys/block ]; then
+		# Kernel 2.6.x, LVM2 groups
+		/sbin/modprobe -q dm-mod 2>/dev/null
+		stat_busy "Activating LVM2 groups"
+		/sbin/lvm vgscan --ignorelockingfailure --mknodes >/dev/null
+		/sbin/lvm vgchange --ignorelockingfailure -a y >/dev/null
+		if [ $? -ne 0 ]; then
+			stat_fail
+		else
+			stat_done
+		fi
+	fi
 fi
 
 # Set up non-root encrypted partition mappings
 if [ -f /etc/crypttab -a -n "$(/bin/grep -v ^# /etc/crypttab | /bin/grep -v ^$)" ]; then
-    /sbin/modprobe -q dm-mod 2>/dev/null
-    stat_busy "Unlocking encrypted volumes:"
-    csfailed=0
-    CS=/sbin/cryptsetup.static
-    do_crypt() {
-        if [ $# -ge 3 ]; then
-            cname="$1"
-            csrc="$2"
-            cpass="$3"
-            shift 3
-            copts="$*"
-            stat_append "${cname}.."
-            # For some fun reason, the parameter ordering varies for
-            # LUKS and non-LUKS devices.  Joy.
-            if [ "${cpass}" = "SWAP" ]; then
-                # This is DANGEROUS! The only possible safety check
-                # is to not proceed in case we find a LUKS device
-                # This may cause dataloss if it is not used carefully
-                if $CS isLuks $csrc 2>/dev/null; then
-                    false
-                else
-                    $CS -d /dev/urandom $copts create $cname $csrc >/dev/null
-                    if [ $? -eq 0 ]; then
-                        stat_append "creating swapspace.."
-                        /sbin/mkswap -L $cname /dev/mapper/$cname >/dev/null
-                    fi
-                fi
-            elif [ "${cpass}" = "ASK" ]; then
-                printf "\nOpening '${cname}' volume:\n"
+	/sbin/modprobe -q dm-mod 2>/dev/null
+	stat_busy "Unlocking encrypted volumes:"
+	csfailed=0
+	CS=/sbin/cryptsetup.static
+	do_crypt() {
+		if [ $# -ge 3 ]; then
+			cname="$1"
+			csrc="$2"
+			cpass="$3"
+			shift 3
+			copts="$*"
+			stat_append "${cname}.."
+			# For some fun reason, the parameter ordering varies for
+			# LUKS and non-LUKS devices.  Joy.
+			if [ "${cpass}" = "SWAP" ]; then
+				# This is DANGEROUS! The only possible safety check
+				# is to not proceed in case we find a LUKS device
+				# This may cause dataloss if it is not used carefully
+				if $CS isLuks $csrc 2>/dev/null; then
+					false
+				else
+					$CS -d /dev/urandom $copts create $cname $csrc >/dev/null
+					if [ $? -eq 0 ]; then
+						stat_append "creating swapspace.."
+						/sbin/mkswap -L $cname /dev/mapper/$cname >/dev/null
+					fi
+				fi
+			elif [ "${cpass}" = "ASK" ]; then
+				printf "\nOpening '${cname}' volume:\n"
 
-                if $CS isLuks $csrc 2>/dev/null; then
-                    $CS $copts luksOpen $csrc $cname < /dev/console
-                else
-                    $CS $copts create $cname $csrc < /dev/console
-                fi
-            elif [ "${cpass:0:1}" != "/" ]; then
-                if $CS isLuks $csrc 2>/dev/null; then
-                    echo "$cpass" | $CS $copts luksOpen $csrc $cname >/dev/null
-                else
-                    echo "$cpass" | $CS $copts create $cname $csrc >/dev/null
-                fi
-            else
-                if $CS isLuks $csrc 2>/dev/null; then
-                    $CS -d $cpass $copts luksOpen $csrc $cname >/dev/null
-                else
-                    $CS -d $cpass $copts create $cname $csrc >/dev/null
-                fi
-            fi
-            if [ $? -ne 0 ]; then
-                csfailed=1
-                stat_append "failed "
-            else
-                stat_append "ok "
-            fi
-        fi
-    }
-    while read line; do
-        eval do_crypt "$line"
-    done </etc/crypttab
-    if [ $csfailed -eq 0 ]; then
-        stat_done
-    else
-        stat_fail
-    fi
-    # Maybe someone has LVM on an encrypted block device
-    if [ "$USELVM" = "yes" -o "$USELVM" = "YES" ]; then
-        if [ -x /sbin/lvm -a -d /sys/block ]; then
-            /sbin/lvm vgscan --ignorelockingfailure --mknodes >/dev/null
-            /sbin/lvm vgchange --ignorelockingfailure -a y >/dev/null
-        fi
-    fi
+				if $CS isLuks $csrc 2>/dev/null; then
+					$CS $copts luksOpen $csrc $cname < /dev/console
+				else
+					$CS $copts create $cname $csrc < /dev/console
+				fi
+			elif [ "${cpass:0:1}" != "/" ]; then
+				if $CS isLuks $csrc 2>/dev/null; then
+					echo "$cpass" | $CS $copts luksOpen $csrc $cname >/dev/null
+				else
+					echo "$cpass" | $CS $copts create $cname $csrc >/dev/null
+				fi
+			else
+				if $CS isLuks $csrc 2>/dev/null; then
+					$CS -d $cpass $copts luksOpen $csrc $cname >/dev/null
+				else
+					$CS -d $cpass $copts create $cname $csrc >/dev/null
+				fi
+			fi
+			if [ $? -ne 0 ]; then
+				csfailed=1
+				stat_append "failed "
+			else
+				stat_append "ok "
+			fi
+		fi
+	}
+	while read line; do
+		eval do_crypt "$line"
+	done </etc/crypttab
+	if [ $csfailed -eq 0 ]; then
+		stat_done
+	else
+		stat_fail
+	fi
+	# Maybe someone has LVM on an encrypted block device
+	if [ "$USELVM" = "yes" -o "$USELVM" = "YES" ]; then
+		if [ -x /sbin/lvm -a -d /sys/block ]; then
+			/sbin/lvm vgscan --ignorelockingfailure --mknodes >/dev/null
+			/sbin/lvm vgchange --ignorelockingfailure -a y >/dev/null
+		fi
+	fi
 fi
+
+status "Mounting Root Read-only" /bin/mount -n -o remount,ro /
 
 FORCEFSCK=
 [ -f /forcefsck ] && FORCEFSCK="-- -f"
-NETFS="nonfs,nonfs4,nosmbfs,nocifs,nocodafs,noncpfs,nosysfs,nousbfs,noshfs,nofuse,nofuseblk"
+NETFS="nonfs,nonfs4,nosmbfs,nocifs,nocodafs,noncpfs,nosysfs,noshfs,nofuse,nofuseblk"
 
-#F Check filesystems
-f_fscheck
+fsck_reboot() {
+	echo "Automatic reboot in progress..."
+	/bin/umount -a
+	/bin/mount -n -o remount,ro /
+	/sbin/reboot -f
+	exit 0
+}
 
-#F Activate swaps
-f_swapon
+if [ -x /sbin/fsck ]; then
+	stat_busy "Checking Filesystems"
+	FSCK_OUT=/dev/stdout
+	FSCK_ERR=/dev/null
+	/sbin/fsck -A -T -C -a -t $NETFS $FORCEFSCK >$FSCK_OUT 2>$FSCK_ERR
+	fsckret=$?
+	if [ ${fsckret} -gt 1 ]; then
+		stat_fail
+	fi
+	if [ $((${fsckret}&2)) -eq 2 ]; then
+		echo
+		echo "********************** REBOOT REQUIRED *********************"
+		echo "*                                                          *"
+		echo "* The system will be rebooted automatically in 15 seconds. *"
+		echo "*                                                          *"
+		echo "************************************************************"
+		echo
+		/bin/sleep 15
+		fsck_reboot
+	fi
+	if [ ${fsckret} -gt 1 -a ${fsckret} -ne 32 ]; then
+		echo
+		echo "*****************  FILESYSTEM CHECK FAILED  ****************"
+		echo "*                                                          *"
+		echo "*  Please repair manually and reboot. Note that the root   *"
+		echo "*  file system is currently mounted read-only. To remount  *"
+		echo "*  it read-write type: mount -n -o remount,rw /            *"
+		echo "*  When you exit the maintenance shell the system will     *"
+		echo "*  reboot automatically.                                   *"
+		echo "*                                                          *"
+		echo "************************************************************"
+		echo
+		/sbin/sulogin -p
+		fsck_reboot
+	fi
+	stat_done
+fi
+
+stat_busy "Mounting Local Filesystems"
+/bin/mount -n -o remount,rw /
+/bin/rm -f /etc/mtab*
+# make sure / gets written to /etc/mtab
+/bin/mount -o remount,rw /
+# Write /proc, /sys and /dev to /etc/mtab
+if [ -e /proc/mounts ]; then
+	/bin/grep -e "/proc " -e "/sys " -e "/dev " /proc/mounts >> /etc/mtab
+fi
+# now mount all the local filesystems
+/bin/mount -a -t $NETFS
+stat_done
+
+status "Activating Swap" /sbin/swapon -a
 
 stat_busy "Configuring System Clock"
 if [ ! -f /var/lib/hwclock/adjtime ]; then
-    echo "0.0 0 0.0" > /var/lib/hwclock/adjtime
+	echo "0.0 0 0.0" > /var/lib/hwclock/adjtime
 fi
 if [ "$TIMEZONE" != "" -a -e "/usr/share/zoneinfo/$TIMEZONE" ]; then
-    /bin/rm -f /etc/localtime
-    /bin/cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime
+	/bin/rm -f /etc/localtime
+	/bin/cp "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
 fi
 
+/sbin/hwclock --adjust #Adjust for system drift
 /sbin/hwclock $HWCLOCK_PARAMS
 stat_done
 
-if [ -f /var/run/random-seed ]; then
-    stat_busy "Initializing Random Seed"
-    /bin/cat /var/run/random-seed >/dev/urandom
-    stat_done
+RANDOM_SEED=/var/lib/misc/random-seed
+if [ -f $RANDOM_SEED ]; then
+	stat_busy "Initializing Random Seed"
+	/bin/cat $RANDOM_SEED > /dev/urandom
+	stat_done
 fi
 
 stat_busy "Removing Leftover Files"
@@ -291,6 +327,7 @@ stat_busy "Removing Leftover Files"
 /bin/rm -f /forcefsck &>/dev/null
 (cd /var/run && /usr/bin/find . ! -type d -exec /bin/rm -f -- {} \; )
 : > /var/run/utmp
+/bin/chmod 0664 /var/run/utmp
 # Keep {x,k,g}dm happy with xorg
 /bin/mkdir /tmp/.ICE-unix && /bin/chmod 1777 /tmp/.ICE-unix
 /bin/mkdir /tmp/.X11-unix && /bin/chmod 1777 /tmp/.X11-unix
@@ -299,13 +336,13 @@ stat_done
 #status "Updating Shared Library Links" /sbin/ldconfig
 
 if [ "$HOSTNAME" != "" ]; then
-    status "Setting Hostname: $HOSTNAME" /bin/hostname $HOSTNAME
+	status "Setting Hostname: $HOSTNAME" /bin/hostname $HOSTNAME
 fi
 
 # Set the NIS domain name, if necessary
 [ -f /etc/conf.d/nisdomainname ] && . /etc/conf.d/nisdomainname
 if [ "$NISDOMAINNAME" != "" ]; then
-    status "Setting NIS Domain Name: $NISDOMAINNAME" /bin/nisdomainname $NISDOMAINNAME
+	status "Setting NIS Domain Name: $NISDOMAINNAME" /bin/nisdomainname $NISDOMAINNAME
 fi
 
 status "Updating Module Dependencies" /sbin/depmod -A
@@ -314,21 +351,23 @@ status "Updating Module Dependencies" /sbin/depmod -A
 : >/etc/profile.d/locale.sh
 /bin/chmod 755 /etc/profile.d/locale.sh
 
-
 #
 # hack to be able to set the locale on bootup
 #
 COUNTRY=`get_country`
-[ -n "$COUNTRY" ] || COUNTRY="en"
+[ -n "$COUNTRY" ] || COUNTRY="enus"
 
 		case "$COUNTRY" in
 		be)
-		# Belgian 
+		# Belarusian 
 		LOCALE="be_BY.utf8"
 		HARDWARECLOCK="localtime"
 		TIMEZONE="Europe/Brussels"
 		KEYMAP="be"
 		XKEYMAP="be"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"be"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		bg)
 		# Bulgarian 
@@ -337,22 +376,20 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Sofia"
 		KEYMAP="bg"
 		XKEYMAP="bg"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"bg"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
-		cn)
-		# Simplified Chinese 
-		LOCALE="zh_CN.utf8"
-		HARDWARECLOCK="localtime"
-		TIMEZONE="Asia/Shanghai"
-		KEYMAP="us"
-		XKEYMAP="us"
-		;;
-		cz)
+		cs)
 		# Czech 
 		LOCALE="cs_CZ.utf8"
 		HARDWARECLOCK="localtime"
 		TIMEZONE="Europe/Prague"
 		KEYMAP="cz-lat2"
-		XKEYMAP="cs"
+		XKEYMAP="cz"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"cz"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		de)
 		# German 
@@ -361,6 +398,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Berlin"
 		KEYMAP="de"
 		XKEYMAP="de"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"de"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		dk)
 		# Danish 
@@ -369,14 +409,31 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Copenhagen"
 		KEYMAP="dk"
 		XKEYMAP="dk"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"dk"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
-		en)
+                engb)
+                # British
+                LOCALE="en_GB.utf8"
+                HARDWARECLOCK="localtime"
+                TIMEZONE="Europe/London"
+                KEYMAP="us"
+                XKEYMAP="us"
+                # add HAL config for Xorg input stuff
+                cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+                sed -i "/input.xkb.layout/ s/us/"us"/" /etc/hal/fdi/policy/10-keymap.fdi
+                ;;
+		enus)
 		# English 
 		LOCALE="en_US.utf8"
 		HARDWARECLOCK="localtime"
 		TIMEZONE="Canada/Pacific"
 		KEYMAP="us"
 		XKEYMAP="us"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"us"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		es)
 		# Spain 
@@ -385,6 +442,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Madrid"
 		KEYMAP="es"
 		XKEYMAP="es"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"es"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		fi)
 		# Finland 
@@ -393,6 +453,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Helsinki"
 		KEYMAP="fi"
 		XKEYMAP="fi"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"fi"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		fr)
 		# France 
@@ -401,6 +464,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Paris"
 		KEYMAP="fr"
 		XKEYMAP="fr"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"fr"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		hu)
 		# Hungary 
@@ -409,6 +475,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Budapest"
 		KEYMAP="hu"
 		XKEYMAP="hu"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"hu"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		it)
 		# Italy 
@@ -417,6 +486,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Rome"
 		KEYMAP="it"
 		XKEYMAP="it"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"it"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		ja)
 		# Japanese 
@@ -425,6 +497,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Asia/Tokyo"
 		KEYMAP="us"
 		XKEYMAP="us"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"us"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		nl)
 		# Dutch 
@@ -433,6 +508,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Amsterdam"
 		KEYMAP="us"
 		XKEYMAP="us"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"us"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		no)
 		# Norway 
@@ -441,6 +519,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Oslo"
 		KEYMAP="no"
 		XKEYMAP="no"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"no"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		pl)
 		# Poland 
@@ -449,7 +530,21 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Warsaw"
 		KEYMAP="pl"
 		XKEYMAP="pl"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"pl"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
+                ptbr)
+                # Poland 
+                LOCALE="pt_BR.utf8"
+                HARDWARECLOCK="localtime"
+                TIMEZONE="America/Belem"
+                KEYMAP="br-abnt2"
+                XKEYMAP="pt"
+                # add HAL config for Xorg input stuff
+                cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+                sed -i "/input.xkb.layout/ s/us/"pt"/" /etc/hal/fdi/policy/10-keymap.fdi
+                ;;
 		ru)
 		# Russia 
 		LOCALE="ru_RU.utf8"
@@ -457,6 +552,9 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Moscow"
 		KEYMAP="ru"
 		XKEYMAP="ru"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"ru"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		sk)
 		# Slovak
@@ -465,14 +563,20 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Bratislava"
 		KEYMAP="sk"
 		XKEYMAP="sk"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"sk"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
-		sk)
+		sl)
 		# Slovenian
 		LOCALE="sl_SI.utf8"
 		HARDWARECLOCK="localtime"
 		TIMEZONE="Europe/Ljubljana"
-		KEYMAP="sl"
-		XKEYMAP="sl"
+		KEYMAP="slovene"
+		XKEYMAP="si"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"si"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
 		tr)
 		# Turkish
@@ -481,15 +585,21 @@ COUNTRY=`get_country`
 		TIMEZONE="Europe/Istanbul"
 		KEYMAP="tr"
 		XKEYMAP="tr"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"tr"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
-		uk)
-		# British
-		LOCALE="en_GB.utf8"
-		HARDWARECLOCK="localtime"
-		TIMEZONE="Europe/London"
-		KEYMAP="uk"
-		XKEYMAP="uk"
-		;;
+                zhcn)
+                # Simplified Chinese 
+                LOCALE="zh_CN.utf8"
+                HARDWARECLOCK="localtime"
+                TIMEZONE="Asia/Shanghai"
+                KEYMAP="us"
+                XKEYMAP="us"
+                # add HAL config for Xorg input stuff
+                cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+                sed -i "/input.xkb.layout/ s/us/"us"/" /etc/hal/fdi/policy/10-keymap.fdi
+                ;;
 		*)
 		# American 
 		LOCALE="en_US.utf8"
@@ -497,9 +607,11 @@ COUNTRY=`get_country`
 		TIMEZONE="Canada/Pacific"
 		KEYMAP="us"
 		XKEYMAP="us"
+		# add HAL config for Xorg input stuff
+		cp -f /usr/share/hal/fdi/policy/10osvendor/10-keymap.fdi /etc/hal/fdi/policy/10-keymap.fdi
+		sed -i "/input.xkb.layout/ s/us/"us"/" /etc/hal/fdi/policy/10-keymap.fdi
 		;;
-		esac
-
+	esac
 
 # Set user defined locale
 [ -z "$LOCALE" ] && LOCALE="en_US"
@@ -508,77 +620,69 @@ echo "export LANG=$LOCALE" >>/etc/profile.d/locale.sh
 stat_done
 
 if echo "$LOCALE" | /bin/grep -qi utf ; then
-    stat_busy "Setting Consoles to UTF-8 mode"
-    # UTF-8 consoles are default since 2.6.24 kernel
-    # this code is needed not only for older kernels,
-    # but also when user has set vt.default_utf8=0 but LOCALE is *.UTF-8.
-    for i in $(/usr/bin/seq 0 63); do
-	usr/bin/kbd_mode -u < /dev/vc/${i}
-        printf "\e%%G" > /dev/vc/${i}
-    done
-    # the $CONSOLE check helps us avoid this when running scripts from cron
-    echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e%%G"; fi' >>/etc/profile.d/locale.sh
-    stat_done
-    [ -n "$KEYMAP" ] && status "Loading Keyboard Map: $KEYMAP" /bin/loadkeys -q -u $KEYMAP
+	stat_busy "Setting Consoles to UTF-8 mode"
+	# UTF-8 consoles are default since 2.6.24 kernel
+	# this code is needed not only for older kernels,
+	# but also when user has set vt.default_utf8=0 but LOCALE is *.UTF-8.
+	for i in $(/usr/bin/seq 0 63); do
+		/usr/bin/kbd_mode -u < /dev/tty${i}
+		printf "\e%%G" > /dev/tty${i}
+	done
+	# the $CONSOLE check helps us avoid this when running scripts from cron
+	echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e%%G"; fi' >>/etc/profile.d/locale.sh
+	stat_done
+	[ -n "$KEYMAP" ] && status "Loading Keyboard Map: $KEYMAP" /bin/loadkeys -q -u $KEYMAP
 else
-    stat_busy "Setting Consoles to legacy mode"
-    # make non-UTF-8 consoles work on 2.6.24 and newer kernels
-    /usr/bin/kbd_mode -a
-    for i in $(/usr/bin/seq 0 63); do
-	usr/bin/kbd_mode -a < /dev/vc/${i}
-        printf "\e%%@" > /dev/vc/${i}
-    done
-    # the $CONSOLE check helps us avoid this when running scripts from cron
-    echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e%%@"; fi' >>/etc/profile.d/locale.sh
-    stat_done
-    [ -n "$KEYMAP" ] && status "Loading Keyboard Map: $KEYMAP" /bin/loadkeys -q $KEYMAP
+	stat_busy "Setting Consoles to legacy mode"
+	# make non-UTF-8 consoles work on 2.6.24 and newer kernels
+	for i in $(/usr/bin/seq 0 63); do
+		/usr/bin/kbd_mode -a < /dev/tty${i}
+		printf "\e%%@" > /dev/tty${i}
+	done
+	# the $CONSOLE check helps us avoid this when running scripts from cron
+	echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e%%@"; fi' >>/etc/profile.d/locale.sh
+	stat_done
+	[ -n "$KEYMAP" ] && status "Loading Keyboard Map: $KEYMAP" /bin/loadkeys -q $KEYMAP
 fi
 
 if [ -n "$CONSOLEFONT" ]; then
-    stat_busy "Loading Console Font: $CONSOLEFONT"
-    #CONSOLEMAP in UTF-8 shouldn't be used
-    if [ -n "$CONSOLEMAP" ] && echo "$LOCALE" | /bin/grep -qi utf ; then
-        CONSOLEMAP=""
-    fi
-    for i in $(/usr/bin/seq 0 63); do
-        if [ -n "$CONSOLEMAP" ]; then
-            /usr/bin/setfont -m $CONSOLEMAP $CONSOLEFONT -C /dev/vc/${i} >/dev/null 2>&1
-        else
-            /usr/bin/setfont $CONSOLEFONT -C /dev/vc/${i} >/dev/null 2>&1
-        fi
-    done
-    if [ $? -ne 0 ]; then
-        stat_fail
-    else
-        for i in $(/usr/bin/seq 0 63); do
-            printf "\e(K" > /dev/vc/${i}
-        done
-        # the $CONSOLE check helps us avoid this when running scripts from cron
-        echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e(K"; fi' >>/etc/profile.d/locale.sh
-        stat_done
-    fi
+	stat_busy "Loading Console Font: $CONSOLEFONT"
+	#CONSOLEMAP in UTF-8 shouldn't be used
+	if [ -n "$CONSOLEMAP" ] && echo "$LOCALE" | /bin/grep -qi utf ; then
+		CONSOLEMAP=""
+	fi
+	for i in $(/usr/bin/seq 0 63); do
+		if [ -n "$CONSOLEMAP" ]; then
+			/usr/bin/setfont -m $CONSOLEMAP $CONSOLEFONT -C /dev/tty${i} >/dev/null 2>&1
+		else
+			/usr/bin/setfont $CONSOLEFONT -C /dev/tty${i} >/dev/null 2>&1
+		fi
+	done
+	if [ $? -ne 0 ]; then
+		stat_fail
+	else
+		for i in $(/usr/bin/seq 0 63); do
+			printf "\e(K" > /dev/tty${i}
+		done
+		# the $CONSOLE check helps us avoid this when running scripts from cron
+		echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e(K"; fi' >>/etc/profile.d/locale.sh
+		stat_done
+	fi
 fi
 
 # Adding persistent network/cdrom generated rules
 if [ -f "/dev/.udev/tmp-rules--70-persistent-cd.rules" ]; then
-    stat_busy "Adding persistent cdrom udev rules"
-    /bin/cat /dev/.udev/tmp-rules--70-persistent-cd.rules >> /etc/udev/rules.d/70-persistent-cd.rules
-    stat_done
+	stat_busy "Adding persistent cdrom udev rules"
+	/bin/cat /dev/.udev/tmp-rules--70-persistent-cd.rules >> /etc/udev/rules.d/70-persistent-cd.rules
+	stat_done
 fi
 if [ -f "/dev/.udev/tmp-rules--70-persistent-net.rules" ]; then
-    stat_busy "Adding persistent network udev rules"
-    /bin/cat /dev/.udev/tmp-rules--70-persistent-net.rules >> /etc/udev/rules.d/70-persistent-net.rules
-    stat_done
+	stat_busy "Adding persistent network udev rules"
+	/bin/cat /dev/.udev/tmp-rules--70-persistent-net.rules >> /etc/udev/rules.d/70-persistent-net.rules
+	stat_done
 fi
 
-# Screen blanks after 15 minutes idle time
-/usr/bin/setterm -blank 15
-
-# Save our dmesg output from this boot
-if [ -f /var/log/dmesg.log ]; then
-    /bin/rm /var/log/dmesg.log
-fi
-/bin/dmesg > /var/log/dmesg.log
+/bin/dmesg >| /var/log/dmesg.log
 
 # End of file
 # vim: set ts=2 noet:

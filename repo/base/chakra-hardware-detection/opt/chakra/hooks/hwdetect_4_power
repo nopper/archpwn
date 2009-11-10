@@ -1,0 +1,49 @@
+#!/bin/bash
+
+hwdetect_power()
+{
+	local KERNEL=$(cat /proc/version | cut -d " " -f 3)
+
+	if [ -e "/tmp/platform-desktop" ] ; then
+
+		printhl "Enabling powersave functions"
+
+		for i in /lib/modules/"$KERNEL"/kernel/arch/x86/kernel/cpu/cpufreq/*.ko; do 
+			if [ -r "$i" ]; then
+				case "$i" in *-lib.*) continue ;; esac
+				m="${i##*/}" ; m="${m%%.*}"
+				modprobe "${m}" >/dev/null 2>&1
+			fi
+		done
+
+		modprobe cpufreq-ondemand >/dev/null 2>&1
+
+		for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+			if [ -w "$i" ]; then
+				n="${i#/sys/devices/system/cpu/cpu}" ; n="${n%/cpufreq/scaling_governor}"
+				echo "ondemand" > "${i}"
+			fi
+		done
+
+	elif [ -e "/tmp/platform-laptop" ] ; then
+
+		printhl "Enabling powersave functions"
+
+		for i in /lib/modules/"$KERNEL"/kernel/arch/x86/kernel/cpu/cpufreq/*.ko; do 
+			if [ -r "$i" ]; then
+				case "$i" in *-lib.*) continue ;; esac
+				m="${i##*/}" ; m="${m%%.*}"
+				modprobe "${m}" >/dev/null 2>&1
+			fi
+		done
+
+		modprobe cpufreq-ondemand >/dev/null 2>&1
+
+		for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+			if [ -w "$i" ]; then
+				n="${i#/sys/devices/system/cpu/cpu}" ; n="${n%/cpufreq/scaling_governor}"
+				echo "ondemand" > "${i}"
+			fi
+		done
+	fi
+}

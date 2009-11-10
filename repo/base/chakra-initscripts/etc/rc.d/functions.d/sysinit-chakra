@@ -5,8 +5,7 @@ f_header ()
 {
 printsep
 echo " "
-printhl "${C_CLEAR}Booting the ${C_CLEAR}C H${C_MAIN} A${C_OTHER} K${C_CLEAR} R A live system ..."
-printhl "${C_FAIL}Build>=20081220 (alpha1) - What are you waiting for? Christmas?"
+printhl "${C_CLEAR}CH${C_MAIN}A${C_OTHER}K${C_CLEAR}RA >= 20090930 (${C_FAIL}alpha3-test${C_CLEAR})"
 printhl "${C_CLEAR}Distributed under the GNU General Public License (GPL)"
 printsep
 echo " " 

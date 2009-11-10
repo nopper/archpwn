@@ -6,3 +6,9 @@
 # set correct permissions for live user
 /bin/chown -R live:users /home/live
 
+# misc exports
+export KDE_NO_IPV6="TRUE"
+export OPERAPLUGINWRAPPER_PRIORITY=0
+export OOO_FORCE_DESKTOP=kde4
+export SAL_NOOPENGL=true
+
