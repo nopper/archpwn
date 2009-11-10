@@ -2,8 +2,29 @@
 _mnt_bind()
 {
     info "Binding ${1} to ${2}"
-    mkdir -p /real_root${2}
+    /bin/mkdir -p /real_root${2}
     /bin/mount -o bind ${1} /real_root${2}
+}
+
+_mnt_iso()
+{
+	img="${1}"
+
+	info "Mounting ${img}"
+	/bin/modprobe -q loop max_loop=255 >/dev/null 2>&1
+
+	#/bin/mkdir -p "/tmpfs/mnt/loop${LOOP_NUM}"
+	/bin/mkdir -p "/tmpfs/mnt/findiso"
+    while [ ! -e "/dev/loop10" ]; do
+        sleep 1
+    done
+    if ! /bin/losetup "/dev/loop10" ${img} > /dev/null 2>&1; then
+        error "ERROR: Cannot mount loop device /dev/loop${LOOP_NUM}"
+        break
+    fi
+    /bin/mount -t iso9660 "/dev/loop10" "/tmpfs/mnt/findiso"
+
+    #export LOOP_NUM=$(( $LOOP_NUM + 1 ))
 }
 
 # args: image file
@@ -18,13 +39,13 @@ _mnt_squashfs()
 
     if [ "${copy2ram}" = "y" ]; then
         info "Copying squashfs image to RAM"
-        mkdir -p /tmp
-        mount -t tmpfs -o "size=6M" tmpfs /tmp
+        /bin/mkdir -p /tmp
+        /bin/mount -t tmpfs -o "size=6M" tmpfs /tmp
         /bin/cat ${img} > "${base_img}"
         img="${base_img}"
     fi
 
-    mkdir -p "/tmpfs/mnt/loop${LOOP_NUM}"
+    /bin/mkdir -p "/tmpfs/mnt/loop${LOOP_NUM}"
     while [ ! -e "/dev/loop${LOOP_NUM}" ]; do
         sleep 1
     done
@@ -38,13 +59,13 @@ _mnt_squashfs()
     export LOOP_NUM=$(( $LOOP_NUM + 1 ))
 }
 
-mount_tmpfs () 
+mount_tmpfs ()
 {
     #if [ "x${ramdisk_size}" = "x" ]; then
-        ramdisk_size="2M"
+        ramdisk_size="3M"
     #fi
     info -n "Mounting tmpfs, size=${ramdisk_size}... "
-    mount -t tmpfs -o "size=${ramdisk_size}" tmpfs /tmpfs
+    /bin/mount -t tmpfs -o "size=${ramdisk_size}" tmpfs /tmpfs
     hl "done."; echo
 }
 
@@ -68,15 +89,20 @@ run_hook ()
     /bin/sleep "${usbdelay}"
 
     found=0
-    
+
     /bin/modprobe -q isofs >/dev/null 2>&1
     info -n "Scanning cd drives: "
     for cdrom in /dev/hd[a-z] /dev/sr[0-9]* /dev/scd[a-z] /dev/sg[0-9]*; do
     	[ ! -e "${cdrom}" ] && continue
         bootcdmnt="$(device_mountdir ${cdrom})"
         /bin/mkdir -p "${bootcdmnt}"
-    	if mount -r -t iso9660 "${cdrom}" "${bootcdmnt}" >/dev/null 2>&1; then
-            if [ -f "${bootcdmnt}/initrd.lzm" ]; then
+    	if /bin/mount -r -t iso9660 "${cdrom}" "${bootcdmnt}" >/dev/null 2>&1; then
+    	    if [ -f "${bootcdmnt}/${findiso}" ]; then
+                found=1
+                info "${cdrom}"; echo
+                BOOT_MOUNT="${bootcdmnt}"
+                break
+            elif [ -f "${bootcdmnt}/base.lzm" ]; then
                 found=1
                 hl "${cdrom}"; echo
                 BOOT_MOUNT="${bootcdmnt}"
@@ -86,7 +112,7 @@ run_hook ()
             hl "uhm"; echo
             error "Failed to mount ${cdrom}"
         fi
-        [ ${found} -eq 0 ] && umount "${bootcdmnt}" >/dev/null 2>&1
+        [ ${found} -eq 0 ] && hl "none." && echo && /bin/umount "${bootcdmnt}" >/dev/null 2>&1
     done
 
     if [ ${found} -eq 0 ]; then
@@ -95,18 +121,23 @@ run_hook ()
             [ ! -e "${usb}" ] && continue
             bootusbmnt="$(device_mountdir ${usb})"
             /bin/mkdir -p "${bootusbmnt}"
-            if mount -t vfat "${usb}" "${bootusbmnt}" >/dev/null 2>&1 ||\
-               mount -t ext2 "${usb}" "${bootusbmnt}" >/dev/null 2>&1; then
-                if [ "x${from}" != "x" ]; then
+            if /bin/mount -t vfat "${usb}" "${bootusbmnt}" >/dev/null 2>&1 ||\
+               /bin/mount -t ext2 "${usb}" "${bootusbmnt}" >/dev/null 2>&1; then
+                if [ -f "${bootusbmnt}/${findiso}" ]; then
+                        found=1
+                        info "${usb}"; echo
+                        BOOT_MOUNT="${bootusbmnt}"
+                        break
+                elif [ "x${from}" != "x" ]; then
                     from=$(/usr/bin/basename ${from})
-                    if [ -f "${bootusbmnt}/${from}/initrd.lzm" ]; then
+                    if [ -f "${bootusbmnt}/${from}/base.lzm" ]; then
                         found=1
                         info "${usb}"; echo
                         BOOT_MOUNT="${bootusbmnt}"
                         break
                     fi
                 else
-                    if [ -f "${bootusbmnt}/initrd.lzm" ]; then
+                    if [ -f "${bootusbmnt}/base.lzm" ]; then
                         found=1
                         hl "${usb}"; echo
                         BOOT_MOUNT="${bootusbmnt}"
@@ -116,7 +147,7 @@ run_hook ()
             else
                 error "Failed to mount ${usb}"
             fi
-            [ ${found} -eq 0 ] && umount "${bootusbmnt}" >/dev/null 2>&1
+            [ ${found} -eq 0 ] && hl "none." && echo && /bin/umount "${bootusbmnt}" >/dev/null 2>&1
         done
     fi
 
@@ -134,8 +165,8 @@ run_hook ()
     fi
 
     /bin/modprobe -q squashfs >/dev/null 2>&1
-    /bin/modprobe -q sqlzma >/dev/null 2>&1
-    /bin/modprobe -q unlzma >/dev/null 2>&1
+    #/bin/modprobe -q sqlzma >/dev/null 2>&1
+    #/bin/modprobe -q unlzma >/dev/null 2>&1
     /bin/modprobe -q aufs brs=1 >/dev/null 2>&1
     XINO=xino
     MEMORY=memory
@@ -143,37 +174,54 @@ run_hook ()
     	/bin/mkdir -p $XINO
     	/bin/mount -n -t tmpfs tmpfs $XINO
     fi
-    
 
     /bin/mount -t aufs -o nowarn_perm,xino=$XINO/.aufs.xino,br:/tmpfs=rw aufs /real_root
 
-    if [ "x${from}" != "x" ]; then
-        _mnt_squashfs "${BOOT_MOUNT}/${from}/initrd.lzm"
+	if [ "x${findiso}" != "x" ]; then
+			if [ -f "${BOOT_MOUNT}/${findiso}" ]; then
+				_mnt_iso "${BOOT_MOUNT}/${findiso}"
+				BOOT_ORIG="${BOOT_MOUNT}"
+				BOOT_MOUNT="/tmpfs/mnt/findiso"
+			fi
+
+			if [ -f "${BOOT_MOUNT}/base.lzm" ]; then
+				_mnt_squashfs "${BOOT_MOUNT}/base.lzm"
+			elif [ -f "${BOOT_MOUNT}/initrd.lzm" ]; then
+				_mnt_squashfs "${BOOT_MOUNT}/initrd.lzm"
+			fi
+    elif [ "x${from}" != "x" ]; then
+        _mnt_squashfs "${BOOT_MOUNT}/${from}/base.lzm"
     else
-    	_mnt_squashfs "${BOOT_MOUNT}/initrd.lzm"
+    	_mnt_squashfs "${BOOT_MOUNT}/base.lzm"
     fi
 
     echo "aufs / aufs defaults 0 0" > /real_root/etc/fstab
     /bin/mount -o move ${BOOT_MOUNT} /real_root/mnt/$(/usr/bin/basename ${BOOT_MOUNT})
+    if [ "x${findiso}" != x ]; then
+		/bin/mount -o move ${BOOT_ORIG} /real_root/mnt/$(/usr/bin/basename ${BOOT_ORIG})
+    fi
 
     if [ "${break}" = "y" ]; then
         warn ":: Break requested, type 'exit' to resume operation"
         warn "   NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
         PS1="ramfs$ " /bin/sh -i
     fi
-		
-    ROOT=/real_root
 
-    /bin/mkdir -p $ROOT/dev 2>&1 >/dev/null
-    #/bin/mknod $ROOT/dev/console c 5 1 2>&1 >/dev/null
-    #/bin/mknod $ROOT/dev/null c 1 3 2>&1 >/dev/null
-    #/bin/mknod $ROOT/dev/zero c 1 5 2>&1 >/dev/null
+    ROOT=/real_root
+    if [ ! -d $ROOT/dev ]; then /bin/mkdir -p $ROOT/dev; fi
+    if [ ! -e $ROOT/dev/console ]; then /bin/mknod $ROOT/dev/console c 5 1; fi
+    if [ ! -e $ROOT/dev/null ]; then /bin/mknod $ROOT/dev/null c 1 3; fi
+    if [ ! -e $ROOT/dev/null ]; then /bin/mknod $ROOT/dev/zero c 1 5; fi
 
     udevpid=$(/bin/minips -C udevd -o pid=)
-    [ "x${udevpid}" != "x" ] && /bin/kill -9 $udevpid 2>&1 >/dev/null
+    if [ -n "${udevpid}" ]; then
+        /bin/kill -9 ${udevpid} > /dev/null 2>&1
+        /bin/sleep 0.01
+    fi
     #Yep, we're bailing out here.  We don't need kinit.
-    /bin/umount /sys
-    /bin/umount /proc
+    /bin/umount -l /sys
+    /bin/umount -l /proc
+    sleep 2
     exec /bin/run-init -c /dev/console /real_root /sbin/init
 }
 

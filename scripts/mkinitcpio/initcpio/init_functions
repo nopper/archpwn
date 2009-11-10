@@ -35,7 +35,7 @@ BGW="\033[47m"
 
 hl () { echo -n "${W}$@${RST}";  }
 
-inf () {
+info () {
     if [ $# -eq 2 ] && [ "$1" = "-n" ]; then
         echo -n " $EMB*$RST "; hl "$2"
     else
@@ -55,7 +55,7 @@ err () {
     fi
 }
 
-wrn () {
+warn () {
     if [ $# -eq 2 ] && [ "$1" = "-n" ]; then
         echo -n " $EMY*$RST "; hl "$2"
     else
@@ -70,7 +70,7 @@ poll_device() {
     else
         seconds=5
     fi
-    inf "Waiting ${seconds} seconds for device ${device} ..."
+    info "Waiting ${seconds} seconds for device ${device} ..."
     while [ ! -b "${device}" -a ! -L "${device}" -a ${seconds} -gt 0 ]; do
         sleep 1
         seconds=$((${seconds}-1))

@@ -24,13 +24,14 @@ install ()
     # add symlink for compatibility
     add_symlink2 /bin/modprobe /sbin/modprobe
 
+    add_file "$CWD/initcpio/init_functions" "/init_functions"
     add_file "$CWD/initcpio/init" "/init"
     add_file "${CONFIG}" "/config"
     if [ -n "${MESSAGE}" ]; then
         echo -e "${MESSAGE}" > ${MESSAGEFILE}
         add_file "${MESSAGEFILE}" "/message"
     fi
-    add_file "/etc/modprobe.d/usb-load-ehci-first"
+    add_file "/etc/modprobe.d/usb-load-ehci-first.conf"
     SCRIPT=""
 }
 

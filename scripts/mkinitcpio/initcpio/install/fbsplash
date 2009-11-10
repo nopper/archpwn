@@ -2,24 +2,33 @@
 install() {
 	[ -x /sbin/fbcondecor_helper ] || return 1
 
-	source /etc/conf.d/fbsplash.conf
-	[ -z "${THEME}" ] && THEME="darch"
+	. /etc/conf.d/fbsplash
 
-	add_binary "/sbin/fbcondecor_helper"	
+	[ -n "$( echo ${SPLASH_THEMES} )" ] || return 1
 
-	add_device "/dev/null" c 1 3
-	add_device "/dev/console" c 5 1
+	add_binary "/sbin/fbcondecor_helper"
+
+	# stuff needed to start the helper 
 	add_device "/dev/tty0" c 4 0
-
-	for DIR in /dev /dev/fb /dev/misc /dev/vc /lib/splash/proc /lib/splash/sys
+	for DIR in /dev/fb /dev/misc /dev/vc /lib/splash/proc /lib/splash/sys
 	do
 		add_dir ${DIR}
 	done
 
-	for THEME in ${THEMES}
+	for theme in ${SPLASH_THEMES}
 	do
-		add_full_dir "/etc/splash/${THEME}"
+		add_full_dir "/etc/splash/${theme}"
 	done
+	
+	for SYMLINK in /etc/splash/default
+	do
+		[ -L ${SYMLINK} ] || continue
+		add_symlink ${SYMLINK} "$( readlink ${SYMLINK} )"
+	done
+	
+	add_file /etc/conf.d/fbsplash
+
+	SCRIPT="fbsplash"
 }
 
 help() {

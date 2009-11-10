@@ -2,7 +2,7 @@
 
 . /init_functions
 
-inf "Loading Initramfs"
+info "Loading Initramfs"
 
 /bin/mount -t sysfs none /sys
 /bin/mount -t proc  none /proc
@@ -78,10 +78,10 @@ if [ -e "/hooks" ]; then
         TST=""
         eval "TST=\$hook_${h}"
         if [ "${TST}" != "disabled" ]; then
-            run_hook () { wrn "${h}: no run function defined"; }
+            run_hook () { warn "${h}: no run function defined"; }
             if [ -e "/hooks/${h}" ]; then
                . /hooks/${h}
-               inf "Running Hook [${h}]"
+               info "Running Hook [${h}]"
                run_hook
             fi
         fi
@@ -89,8 +89,8 @@ if [ -e "/hooks" ]; then
 fi
 
 if [ "${break}" = "y" ]; then
-    wrn ":: Break requested, type 'exit' to resume operation"
-    wrn "   NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
+    warn ":: Break requested, type 'exit' to resume operation"
+    warn "   NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
     PS1="ramfs$ " /bin/sh -i
 fi
 
@@ -98,7 +98,7 @@ fi
 # Let kinit do it all
 if [ -z "${nfsroot}" -a "${root}" != "/dev/nfs" ]; then
     if ! poll_device "${root}" ${rootdelay}; then
-        wrn "\nRoot device '${root}' doesn't exist, attempting to create it"
+        warn "\nRoot device '${root}' doesn't exist, attempting to create it"
 
         eval $(/bin/parseblock "${root}")
         if [ -z "${BLOCKDEVICE}" ]; then
@@ -110,15 +110,15 @@ if [ -z "${nfsroot}" -a "${root}" != "/dev/nfs" ]; then
         fi
         if [ ! -b "${root}" -a ! -L "${root}" ]; then
             err "Unable to detect or create root device '${root}'"
-            wrn "You are being dropped to a recovery shell"
-            wrn "    Type 'reboot' to reboot"
-            wrn "    Type 'exit' to try and continue booting"
-            wrn "NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
+            warn "You are being dropped to a recovery shell"
+            warn "    Type 'reboot' to reboot"
+            warn "    Type 'exit' to try and continue booting"
+            warn "NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
             echo ""
-            wrn "If the device '${root}' gets created while you are here,"
-            wrn "try adding 'rootdelay=10' or higher to the kernel command-line"
+            warn "If the device '${root}' gets created while you are here,"
+            warn "try adding 'rootdelay=10' or higher to the kernel command-line"
             PS1="ramfs$ " /bin/sh -i
-            inf "Trying to continue (this will most likely fail)..."
+            info "Trying to continue (this will most likely fail)..."
         fi
     fi
 fi
@@ -126,7 +126,7 @@ fi
 if [ -f "/message" ]; then
     msg "$(cat /message)"
 fi
-inf "Initramfs Completed - control passing to kinit"
+info "Initramfs Completed - control passing to kinit"
 
 #Special handling if udev is running
 udevpid=$(/bin/minips -C udevd -o pid=)
