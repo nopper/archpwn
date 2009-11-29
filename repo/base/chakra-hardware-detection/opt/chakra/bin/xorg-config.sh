@@ -2,7 +2,9 @@
 #
 #**************************************************************************
 #   Copyright (C) 2008 Jan Mette                                          *
+#   Copyright (C) 2009 Jan Mette and Phil Miller                          *
 #   <jan[dot]mette[at]berlin[dot]de>                                      *
+#   <philm[at]chakra-project[dot]org>                                     *
 #                                                                         *
 #   This script is free software; you can redistribute it and/or modify   *
 #   it under the terms of the GNU General Public License as published by  *
@@ -34,13 +36,36 @@
 # the main config
 . /etc/chakra-hwdetect.conf
 
-
-
 #
-# CHECK KERNEL COMMANDLINE IF NONFREE DRIVERS
+# CHECK KERNEL COMMANDLINE IF XDRIVER VALUE OR NONFREE DRIVERS
 # HAVE BEEN ENABLED OR NOT...
 #
-NONFREE=`get_nonfree`
+	NONFREE=`get_nonfree`
+	XDRIVER=`get_xdriver`
+
+	[ -n "$XDRIVER" ] || XDRIVER="vesa"
+
+	case "$XDRIVER" in
+
+		vesa)
+
+			NONFREE="no"
+			#force vesa driver
+			printhl "Setting up X.Org driver: vesa"
+			XDRIVER_VAL="Driver\t\"vesa\""
+			sed -i -e /'Section "Device"'/,/'EndSection'/s/'Driver.*'/$XDRIVER_VAL/g /etc/X11/xorg.conf
+
+
+		;;
+
+		*)
+
+			# we dont force vesa
+			printhl "..."
+
+		;;
+
+	esac
 
 	[ -n "$NONFREE" ] || NONFREE="yes"
 

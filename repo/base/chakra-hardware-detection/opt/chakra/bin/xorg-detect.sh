@@ -2,7 +2,9 @@
 #
 #**************************************************************************
 #   Copyright (C) 2008 Jan Mette                                          *
+#   Copyright (C) 2009 Jan Mette and Phil Miller                          *
 #   <jan[dot]mette[at]berlin[dot]de>                                      *
+#   <philm[at]chakra-project[dot]org>                                     *
 #                                                                         *
 #   This script is free software; you can redistribute it and/or modify   *
 #   it under the terms of the GNU General Public License as published by  *
@@ -59,11 +61,23 @@ output_detected_driver() {
 		# keep in sync with the addedpacks list inside the profile
 		XORG_DRIVERS="apm ark ati chips cirrus geode glint i128 i740 intel-legacy intel mach64 mga neomagic nouveau nv openchrome r128 radeonhd rendition s3 s3virge savage siliconmotion sis sisusb tdfx trident tseng v4l vesa voodoo"
 
-		for i in $XORG_DRIVERS ; do
-			if grep -q ${i} /etc/X11/xorg.conf.plain ; then
-			USED_DRIVER=$i
-			fi
-		done
+		if [ -e "/tmp/nvidia-173xx" ] ; then
+		    USED_DRIVER="nvidia"
+		elif [ -e "/tmp/nvidia-96xx" ] ; then
+		    USED_DRIVER="nvidia"
+		elif [ -e "/tmp/nvidia" ] ; then
+		    USED_DRIVER="nvidia"
+		elif [ -e "/tmp/catalyst" ] ; then
+		    USED_DRIVER="fglrx"
+		elif [ -e "/tmp/vesa" ] ; then
+		    USED_DRIVER="vesa"
+		else
+		    for i in $XORG_DRIVERS ; do
+			  if grep -q ${i} /etc/X11/xorg.conf.plain ; then
+			    USED_DRIVER=$i
+			  fi
+		    done
+		fi
 
 		printhl "Using display driver: $USED_DRIVER"
 }

@@ -1,10 +1,10 @@
 
 pkgname=chakra-hardware-detection
-pkgver=20090930
+pkgver=20091114
 pkgrel=1
 pkgdesc="Hardware detection scripts for Chakra"
 arch=('any')
-url="http://www.archlinux.org"
+url="http://www.chakra-project.org"
 depends=('bc' 'util-linux-ng')
 license=('GPL')
 

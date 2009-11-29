@@ -1,10 +1,56 @@
 #!/bin/bash
+#
+#**************************************************************************
+#   Copyright (C) 2008 Jan Mette                                          *
+#   Copyright (C) 2009 Jan Mette and Phil Miller                          *
+#   <jan[dot]mette[at]berlin[dot]de>                                      *
+#   <philm[at]chakra-project[dot]org>                                     *
+#                                                                         *
+#   This script is free software; you can redistribute it and/or modify   *
+#   it under the terms of the GNU General Public License as published by  *
+#   the Free Software Foundation; either version 2 of the License, or     *
+#   (at your option) any later version.                                   *
+#                                                                         *
+#   This program is distributed in the hope that it will be useful,       *
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+#   GNU General Public License for more details.                          *
+#                                                                         *
+#   You should have received a copy of the GNU General Public License     *
+#   along with this program; if not, write to the                         *
+#   Free Software Foundation, Inc.,                                       *
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
+#**************************************************************************
 
 # config is in /etc/chakra-hwdetect.conf
 
 hwdetect_graphics()
 {
+	#get variables
 	NONFREE=`get_nonfree`
+	XDRIVER=`get_xdriver`
+
+	[ -n "$XDRIVER" ] || XDRIVER="vesa"
+
+	case "$XDRIVER" in
+
+		vesa)
+
+			#force vesa driver
+			printhl "Forcing driver: vesa."
+			# add a status file in /tmp
+			touch /tmp/vesa
+			#disable nonfree if any
+			NONFREE="no"
+
+		;;
+
+		*)
+
+			printhl "no vesa driver forced."
+
+		;;
+	esac
 
 	[ -n "$NONFREE" ] || NONFREE="yes"
 
@@ -38,21 +84,21 @@ hwdetect_graphics()
 				
 					printhl "NVIDIA hardware detected"
 					printhl "Installing driver: nvidia-96xx. This can take some seconds."
-			
+				
 					pacman -Udf ${HW_DRIVER_PATH}/nvidia-96xx* &>/dev/null
-			
+				
 					# add a status file in /tmp
 					touch /tmp/nvidia-96xx
-
+				
 				# or maybe another legacy card
 				elif [ $(grep -i "$CARD_NVIDIA" ${HW_DB_PATH}/${NV173XX_DB}) ] 
 				then
 				
 					printhl "NVIDIA hardware detected"
 					printhl "Installing driver: nvidia-173xx. This can take some seconds."
-			
+				
 					pacman -Udf ${HW_DRIVER_PATH}/nvidia-173xx* &>/dev/null
-			
+				
 					# add a status file in /tmp
 					touch /tmp/nvidia-173xx
 				else
@@ -63,20 +109,20 @@ hwdetect_graphics()
 			elif [ "$CARD_ATI" != "" ]
 			then
 			
-			
-				if [ $(grep -i "$CARD_ATI" ${HW_DB_PATH}/${ATI_DB}) ]
-				then
-				
-					printhl "ATI hardware detected"
-					printhl "Installing driver: ATI catalyst. This can take some seconds."
-			
-					pacman -Udf ${HW_DRIVER_PATH}/catalyst* &>/dev/null
-			
-					# add a status file in /tmp
-					touch /tmp/catalyst
-				else
+				# Disabled for the moment
+				#if [ $(grep -i "$CARD_ATI" ${HW_DB_PATH}/${ATI_DB}) ]
+				#then
+				#
+				#	printhl "ATI hardware detected"
+				#	printhl "Installing driver: ATI catalyst. This can take some seconds."
+				#
+				#	pacman -Udf ${HW_DRIVER_PATH}/catalyst* &>/dev/null
+				#
+				#	# add a status file in /tmp
+				#	touch /tmp/catalyst
+				#else
 					printhl "No non-free drivers available for this hardware"
-				fi
+				#fi
 			else
 			
 					printhl "No non-free drivers available for this hardware"
