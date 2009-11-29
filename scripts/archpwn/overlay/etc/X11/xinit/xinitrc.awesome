@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec awesome
+exec ck-launch-session awesome

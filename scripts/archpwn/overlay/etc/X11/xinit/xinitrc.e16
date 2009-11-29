@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec starte16
+exec ck-launch-session starte16

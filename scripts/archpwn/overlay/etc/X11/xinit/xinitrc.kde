@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec startkde
+exec ck-launch-session startkde

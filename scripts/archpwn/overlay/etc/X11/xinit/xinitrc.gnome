@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec /usr/bin/gnome-session
+exec ck-launch-session /usr/bin/gnome-session

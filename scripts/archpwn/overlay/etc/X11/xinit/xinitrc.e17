@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec enlightenment_start
+exec ck-launch-session enlightenment_start

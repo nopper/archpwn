@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec startlxde
+exec ck-launch-session startlxde

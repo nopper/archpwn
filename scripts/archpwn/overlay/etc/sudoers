@@ -30,5 +30,6 @@ root	ALL=(ALL) ALL
 #%users  ALL=/sbin/mount /cdrom,/sbin/umount /cdrom
 %users  localhost=/sbin/shutdown -h now
 %users ALL=(root) NOPASSWD: /usr/lib/xfce4/xfsm-shutdown-helper
+%users ALL=NOPASSWD: /sbin/poweroff, /sbin/reboot
 %users ALL=NOPASSWD: /usr/bin/pacman
 %users ALL=NOPASSWD: /usr/bin/pacdiffviewer

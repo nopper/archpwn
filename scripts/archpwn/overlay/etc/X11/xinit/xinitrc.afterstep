@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec afterstep
+exec ck-launch-session afterstep

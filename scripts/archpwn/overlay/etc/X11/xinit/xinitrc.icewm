@@ -26,4 +26,4 @@ fi
 
 # start some nice programs
 
-exec icewm-session
+exec ck-launch-session icewm-session

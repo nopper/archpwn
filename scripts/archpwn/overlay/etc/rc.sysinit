@@ -34,7 +34,7 @@ printf " ${C_OTHER}>${C_CLEAR} Copyright 2007-2009 Aaron Griffin\n\n"
 printf " ${C_OTHER}>${C_CLEAR} Distributed under the GNU General Public License (GPL)${C_CLEAR}\n\n"
 
 # mount /proc, /sys and our RAM /dev
-/bin/mount -n -t ramfs none /dev
+/bin/mount -n -t tmpfs none /dev -o mode=0755
 /bin/mount -n -t proc none /proc
 /bin/mount -n -t sysfs none /sys
 
@@ -54,39 +54,44 @@ fi
 
 # enable rtc access
 /sbin/modprobe rtc-cmos >/dev/null 2>&1
-RTC_MAJOR=$(/bin/grep -w rtc /proc/devices 2>/dev/null); RTC_MAJOR="${RTC_MAJOR%% *}"
+RTC_MAJOR=$(/bin/grep -w rtc /proc/devices 2>/dev/null)
+RTC_MAJOR="${RTC_MAJOR%% *}"
 if [ -n "$RTC_MAJOR" ]; then
-	/bin/mkdir /dev/misc/
-	/bin/mknod /dev/misc/rtc0 c $RTC_MAJOR 0
-	/bin/ln -s /dev/misc/rtc0 /dev/rtc
+	/bin/mknod /dev/rtc0 c $RTC_MAJOR 0
+	/bin/ln -s /dev/rtc0 /dev/rtc
 fi
 
 HWCLOCK_PARAMS="--hctosys"
 if [ "$HARDWARECLOCK" = "UTC" ]; then
 	HWCLOCK_PARAMS="$HWCLOCK_PARAMS --utc"
-else
+elif [ "$HARDWARECLOCK" = "localtime" ]; then
 	HWCLOCK_PARAMS="$HWCLOCK_PARAMS --localtime"
-fi
-if [ "$USEDIRECTISA" = "yes" -o "$USEDIRECTISA" = "YES" ]; then
-	HWCLOCK_PARAMS="$HWCLOCK_PARAMS --directisa"
+else
+	HWCLOCK_PARAMS=""
 fi
 
 # Set clock early to fix some bugs with filesystem checks
 # Clock is set again later to match rc.conf
-if [ -f /etc/localtime ]; then
+if [ -n "$HWCLOCK_PARAMS" -a -f /etc/localtime ]; then
 	/sbin/hwclock $HWCLOCK_PARAMS --noadjfile
 fi
 
 echo > /proc/sys/kernel/hotplug
 
-if [ -x /sbin/udevadm -a -d /sys/block ]; then
-	# We have udev and /sys appears to be mounted, use UDev
+if [ -x /sbin/udevadm ]; then
 	stat_busy "Starting UDev Daemon"
 	/sbin/udevd --daemon
 	stat_done
 else
 	# Static /dev, our last resort
 	status "Using static /dev filesystem" true
+fi
+
+# Trigger udev uevents
+if /bin/pidof -o %PPID /sbin/udevd >/dev/null; then
+  stat_busy "Triggering UDev uevents"
+  /sbin/udevadm trigger
+  stat_done
 fi
 
 # Load modules from the MODULES array defined in rc.conf
@@ -120,11 +125,10 @@ if ! [ "$load_modules" = "off" ]; then
 	fi
 fi
 
-# run udev uevents
+# Wait for udev uevents
 if /bin/pidof -o %PPID /sbin/udevd >/dev/null; then
-	stat_busy "Loading UDev uevents"
+	stat_busy "Waiting fo UDev uevents to be processed"
 	udevstart="$(/bin/date +%s%0N)"
-	/sbin/udevadm trigger
 	/sbin/udevadm settle
 	stat_done
 	udevend="$(/bin/date +%s%0N)"
@@ -195,7 +199,7 @@ if [ -f /etc/crypttab -a -n "$(/bin/grep -v ^# /etc/crypttab | /bin/grep -v ^$)"
 					$CS -d /dev/urandom $copts create $cname $csrc >/dev/null
 					if [ $? -eq 0 ]; then
 						stat_append "creating swapspace.."
-						/sbin/mkswap -L $cname /dev/mapper/$cname >/dev/null
+						/sbin/mkswap -f -L $cname /dev/mapper/$cname >/dev/null
 					fi
 				fi
 			elif [ "${cpass}" = "ASK" ]; then
@@ -248,7 +252,7 @@ status "Mounting Root Read-only" /bin/mount -n -o remount,ro /
 
 FORCEFSCK=
 [ -f /forcefsck ] && FORCEFSCK="-- -f"
-NETFS="nonfs,nonfs4,nosmbfs,nocifs,nocodafs,noncpfs,nosysfs,noshfs,nofuse,nofuseblk"
+NETFS="nonfs,nonfs4,nosmbfs,nocifs,nocodafs,noncpfs,nosysfs,noshfs,nofuse,nofuseblk,noglusterfs"
 
 fsck_reboot() {
 	echo "Automatic reboot in progress..."
@@ -306,7 +310,7 @@ if [ -e /proc/mounts ]; then
 	/bin/grep -e "/proc " -e "/sys " -e "/dev " /proc/mounts >> /etc/mtab
 fi
 # now mount all the local filesystems
-/bin/mount -a -t $NETFS
+/bin/mount -a -t $NETFS -O no_netdev
 stat_done
 
 status "Activating Swap" /sbin/swapon -a
@@ -320,8 +324,10 @@ if [ "$TIMEZONE" != "" -a -e "/usr/share/zoneinfo/$TIMEZONE" ]; then
 	/bin/cp "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
 fi
 
-/sbin/hwclock --adjust #Adjust for system drift
-/sbin/hwclock $HWCLOCK_PARAMS
+if [ -n "$HWCLOCK_PARAMS" ]; then
+	/sbin/hwclock --adjust #Adjust for system drift
+	/sbin/hwclock $HWCLOCK_PARAMS
+fi
 stat_done
 
 RANDOM_SEED=/var/lib/misc/random-seed
@@ -373,9 +379,9 @@ if echo "$LOCALE" | /bin/grep -qi utf ; then
 	# UTF-8 consoles are default since 2.6.24 kernel
 	# this code is needed not only for older kernels,
 	# but also when user has set vt.default_utf8=0 but LOCALE is *.UTF-8.
-	for i in $(/usr/bin/seq 0 63); do
-		/usr/bin/kbd_mode -u < /dev/vc/${i}
-		printf "\e%%G" > /dev/vc/${i}
+	for i in /dev/tty[0-9]*; do
+		/usr/bin/kbd_mode -u < ${i}
+		printf "\e%%G" > ${i}
 	done
 	# the $CONSOLE check helps us avoid this when running scripts from cron
 	echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e%%G"; fi' >>/etc/profile.d/locale.sh
@@ -384,9 +390,9 @@ if echo "$LOCALE" | /bin/grep -qi utf ; then
 else
 	stat_busy "Setting Consoles to legacy mode"
 	# make non-UTF-8 consoles work on 2.6.24 and newer kernels
-	for i in $(/usr/bin/seq 0 63); do
-		/usr/bin/kbd_mode -a < /dev/vc/${i}
-		printf "\e%%@" > /dev/vc/${i}
+	for i in /dev/tty[0-9]*; do
+		/usr/bin/kbd_mode -a < ${i}
+		printf "\e%%@" > ${i}
 	done
 	# the $CONSOLE check helps us avoid this when running scripts from cron
 	echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e%%@"; fi' >>/etc/profile.d/locale.sh
@@ -400,18 +406,18 @@ if [ -n "$CONSOLEFONT" ]; then
 	if [ -n "$CONSOLEMAP" ] && echo "$LOCALE" | /bin/grep -qi utf ; then
 		CONSOLEMAP=""
 	fi
-	for i in $(/usr/bin/seq 0 63); do
+	for i in /dev/tty[0-9]*; do
 		if [ -n "$CONSOLEMAP" ]; then
-			/usr/bin/setfont -m $CONSOLEMAP $CONSOLEFONT -C /dev/vc/${i} >/dev/null 2>&1
+			/usr/bin/setfont -m $CONSOLEMAP $CONSOLEFONT -C ${i} >/dev/null 2>&1
 		else
-			/usr/bin/setfont $CONSOLEFONT -C /dev/vc/${i} >/dev/null 2>&1
+			/usr/bin/setfont $CONSOLEFONT -C ${i} >/dev/null 2>&1
 		fi
 	done
 	if [ $? -ne 0 ]; then
 		stat_fail
 	else
-		for i in $(/usr/bin/seq 0 63); do
-			printf "\e(K" > /dev/vc/${i}
+		for i in /dev/tty[0-9]*; do
+			printf "\e(K" > ${i}
 		done
 		# the $CONSOLE check helps us avoid this when running scripts from cron
 		echo 'if [ "$CONSOLE" = "" -a "$TERM" = "linux" -a -t 1 ]; then printf "\e(K"; fi' >>/etc/profile.d/locale.sh
@@ -431,11 +437,7 @@ if [ -f "/dev/.udev/tmp-rules--70-persistent-net.rules" ]; then
 	stat_done
 fi
 
-# Save our dmesg output from this boot
-if [ -f /var/log/dmesg.log ]; then
-	/bin/rm /var/log/dmesg.log
-fi
-/bin/dmesg > /var/log/dmesg.log
+/bin/dmesg >| /var/log/dmesg.log
 
 # End of file
 # vim: set ts=2 noet:
