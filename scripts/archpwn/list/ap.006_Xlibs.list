@@ -4,10 +4,10 @@ avidemux
 blender
 inkscape
 brasero
-kdelibs
-kdebase-runtime
-kdepimlibs
-kdebase-workspace
+#kdelibs
+#kdebase-runtime
+#kdepimlibs
+#kdebase-workspace
 #gstreamer
 gstreamer0.10-base-plugins
 gstreamer0.10-good-plugins

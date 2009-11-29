@@ -2,17 +2,19 @@
 base
 # This is the patched kernel with releative drivers for injections
 kernel26-pwn
-ipw2200-inject
-ipwraw-ng
+#ipw2200-inject
+#ipwraw-ng
 madwifi-hal
 rt2570-k2wrlz
-rt61-cvs-daily
 rt73-k2wrlz
 rtl8187-ng
 tiacx
+# Fbsplash stuff
 lcms
 fbsplash
+initscripts-extras-fbsplash
 archpwn-fbsplash
+fbsplash-themes-arch-banner
 iproute2
 xinetd
 netkit-bsd-finger
@@ -30,18 +32,16 @@ chakra-hardware-detection
 libtool
 pkgconfig
 syslinux
-aufs
-aufs-utils
-sqlzma
-sqlzma-tools
-unionfs-utils
+aufs2
+aufs2-util
+squashfs-tools
 hal
 dbus-python
 policykit
 fam
 virtualbox-modules
 ndiswrapper
-rt2500
+#rt2500
 # Firmware
 rt2x00-rt61-fw
 rt2x00-rt71w-fw
