@@ -1,3 +1,0 @@
-MODULES="a.000.kernel a.001.core a.002.xorg a.003.xfce a.004.firefox a.005.apps a.006.devel a.007.java a.008.archpwn a.009.graphics a.010.mono a.011.vm a.012.office"
-DELDIR="usr/share/doc usr/share/devhelp usr/share/gtk-doc usr/share/wallpapers"
-KERNEL="/etc/mkinitcpio.d/kernel26-pwn.kver"

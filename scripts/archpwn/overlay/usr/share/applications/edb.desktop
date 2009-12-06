@@ -1,9 +1,0 @@
-[Desktop Entry]
-Exec=edb
-Icon=preferences-web-browser-cache
-Name=Evans Debugger
-StartupNotify=true
-Terminal=0
-Type=Application
-X-KDE-SubstituteUID=false
-Categories=Reverse-Engineering

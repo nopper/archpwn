@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<Mixer>
-  <device name="">
-    <position x="334" y="347"/>
-    <size width="600" height="263"/>
-    <state sticky="0"/>
-    <disclosure expanded="0"/>
-  </device>
-</Mixer>

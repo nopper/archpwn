@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<gconf>
-        <entry name="flags" mtime="1212846651" type="int" value="769">
-        </entry>
-        <entry name="speed" mtime="1212846651" type="int" value="40">
-        </entry>
-</gconf>

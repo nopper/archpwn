@@ -1,8 +1,0 @@
-[Desktop Entry]
-Exec=foremost -h;echo;echo Find the formost.conf in /etc;echo;sudo -s
-Icon=preferences-web-browser-cache
-Name=Foremost
-StartupNotify=true
-Terminal=1
-Type=Application
-Categories=Forensics-Filecarving

@@ -1,8 +1,0 @@
-[Entry 0]
-Name=Desktop panel
-Exec=xfce-setting-show
-Terminal=false
-StartupNotify=false
-Comment=Configure the XFCE desktop environment
-Icon=xfce4-settings
-

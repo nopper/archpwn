@@ -1,9 +1,0 @@
-[Desktop Entry]
-Exec=hping3 -h 2>&1 | head -n 20;echo;echo More help is available use hping3 -h to see all parameters;echo ;sudo -s
-Icon=preferences-web-browser-cache
-Name=Hping3
-StartupNotify=true
-Terminal=1
-Type=Application
-X-KDE-SubstituteUID=false
-Categories=Network-Mapping-Identify

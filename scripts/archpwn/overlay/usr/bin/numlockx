@@ -1,5 +1,0 @@
-#!/bin/sh
-
-[ "$1" = "off" ] && exec /usr/libexec/numlockx off
-[ -x /etc/rc.d/numlock ] && exec /usr/libexec/numlockx $1
-
