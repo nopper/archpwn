@@ -129,10 +129,10 @@ if [ "x${BOOT}" = "x" ]; then BOOT="syslinux"; fi
 
 if [ "${NOLZMA}" = "y" ]; then
     EXT="sqfs"
-    OPTION="-nolzma"
+    OPTION="-nolzma -b 1048576"
 else
     EXT="lzm"
-    OPTION=""
+    OPTION="-b 1048576"
 fi
 
 
@@ -178,12 +178,9 @@ remove()
 
 title()
 {
-    if [ $TERMINALTITLE -eq 0 -o -z "$DISPLAY" ]; then
-        return 0
-    fi
     case $TERM in
         rxvt*|xterm*|aterm)
-            echo -n -e "\033]0;yaourt: $@\007"
+            echo -n -e "\033]0;mkarchiso: $@\007"
         ;;
     esac
 }
@@ -273,6 +270,7 @@ slax_initrd()
     cd linux-live
     ./initrd_create "${CDNAME}" "$1" "$2"
     cd ../
+    rm linux-live/initrd.config
     mv -f linux-live/initrd.lzm "${IMGROOT}"/base.lzm
     chmod 0755 "${IMGROOT}/base.lzm"
     rm -f $(pwd)/linux-live
@@ -328,11 +326,6 @@ command_livebackup_imgprepare()
 #if [ "${command_name}" = "install" -o "${command_name}" = "all" ]; then
 command_install () {
 
-    if [ -d "${buildlog}" ]; then
-        info "Cleaning up logs directory"
-        rm "${buildlog}/*.log"
-    fi
-
     info "Installing root image"
     if [ -e "${work_dir}" -a "${FORCE}" = "n" ]; then
         error "error: Working dir '${work_dir}' already exists, aborting."
@@ -380,8 +373,9 @@ command_install () {
         rm -R "${INSTROOT}/var/lib/pacman/sync"
     fi
 
-    modindex=1
-    modlen=${#MODULES[*]}
+    modindex=0
+    mods=($(echo $MODULES | tr -s ' '))
+    modlen=${#mods[*]}
 
     for mod in ${MODULES}; do
         mkdir -p "${moduledir}/${mod}"
@@ -391,7 +385,7 @@ command_install () {
         mount -o remount,mod:${lastbr}=rr+wh aufs ${union}
         lastbr="${moduledir}/${mod}"
 
-        title "Module $mod ($modindex of $modlen)"
+        title "mod: $mod ($modindex of $modlen)"
         let "modindex += 1"
 
         if [ -e "${union}/var/lib/pacman/db.lck" ]; then
@@ -422,9 +416,9 @@ command_install () {
 
             cat "$(pwd)/list/${mod}.list" | grep -v "^#" | while read pkgname; do
                 info "Installing package $pkgname"
-                title "Module $mod ($modindex of $modlen): installing $pkgname"
+                title "mod: $mod ($modindex of $modlen): installing $pkgname"
 
-                pacman -S -f --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname 2>&1 | tee -a ${buildlog}/${mod}-current.log
+                pacman -S -f --needed --noconfirm --config "${PACMANCONF}" -r "$union" $pkgname 2>&1 | tee ${buildlog}/${mod}-current.log
 
                 if [ ${PIPESTATUS[0]} -ne 0 ]; then
                     warn "Package $pkgname not correctly installed"
@@ -443,7 +437,6 @@ command_install () {
             fi
         fi
 
-        title "Creating diff list of packages"
         pacman -Q -r ${moduledir}/${mod} > ${packlist}/${mod}.new
 
         if [ -f ${packlist}/${mod}.old ]; then
@@ -478,15 +471,16 @@ command_install () {
 
         # Cleanup
         info "Cleaning up image root files..."
+        title "Cleaning up image root files..."
         find "${union}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
 
         # delete a lot of unnecessary cache/log files
         # We don't have to delete stuff from /usr/share/doc if we are building archpwn module
 
-        if [ "${mod:4:7}" = "archpwn" ]; then
-            kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/ initrd"
+        if [ $(echo $mod | grep "archpwn") ]; then
+            kill_dirs="usr/share/licenses usr/share/locale var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd"
         else
-            kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${DELDIR}"
+            kill_dirs="usr/share/licenses usr/share/locale var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${DELDIR}"
         fi
 
         for x in ${kill_dirs}; do
@@ -519,6 +513,8 @@ command_install () {
         cp -r "$(pwd)/isolinux" "${IMGROOT}"
     fi
 
+    title "Unmounting union and removing unused files"
+
     pacman -Q -r ${union} > ${PKGFILE}
 
     # Unmount union
@@ -548,6 +544,7 @@ command_install () {
 command_overlay () {
     # always make an addon out of DEF_CONFIG_DIR
     info "Creating overlay default addon..."
+    title "Creating overlay default addon..."
 
     if [ "${QUIET}" = "y" ]; then
         mksquashfs "${OVERLAY}" "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}" -noappend ${OPTION} >/dev/null
@@ -570,9 +567,16 @@ command_squash () {
     sed -i "s|${packlist}/||g" ${packlist}/updated.list
     sed -i "s|.list||g" ${packlist}/updated.list
 
+    modindex=1
+    mods=($(echo $MODULES | tr -s ' '))
+    modlen=${#mods[*]}
+
     for DIR in $MODULES; do
         MOD="$(basename $DIR).${EXT}"
         if [ ! "$(find "$IMGROOT/$CDNAME" -name "$MOD")" ]; then
+            title "Creating squash file for $MOD ($modindex of $modlen)"
+            let "modindex += 1"
+
             mksquashfs ${moduledir}/$DIR ${moduleplace}/$MOD -noappend ${OPTION}
             # subtrack module in updated.list file if it exist
             if [ $(cat ${packlist}/updated.list | grep $DIR) ]; then
@@ -671,9 +675,11 @@ command_img () {
 
     if [ "$IMG_TYPE" == "disk" ]; then
         info "Creating DISK image..."
+        title "Creating DISK image..."
         mkusbimg "${IMGROOT}" "${imgname}"
     elif [ "$IMG_TYPE" = "iso" ]; then
         info "Creating ISO image..."
+        title "Creating ISO image..."
         qflag=""
         #[ "${QUIET}" = "y" ] && qflag="-q"
         mkisofs ${qflag} -v -J -R -D -r -l $bootflags -uid 0 -gid 0 \
