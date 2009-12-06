@@ -21,7 +21,6 @@ gamin
 htop
 sudo
 parted
-archiso-installer
 chakra-hardware-detection
 bash-completion
 # Network
@@ -71,8 +70,6 @@ rtorrent
 dvd+rw-tools
 acpid
 cpufreqd
-tor
-privoxy
 #server
 apache
 lighttpd

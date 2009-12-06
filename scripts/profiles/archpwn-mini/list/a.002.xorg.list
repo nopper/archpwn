@@ -42,12 +42,8 @@ xf86-video-tdfx
 xf86-video-trident
 xf86-video-tseng
 xf86-video-v4l
-xf86-video-amd
-xf86-video-imstt
 xf86-video-rendition
 xf86-video-s3virge
-xf86-video-vga
-xf86-video-via
 #xf86-video-vmware
 xf86-video-voodoo
 scrnsaverproto
@@ -57,7 +53,6 @@ xaw3d
 enca
 glproto
 #fonts
-ttf-droid
 ttf-dejavu
 ttf-liberation
 ttf-ms-fonts
