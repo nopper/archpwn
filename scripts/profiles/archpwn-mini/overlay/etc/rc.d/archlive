@@ -25,8 +25,8 @@ if [ "`cmdline_parameter ldconfig`" ]; then
 fi
 
 if [ ! "`cmdline_parameter noxconfg`" ]; then
-    /etc/rc.d/xakra start
-    /etc/rc.d/xakra-nonfree start
+    /etc/rc.d/xorg-detect start
+    /etc/rc.d/xorg-config start
 fi
 
 # lang: Override default language
@@ -46,9 +46,9 @@ if [ -w /usr/lib/firefox/greprefs/all.js ]; then
 fi
 
 # Make thunderbird match OS locale
-#if [ -w /usr/lib/thunderbird/greprefs/all.js ]; then
-#    sed -i -e 's/pref("intl.locale.matchOS",                 false);/pref("intl.locale.matchOS",                 true);/g' /usr/lib/thunderbird/greprefs/all.js
-#fi
+if [ -w /usr/lib/thunderbird/greprefs/all.js ]; then
+    sed -i -e 's/pref("intl.locale.matchOS",                 false);/pref("intl.locale.matchOS",                 true);/g' /usr/lib/thunderbird/greprefs/all.js
+fi
 
 session="`cmdline_value session`"
 if [ "$session" != "" ]; then
@@ -57,7 +57,14 @@ if [ "$session" != "" ]; then
 fi
 
 chmod 0440 /etc/sudoers
+chown root:root /etc/sudoers
 update-desktop-database -q
 
 chown arch:users -R /home/arch
 chown root:root -R /root
+
+slim="`cmdline_value slim`"
+if [ "$slim" != "" ]; then
+    /etc/rc.d/slim start
+fi
+
