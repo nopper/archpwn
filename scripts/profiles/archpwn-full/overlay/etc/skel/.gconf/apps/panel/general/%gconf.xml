@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<gconf>
+        <entry name="applet_id_list" mtime="1213300736" type="list" ltype="string">
+                <li type="string">
+                        <stringvalue>applet_0</stringvalue>
+                </li>
+                <li type="string">
+                        <stringvalue>applet_1</stringvalue>
+                </li>
+                <li type="string">
+                        <stringvalue>applet_3</stringvalue>
+                </li>
+                <li type="string">
+                        <stringvalue>applet_2</stringvalue>
+                </li>
+        </entry>
+        <entry name="object_id_list" mtime="1213300736" type="list" ltype="string">
+                <li type="string">
+                        <stringvalue>object_1</stringvalue>
+                </li>
+                <li type="string">
+                        <stringvalue>object_2</stringvalue>
+                </li>
+        </entry>
+        <entry name="toplevel_id_list" mtime="1213300736" type="list" ltype="string">
+                <li type="string">
+                        <stringvalue>panel_0</stringvalue>
+                </li>
+        </entry>
+</gconf>

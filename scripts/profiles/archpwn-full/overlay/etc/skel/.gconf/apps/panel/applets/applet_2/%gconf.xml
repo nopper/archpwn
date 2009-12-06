@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<gconf>
+        <entry name="bonobo_iid" mtime="1213300736" type="string">
+                <stringvalue>OAFIID:GNOME_WindowMenuApplet</stringvalue>
+        </entry>
+        <entry name="panel_right_stick" mtime="1213300736" type="bool" value="false">
+        </entry>
+        <entry name="position" mtime="1213300749" type="int" value="233">
+        </entry>
+        <entry name="toplevel_id" mtime="1213300736" type="string">
+                <stringvalue>panel_0</stringvalue>
+        </entry>
+        <entry name="object_type" mtime="1213300736" type="string">
+                <stringvalue>bonobo-applet</stringvalue>
+        </entry>
+</gconf>

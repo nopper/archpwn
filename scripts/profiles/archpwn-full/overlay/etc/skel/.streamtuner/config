@@ -1,0 +1,389 @@
+# streamtuner configuration file, automatically generated
+
+options {
+	view_toolbar yes;
+	view_tabs yes;
+	view_tab_icons yes;
+	view_statusbar yes;
+	toolbar_style -1;
+	toolbar_size -1;
+	always_reload no;
+	main_window_width 779;
+	main_window_height 556;
+	preferences_window_width 400;
+	preferences_window_height 228;
+	preferences_selected_page "applications";
+	preferences_plugins_expanded yes;
+	stream_properties_window_width -1;
+	stream_columns_window_width 330;
+	stream_columns_window_height 220;
+	proxy_enabled no;
+	proxy_type 0;
+	proxy_server "";
+	proxy_port 8080;
+	proxy_auth_enabled no;
+	proxy_auth_name "";
+	proxy_auth_password "";
+	find_token "";
+	find_case_sensitive no;
+	find_wrap_around no;
+	music_dir "";
+	find_history {
+	}
+	selected_handler "shoutcast";
+}
+action "play-m3u" {
+	command "audacious %q";
+}
+action "view-ghelp" {
+	command "yelp %q";
+}
+action "view-web" {
+	command "firefox %q";
+}
+action "record-stream" {
+	command "xterm -e streamripper %q";
+}
+action "record-ra" {
+	command "";
+}
+action "play-ra" {
+	command "realplay %q";
+}
+action "play-stream" {
+	command "audacious %q";
+}
+handler "bookmarks" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 463;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+}
+handler "preselections" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 655;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+}
+handler "live365" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 208;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	key "use-membership" {
+		no;
+	}
+	key "stream-limit-enabled" {
+		no;
+	}
+	key "name" {
+		"";
+	}
+	key "password" {
+		"";
+	}
+	key "stream-limit" {
+		100;
+	}
+}
+handler "local" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 120;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+}
+handler "basic.ch.py" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 483;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+}
+handler "google-stations.py" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 500;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+}
+handler "punkcast.com.py" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 638;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	key "download-images" {
+		yes;
+	}
+}
+handler "shoutcast" {
+	fields_sort_index 6;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 163;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 188;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+	key "stream-limit-enabled" {
+		no;
+	}
+	key "stream-limit" {
+		100;
+	}
+}
+handler "xiph" {
+	fields_sort_index 0;
+	fields_sort_order 0;
+	paned_position 150;
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 100;
+		position -1;
+	}
+	field {
+		visible yes;
+		width 200;
+		position -1;
+	}
+	field {
+		visible no;
+		width 100;
+		position -1;
+	}
+}

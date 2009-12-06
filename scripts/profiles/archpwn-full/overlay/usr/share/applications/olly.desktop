@@ -1,0 +1,10 @@
+[Desktop Entry]
+Exec=wine ollydbg.exe
+Icon=preferences-web-browser-cache
+Name=OllyDBG
+Path=/opt/windows/ollydbg/
+StartupNotify=true
+Terminal=0
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Reverse-Engineering

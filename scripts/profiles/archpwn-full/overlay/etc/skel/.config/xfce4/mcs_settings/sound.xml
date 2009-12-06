@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mcs-option SYSTEM "mcs-option.dtd">
+
+<mcs-option>
+	<option name="Sound/Mixer/DefaultDevice" type="string" value="default"/>
+	<option name="Sound/Mixer/Useful:#0: ATI IXP" type="string" value="@Master,0@PCM,0@Surround,0@Surround Jack Mode,0@Center,0@LFE,0@Line,0@CD,0@Mic,0@Mic Boost (+20dB),0@Mic Select,0@Video,0@Phone,0@IEC958,0@IEC958 Playback AC97-SPSA,0@IEC958 Playback Source,0@PC Speaker,0@Aux,0@Capture,0@Mix,0@Mix Mono,0@Channel Mode,0@Duplicate Front,0@External Amplifier,0@"/>
+	<option name="Sound/Mixer/Useful:default" type="string" value="@Master,0@PCM,0@Surround,0@Surround Jack Mode,0@Center,0@LFE,0@Line,0@CD,0@Mic,0@Mic Boost (+20dB),0@Mic Select,0@Video,0@Phone,0@IEC958,0@IEC958 Playback AC97-SPSA,0@IEC958 Playback Source,0@PC Speaker,0@Aux,0@Capture,0@Mix,0@Mix Mono,0@Channel Mode,0@Duplicate Front,0@External Amplifier,0@"/>
+</mcs-option>

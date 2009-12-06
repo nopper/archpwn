@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<gconf>
+        <entry name="panel_right_stick" mtime="1213298047" type="bool" value="false">
+        </entry>
+        <entry name="position" mtime="1213298061" type="int" value="0">
+        </entry>
+        <entry name="toplevel_id" mtime="1213298047" type="string">
+                <stringvalue>panel_0</stringvalue>
+        </entry>
+        <entry name="object_type" mtime="1213298047" type="string">
+                <stringvalue>menu-bar</stringvalue>
+        </entry>
+</gconf>

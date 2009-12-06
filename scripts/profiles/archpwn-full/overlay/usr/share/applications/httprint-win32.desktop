@@ -1,0 +1,9 @@
+[Desktop Entry]
+Exec=wine /opt/windows/httprint-win32/httprint_gui.exe
+Icon=preferences-web-browser-cache
+Name=Httprint_GUI
+StartupNotify=true
+Terminal=0
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Vulnerability-Identification-Web;Network-Mapping-Service-Fingerprinting

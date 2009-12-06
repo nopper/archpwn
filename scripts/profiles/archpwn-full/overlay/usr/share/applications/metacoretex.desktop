@@ -1,0 +1,9 @@
+[Desktop Entry]
+Exec=metacoretex
+Icon=preferences-web-browser-cache
+Name=Metacoretex
+StartupNotify=true
+Terminal=0
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Vulnerability-Identification-Database

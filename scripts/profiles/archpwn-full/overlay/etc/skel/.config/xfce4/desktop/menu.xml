@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xfdesktop-menu>
+	<title name="Desktop Menu" icon="xfce4-backdrop"/>
+	<separator/>
+	<app name="Run Program..." cmd="xfrun4" icon="gnome-fs-executable"/>
+	<separator/>
+	<app name="Terminal" cmd="xfterm4" icon="gnome-terminal"/>
+	<app name="File Manager" cmd="thunar" icon="file-manager"/>
+	<app name="Web Browser" cmd="xfbrowser4" icon="gnome-globe"/>
+	<separator/>
+	<menu name="Settings" icon="gnome-settings">
+		<app name="Settings Manager" cmd="xfce-setting-show" icon="gnome-settings" snotify="true"/>
+	</menu>
+	<separator/>
+	<include type="system" style="simple" unique="true" legacy="true"/>
+	<separator/>
+	<app name="Help" cmd="xfhelp4" icon="gnome-help"/>
+	<app name="About Xfce" cmd="xfce4-about" icon="gnome-info"/>
+	<builtin name="Quit" cmd="quit" icon="gnome-logout"/>
+</xfdesktop-menu>

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Exec=cd /usr/share/5nmp/ ; mono 5NMP.exe
+Name=5nmp
+Path=/usr/share/5nmp/
+StartupNotify=true
+Icon=preferences-web-browser-cache
+Terminal=0
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Network-Mapping-Fingerprinting;Network-Mapping-Identify

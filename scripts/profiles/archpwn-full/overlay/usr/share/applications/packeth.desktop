@@ -1,0 +1,9 @@
+[Desktop Entry]
+Exec=packETH
+Icon=preferences-web-browser-cache
+Name=packETH
+StartupNotify=true
+Terminal=0
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Spoofing

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Exec=list-urls;sudo -s
+Icon=preferences-web-browser-cache
+Name=List-Urls
+StartupNotify=true
+Terminal=1
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Vulnerability-Identification-Web

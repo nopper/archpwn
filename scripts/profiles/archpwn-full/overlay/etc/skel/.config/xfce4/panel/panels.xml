@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE config SYSTEM "config.dtd">
+<panels>
+	<panel>
+		<properties>
+			<property name="size" value="32"/>
+			<property name="monitor" value="0"/>
+			<property name="screen-position" value="11"/>
+			<property name="fullwidth" value="1"/>
+			<property name="xoffset" value="0"/>
+			<property name="yoffset" value="990"/>
+			<property name="handlestyle" value="0"/>
+			<property name="autohide" value="0"/>
+			<property name="transparency" value="20"/>
+			<property name="activetrans" value="0"/>
+		</properties>
+		<items>
+			<item name="xfce4-menu" id="11986164546"/>
+			<item name="launcher" id="11549562232"/>
+			<item name="launcher" id="11883266440"/>
+			<item name="launcher" id="11549562253"/>
+			<item name="launcher" id="11360597583"/>
+			<item name="separator" id="11986145171"/>
+			<item name="tasklist" id="11986164717"/>
+			<item name="systray" id="3"/>
+			<item name="xfce4-mixer" id="12067651861"/>
+			<item name="launcher" id="11549562190"/>
+			<item name="clock" id="12067618190"/>
+			<item name="actions" id="11883274643"/>
+		</items>
+	</panel>
+</panels>

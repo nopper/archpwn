@@ -1,0 +1,73 @@
+#!/bin/sh
+#
+# Convert .sqfs Compressed File into a Slackware (.tgz) Package
+# Author: Flavio de Oliveira <http://www.goblinx.com.br>
+#
+
+exec_(){
+# Settings
+MODULE="$1"
+TMPDIR=$2/sqfs2dir$$
+DATADIR=$2/datadir$$
+SAVEDIR=$2
+
+# Mount module and copying contents
+mkdir -p $TMPDIR $DATADIR
+mount_module "$1" "$TMPDIR"
+cp -R --preserve=all $TMPDIR/* $DATADIR
+umount "$TMPDIR"
+rmdir "$TMPDIR"
+
+# Rebuild the package
+if [ -d $DATADIR/install ]; 
+then
+LINE="`basename $MODULE .sqfs`"
+echo $LINE > /tmp/test_pack
+cd $DATADIR
+makepkg -l y -c n $LINE.tgz
+mv $LINE.tgz $SAVEDIR/
+rm -rf $DATADIR
+
+elif [ -d $DATADIR/var/log/packages ];
+then
+ls $DATADIR/var/log/packages > /tmp/count
+cat /tmp/count | sed '1,1d' > /tmp/test
+ls $DATADIR/var/log/packages > /tmp/desc
+cat /tmp/desc | while read LINE ; do
+echo $LINE > /tmp/test_pack
+cat $DATADIR/var/log/packages/$LINE | sed -n '6,16p' > /tmp/slack-desc
+mkdir $DATADIR/install
+mv /tmp/slack-desc $DATADIR/install
+rm -rf $DATADIR/var/log/{packages,scripts}
+cd $DATADIR
+makepkg -l y -c n $LINE.tgz
+mv $LINE.tgz $SAVEDIR/
+rm -rf $DATADIR
+done
+
+else
+
+LINE="`basename $MODULE .sqfs`"
+echo $LINE > /tmp/test_pack
+cd $DATADIR
+makepkg -l y -c n $LINE.tgz
+mv $LINE.tgz $SAVEDIR/
+rm -rf $DATADIR
+
+fi
+
+echo $LINE >/tmp/pack
+echo $SAVEDIR >/tmp/savedir
+}
+
+_progress(){
+if [ "$?" != "" ]; then echo; fi
+exec_ $1 $2
+}
+
+_progress $1 $2 | zenity --title="Thunar/Nautilus Action" --progress --pulsate --auto-close --text "Wait... The script is building your package..."
+zenity --info --title "Thunar Action" --text "The `cat /tmp/savedir`/`cat /tmp/pack`.tgz package is build"
+rm /tmp/{pack,savedir}
+
+
+

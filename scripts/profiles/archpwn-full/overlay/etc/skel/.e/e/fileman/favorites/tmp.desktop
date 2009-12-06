@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Temp
+Comment=Temporary files
+Comment[it]=File temporanei
+Type=Link
+X-Enlightenment-Type=Mount
+URL=file:/tmp
+Icon=fileman/tmp
