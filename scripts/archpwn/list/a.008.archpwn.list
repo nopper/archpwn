@@ -2,7 +2,6 @@
 wipe
 gdb
 ddd
-valkyrie
 ltrace
 strace
 # Wireless
@@ -34,6 +33,7 @@ ettercap-gtk
 # Forensic
 dcfldd
 ddrescue
+testdisk
 rkhunter
 sleuthkit
 # Already present
@@ -47,7 +47,7 @@ nmap
 curl
 lynx
 samba
-smb4k
+# smb4k
 john
 nemesis
 ntop
