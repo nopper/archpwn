@@ -47,7 +47,7 @@ preemptive_cleanup() {
 
 # start xorg builtin autodetection
 generate_initial_config() {
-		printhl2 "Your screen will probably flicker for a moment, don't panic :)"
+		#printhl "Your screen will probably flicker for a moment, don't panic :)"
 		sleep 2
 		LANG=C /usr/bin/Xorg -configure > /tmp/xorg_detection.log 2>&1
 
@@ -398,11 +398,11 @@ output_detected_driver
 	[ -n "$XDISP" ] || XDISP="auto"
 	case "$XDISP" in
 		auto)
-			printhl3 "Using builtin X.org display detection"
+			printhl "Using builtin X.org display detection"
 			/bin/true
 			;;
 		old)
-			printhl3 "Using fallback mode for old displays"
+			printhl "Using fallback mode for old displays"
 			setup_display
 			setup_colordepth
 
