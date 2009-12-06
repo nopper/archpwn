@@ -1,0 +1,10 @@
+[Desktop Entry]
+Exec=./grendel.sh
+Icon=preferences-web-browser-cache
+Name=Grendel Scan
+Path=/usr/share/grendel-scan/
+StartupNotify=true
+Terminal=0
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Vulnerability-Identification-Web

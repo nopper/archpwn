@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mcs-option SYSTEM "mcs-option.dtd">
+
+<mcs-option>
+	<option name="brightness_0_0" type="int" value="0"/>
+	<option name="color1_0_0" type="color" value="           26880,           34048,           46848,           65535"/>
+	<option name="color2_0_0" type="color" value="           56064,           59392,           65280,           65535"/>
+	<option name="colorstyle_0_0" type="int" value="1"/>
+	<option name="desktopiconstyle" type="int" value="2"/>
+	<option name="icons_font_size" type="int" value="10"/>
+	<option name="icons_icon_size" type="int" value="28"/>
+	<option name="icons_use_system_font_size" type="int" value="1"/>
+	<option name="imagepath_0_0" type="string" value="/usr/share/xfce4/backdrops/desktop.jpg"/>
+	<option name="imagestyle_0_0" type="int" value="3"/>
+	<option name="showdm" type="int" value="1"/>
+	<option name="showdmi" type="int" value="1"/>
+	<option name="showimage_0_0" type="int" value="1"/>
+	<option name="showwl" type="int" value="1"/>
+	<option name="showwli" type="int" value="1"/>
+	<option name="usewindowicons" type="int" value="1"/>
+</mcs-option>

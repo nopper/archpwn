@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Home
+Comment=The Directory containing all your personal files
+Comment[it]=La directory contenente i vostri file personali
+Type=Link
+X-Enlightenment-Type=Mount
+URL=file:$HOME
+Icon=fileman/home

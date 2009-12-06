@@ -1,0 +1,10 @@
+[Desktop Entry]
+Exec=echo;echo;echo You can use the help command to get the list of commands;echo;echo;sudo python inguma.py 2>/dev/null
+Icon=preferences-web-browser-cache
+Name=Inguma
+Path=/usr/share/inguma/
+StartupNotify=true
+Terminal=1
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=Penetration

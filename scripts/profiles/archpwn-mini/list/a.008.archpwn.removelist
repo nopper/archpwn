@@ -1,0 +1,5 @@
+-cs checkpwd
+-cs inguma
+-cs edb
+-d wxgtk
+-d wxpython

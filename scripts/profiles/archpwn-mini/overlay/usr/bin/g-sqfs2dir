@@ -1,0 +1,47 @@
+#!/bin/sh
+# Convert uncompress module .sqfs back to directory
+# Author: Flavio de Oliveira <http://www.goblinx.com.br>
+#
+
+exec_(){
+if [ "$(whoami)" != 'root' ]; then
+TMPDIR=$2/data$$
+DATADIR=$2/datadir$$
+mkdir -p {$TMPDIR,$DATADIR}
+gnomesu -c "mount -t squashfs -o loop,ro "$1" "$TMPDIR""
+err=$?
+if [ 0$err -eq 0 ]; then echo "$1 $2" >>$2/_mounts; fi
+cp -R --preserve=all $TMPDIR/* $DATADIR
+umount "$TMPDIR"
+rmdir "$TMPDIR"
+
+thunar $DATADIR 
+
+else
+
+TMPDIR=$2/sqfs2dir$$
+DATADIR=$2/datadir$$
+mkdir -p $TMPDIR
+mkdir -p $DATADIR
+mount -t squashfs -o loop,ro "$1" "$TMPDIR"
+err=$?
+if [ 0$err -eq 0 ]; then echo "$1 $2" >>$2/_mounts; fi
+cp -R --preserve=all $TMPDIR/* $DATADIR
+umount "$TMPDIR"
+rmdir "$TMPDIR"
+
+thunar $DATADIR 
+fi
+
+echo $DATADIR > /tmp/datadir
+}
+
+_progress(){
+if [ "$?" != "" ]; then echo; fi
+exec_ $1 $2
+}
+
+_progress $1 $2 | zenity --title="Thunar/Nautilus Action" --progress --pulsate --auto-close --text "Wait... The script is uncompressing your module..."
+zenity --info --title "Thunar/Nautilus Action" --text "The modules is uncompressed to `cat /tmp/datadir`"
+rm /tmp/datadir}
+

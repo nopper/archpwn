@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Convert Archlinux (.pkg.tar.gz) Package into a .sqfs Compressed File
+# Author: Flavio de Oliveira <http://www.goblinx.com.br>
+# Modified by: Christopher P. Rogers (aka Godane) <http://sourceforge.net/projects/chrisx>
+
+. /usr/lib/liblinuxlive
+TMPDIR=/tmp/pkg2sqfs$$
+
+checkroot(){
+if [ "$(whoami)" != 'root' ]; then
+zenity --title="Error Message" --error --text "You must be root to run this application, or you can run 'gnomesu -c gtkimods' as user with root password." 0 0
+exit 1
+fi 
+}
+
+exec_(){
+MODULE="`basename $1 .pkg.tar.gz`.sqfs"
+SAVEDIR=$(pwd)
+checkroot
+mkdir -p $TMPDIR/var/lib/pacman/local
+pacman -U -d -r $TMPDIR $1
+if [ $? != 0 ]; then zenity --error --title "Thunar Action" "error installing package"; exit; fi
+
+create_module $TMPDIR $SAVEDIR/$MODULE -b 256K
+chmod 0755 $MODULE
+if [ $? != 0 ]; then zenity --error --title "Thunar Action" --text "error building compressed image"; exit; fi
+rm -Rf $TMPDIR
+
+echo $MODULE >/tmp/mo
+echo $SAVEDIR >/tmp/savedir
+
+_progress(){
+if [ "$?" != "" ]; then echo; fi
+exec_ $1 $2
+}
+
+_progress $1 $2 | zenity --title="Thunar/Nautilus Action" --progress --pulsate --auto-close --text "Wait... The script is building your module..."
+zenity --info --title "Thunar Action" --text "The `cat /tmp/savedir`/`cat /tmp/mo` is build"
+rm /tmp/{mo,savedir}
+}

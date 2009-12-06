@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Copyright Jean-Philippe Guillemin <jp.guillemin@free.fr>. This program is free software;
+# you can redistribute it and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2 of the License,
+# or (at your option) any later version. Please take a look at http://www.gnu.org/copyleft/gpl.htm
+
+
+
+# Version 1.0 - 09/12/2006
+
+# Default Xdialog options
+dialog="Xdialog --wrap --left --auto-placement --icon startXnest "
+
+# Set the locale in en_US, to avoid problems with Xlib
+LANG=en_US
+
+# Path needs to be extended in case you're only half a root :)
+export PATH="${PATH}:/usr/sbin:/sbin"
+
+# Some globals
+X11UNIX="/tmp/.X11-unix"
+SESSIONS="/etc/X11/sessions"
+XORGCONF="/etc/X11/xorg.conf"
+
+# Search for window managers
+for desktop in ${SESSIONS}/*.desktop ; do
+	#echo $desktop
+	wms="${wms} $(basename ${desktop} .desktop) \"\""
+done
+
+
+answer="$(eval $dialog \
+--stdout \
+--title \"Nested window manager launcher\" \
+--ok-label \"Launch\" \
+--cancel-label \"Exit\" \
+--check \"root session\" \"off\" \
+--menu \
+\"Select a window manager :\" 16 60 10 ${wms}
+)"
+
+export wm="$(echo $answer | cut -d " " -f1)"
+runasroot="$(echo $answer | cut -d " " -f2)"
+
+[ ! "$wm" ] && exit
+
+
+#cmd="$(sed -n 's/Exec[ \t]*=[ \t]*\(.*\)$/\1/p' ${SESSIONS}/${wm}.desktop)"
+#[ ! "$cmd" ] && exit
+
+
+export XKBMAP="$(sed -n 's/[ \t]*Option[ \t]*"XkbLayout"[ \t]*"\(.*\)"/\1/p' ${XORGCONF})"
+
+# Let's find a free DISPLAY and start Xnest in it
+for ((display=1; display <= 64 ; display++)) ; do
+	if [ -e /tmp/.X${display}-lock ] ; then 
+		continue
+	else
+		export display
+		if [ "$runasroot" = "checked" ] ; then
+			gksu /usr/libexec/Xnest-launcher
+		else
+			/usr/libexec/Xnest-launcher
+		fi			
+		break
+	fi
+done

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Exec=rcrack;sudo -s
+Icon=preferences-web-browser-cache
+Name=Rainbowcrack
+StartupNotify=true
+Terminal=1
+Type=Application
+X-KDE-SubstituteUID=false
+Categories=PasswordOfflineAttacks;Rainbowcrack

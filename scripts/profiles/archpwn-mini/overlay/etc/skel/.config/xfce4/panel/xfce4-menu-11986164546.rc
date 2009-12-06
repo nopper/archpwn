@@ -1,0 +1,7 @@
+use_default_menu=false
+menu_file=/home/arch/.config/xfce4/desktop/startmenu.xml
+icon_file=/usr/share/pixmaps/xfce4_xicon1.png
+show_menu_icons=true
+button_title=Xfce Menu
+show_button_title=false
+

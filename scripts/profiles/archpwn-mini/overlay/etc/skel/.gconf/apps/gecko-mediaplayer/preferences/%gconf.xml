@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<gconf>
+        <entry name="disable_dvx" mtime="1212968398" type="bool" value="false">
+        </entry>
+        <entry name="disable_wmp" mtime="1212968398" type="bool" value="false">
+        </entry>
+        <entry name="disable_real" mtime="1212968398" type="bool" value="false">
+        </entry>
+        <entry name="disable_qt" mtime="1212968398" type="bool" value="false">
+        </entry>
+</gconf>
