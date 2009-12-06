@@ -29,7 +29,7 @@ info () { echo -e "\033[1;32;40m>>> \033[1;37;40m$@\033[1;0m"; }
 KERNEL="/etc/mkinitcpio.d/kernel26.kver"
 ROOT_MOD="$(ls -1 ${PROFILE}/list | head -1)"
 CDNAME="livecd"
-LIVELINUX="../linux-live/initrd"
+LIVELINUX="../../linux-live/initrd"
 
 if [ -f "${PROFILE}/config" ]; then
     . ${PROFILE}/config
@@ -263,7 +263,7 @@ command_livebackup ()
 slax_initrd()
 {
     title "Making initrd"
-    info "Making compressed initrd ( assuming ../linux-live/initrd/initrd_create )"
+    info "Making compressed initrd ( assuming ../../linux-live/initrd/initrd_create )"
 
     ln -sf ${LIVELINUX} linux-live
     cp initrd.config linux-live/
@@ -478,9 +478,9 @@ command_install () {
         # We don't have to delete stuff from /usr/share/doc if we are building archpwn module
 
         if [ $(echo $mod | grep "archpwn") ]; then
-            kill_dirs="usr/share/licenses var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd"
+            kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${FULLDELDIR}"
         else
-            kill_dirs="usr/share/licenses var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${DELDIR}"
+            kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${DELDIR} ${FULLDELDIR}"
         fi
 
         for x in ${kill_dirs}; do
