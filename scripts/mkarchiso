@@ -492,14 +492,11 @@ command_install () {
         done
 
         if [ "$KEEP_LOCALES" -a -d "${union}/usr/share/locale" ]; then
-            pushd "${union}/usr/share/locale/"
             info "Removing useless locales and keeping $KEEP_LOCALES..."
 
-            for target in $(ls -1 | grep -v "\($(echo KEEP_LOCALES | sed 's: :\\|:g')\)"); do
-                rm -rf $target
+            for target in $(ls -1 "${union}/usr/share/locale/" | grep -v "\($(echo KEEP_LOCALES | sed 's: :\\|:g')\)\(@[^ ]*\)*$"); do
+                rm -rf "${union}/usr/share/locale/$target"
             done
-
-            popd
         fi
 
         # pacman DBs are big, delete all sync dbs
