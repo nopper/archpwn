@@ -69,12 +69,6 @@ tango-icon-theme
 gnome-icon-theme
 tango-icon-theme-extras
 desktop-file-utils
-# login manager
-slim
-# archlinux stuff
-archlinux-themes-slim
-archlinux-menus
-archlinux-xdg-menu
 # gtk engines
 gtk-engines
 #xfce deps
