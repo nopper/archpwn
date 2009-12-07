@@ -31,10 +31,10 @@ fi
 
 # lang: Override default language
 lang="`cmdline_value locale`"
-if [ "$locale" ]; then
-    #echo "$lang ISO-8859-1" >> /etc/locale.gen
-    echo "$locale UTF-8" > /etc/locale.gen
-    echo "$lang UTF-8" >> /etc/locale.gen
+if [ "$lang" ]; then
+    echo "$lang.UTF-8 UTF-8" > /etc/locale.gen
+    echo "$lang ISO-8859-1" >> /etc/locale.gen
+    echo "$lang.ISO-8859-15 ISO-8859-15" >> /etc/locale.gen
     locale-gen
 	[[ "`locale -a | grep -w $lang`" ]] && \
 	sed -i -e 's/^ *\(LOCALE=\).*$/\1$lang.UTF-8/' /etc/rc.conf
@@ -62,9 +62,3 @@ update-desktop-database -q
 
 chown arch:users -R /home/arch
 chown root:root -R /root
-
-slim="`cmdline_value slim`"
-if [ "$slim" != "" ]; then
-    /etc/rc.d/slim start
-fi
-
