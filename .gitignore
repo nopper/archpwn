@@ -12,6 +12,4 @@ repo/regen-modules/*
 pacman/src/*
 pacman/pkg/*
 logs/*.log
-archpwn-pacman.conf
 scripts/archpwn-pacman.conf
-
