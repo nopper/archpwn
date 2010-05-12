@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2009 Francesco Piccinno
+# Copyright (C) 2008-2010 Francesco Piccinno
 #
 # Author: Francesco Piccinno <stack.box@gmail.com>
 #
@@ -47,6 +47,12 @@ def foreach_pkgbuild(pdir):
     for root, dirs, files in os.walk(pdir):
         if 'PKGBUILD' in files:
             yield root
+
+def foreach_pkg(pdir):
+    for root, dirs, files in os.walk(pdir):
+        for file in files:
+            if file.endswith('.pkg.tar.gz'):
+                yield os.path.join(root, file)
 
 class ConsoleP(object):
     def __init__(self, name):

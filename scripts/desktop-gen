@@ -1,0 +1,47 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2010 Francesco Piccinno
+#
+# Author: Francesco Piccinno <stack.box@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+import sys
+
+from optparse import OptionParser
+
+from pylibs.pkg import Pkg
+from pylibs.utils import foreach_pkg, ConsoleP
+
+class Generator(ConsoleP):
+    def __init__(self, argv):
+        self.path = argv[1]
+
+        ConsoleP.__init__(self, 'desktopgen')
+
+    def run(self):
+        for pkg_path in foreach_pkg(self.path):
+            pkg = Pkg(pkg_path)
+
+            if not pkg.members:
+                continue
+
+            self.info('Possible targets: ' + ' '.join(pkg.members))
+            self.info('That depends on: ' + ' '.join(pkg.pkg_info.get('depend', [])))
+
+
+if __name__ == '__main__':
+    gen = Generator(sys.argv)
+    gen.run()
