@@ -1,10 +1,7 @@
-From f49e1efdd179d54e814ff2a8e8f469496583062c Mon Sep 17 00:00:00 2001
+From 6e71de691803bf0ec6618a398cbe8b401b5b0dd7 Mon Sep 17 00:00:00 2001
 From: Phillip Lougher <phillip@lougher.demon.co.uk>
 Date: Tue, 20 Oct 2009 10:54:36 +0100
-Subject: [PATCH] Squashfs: add LZMA compression
-
-Add support for LZMA compressed filesystems.  This is an initial
-implementation.
+Subject: [PATCH] Squashfs: add support for LZMA compressed filesystems
 
 Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
 ---
@@ -14,6 +11,7 @@ Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
  fs/squashfs/lzma_wrapper.c |  151 ++++++++++++++++++++++++++++++++++++++++++++
  fs/squashfs/squashfs.h     |    3 +
  5 files changed, 164 insertions(+), 0 deletions(-)
+ create mode 100644 fs/squashfs/lzma_wrapper.c
 
 diff --git a/fs/squashfs/Kconfig b/fs/squashfs/Kconfig
 index 25a00d1..0294aa2 100644
@@ -58,7 +56,7 @@ index 157478d..0b6ad9b 100644
  };
 diff --git a/fs/squashfs/lzma_wrapper.c b/fs/squashfs/lzma_wrapper.c
 new file mode 100644
-index 0000000..9fa617d
+index 0000000..cef06d6
 --- /dev/null
 +++ b/fs/squashfs/lzma_wrapper.c
 @@ -0,0 +1,151 @@
@@ -114,7 +112,7 @@ index 0000000..9fa617d
 +	lzma_error = 1;
 +}
 +
-+	
++
 +static void *lzma_init(struct squashfs_sb_info *msblk)
 +{
 +	struct squashfs_lzma *stream = kzalloc(sizeof(*stream), GFP_KERNEL);
@@ -225,5 +223,5 @@ index fe2587a..d094886 100644
 +/* lzma wrapper.c */
 +extern const struct squashfs_decompressor squashfs_lzma_comp_ops;
 -- 
-1.5.2.5
+1.7.1
 

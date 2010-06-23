@@ -1,10 +1,10 @@
 aufs2 base patch for linux-2.6.
 
 diff --git a/fs/namei.c b/fs/namei.c
-index f3c5b27..dcedad1 100644
+index a7dce91..c345520 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
-@@ -1219,7 +1219,7 @@ out:
+@@ -1177,7 +1177,7 @@ out:
   * needs parent already locked. Doesn't follow mounts.
   * SMP-safe.
   */
@@ -13,7 +13,7 @@ index f3c5b27..dcedad1 100644
  {
  	int err;
  
-@@ -1229,7 +1229,7 @@ static struct dentry *lookup_hash(struct nameidata *nd)
+@@ -1187,7 +1187,7 @@ static struct dentry *lookup_hash(struct nameidata *nd)
  	return __lookup_hash(&nd->last, nd->path.dentry, nd);
  }
  
@@ -23,10 +23,10 @@ index f3c5b27..dcedad1 100644
  {
  	unsigned long hash;
 diff --git a/fs/splice.c b/fs/splice.c
-index 73766d2..0cb8873 100644
+index 9313b61..b9e871f 100644
 --- a/fs/splice.c
 +++ b/fs/splice.c
-@@ -1057,8 +1057,8 @@ EXPORT_SYMBOL(generic_splice_sendpage);
+@@ -1054,8 +1054,8 @@ EXPORT_SYMBOL(generic_splice_sendpage);
  /*
   * Attempt to initiate a splice from pipe to file.
   */
@@ -37,7 +37,7 @@ index 73766d2..0cb8873 100644
  {
  	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *,
  				loff_t *, size_t, unsigned int);
-@@ -1084,9 +1084,9 @@ static long do_splice_from(struct pipe_inode_info *pipe, struct file *out,
+@@ -1082,9 +1082,9 @@ static long do_splice_from(struct pipe_inode_info *pipe, struct file *out,
  /*
   * Attempt to initiate a splice from a file to a pipe.
   */
@@ -51,19 +51,19 @@ index 73766d2..0cb8873 100644
  	ssize_t (*splice_read)(struct file *, loff_t *,
  			       struct pipe_inode_info *, size_t, unsigned int);
 diff --git a/include/linux/namei.h b/include/linux/namei.h
-index d870ae2..a49900e 100644
+index 05b441d..91bc74e 100644
 --- a/include/linux/namei.h
 +++ b/include/linux/namei.h
-@@ -75,6 +75,9 @@ extern struct file *lookup_instantiate_filp(struct nameidata *nd, struct dentry
- extern struct file *nameidata_to_filp(struct nameidata *nd, int flags);
- extern void release_open_intent(struct nameidata *);
+@@ -73,6 +73,9 @@ extern int vfs_path_lookup(struct dentry *, struct vfsmount *,
+ extern struct file *lookup_instantiate_filp(struct nameidata *nd, struct dentry *dentry,
+ 		int (*open)(struct inode *, struct file *));
  
 +extern struct dentry *lookup_hash(struct nameidata *nd);
 +extern int __lookup_one_len(const char *name, struct qstr *this,
 +			    struct dentry *base, int len);
  extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
- extern struct dentry *lookup_one_noperm(const char *, struct dentry *);
  
+ extern int follow_down(struct path *);
 diff --git a/include/linux/splice.h b/include/linux/splice.h
 index 18e7c7c..8393b5c 100644
 --- a/include/linux/splice.h

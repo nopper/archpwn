@@ -1,0 +1,25 @@
+From 17cf327511449e35f6cc4264659feea88475f4b6 Mon Sep 17 00:00:00 2001
+From: Phillip Lougher <phillip@lougher.demon.co.uk>
+Date: Thu, 6 May 2010 02:00:11 +0100
+Subject: [PATCH] squashfs: add missing slab.h include in lzma_wrapper
+
+Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
+---
+ fs/squashfs/lzma_wrapper.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/fs/squashfs/lzma_wrapper.c b/fs/squashfs/lzma_wrapper.c
+index cef06d6..4438475 100644
+--- a/fs/squashfs/lzma_wrapper.c
++++ b/fs/squashfs/lzma_wrapper.c
+@@ -22,6 +22,7 @@
+  */
+ 
+ #include <asm/unaligned.h>
++#include <linux/slab.h>
+ #include <linux/buffer_head.h>
+ #include <linux/mutex.h>
+ #include <linux/vmalloc.h>
+-- 
+1.7.1
+

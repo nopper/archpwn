@@ -1,37 +1,33 @@
-From fdf23ed283bc6ef5c25076ce2065f892120ff556 Mon Sep 17 00:00:00 2001
+From 491e6409b8fd8c724f13632715012b157e867e16 Mon Sep 17 00:00:00 2001
 From: Phillip Lougher <phillip@lougher.demon.co.uk>
-Date: Thu, 22 Oct 2009 04:57:38 +0100
-Subject: [PATCH] Squashfs: Make unlzma available to non initramfs/initrd code
+Date: Mon, 11 Jan 2010 16:15:00 +0100
+Subject: [PATCH] lzma: Make lzma available to non initramfs/initrd code
 
 Add a config option DECOMPRESS_LZMA_NEEDED which allows subsystems to
 specify they need the unlzma code.  Normally decompress_unlzma.c is
 compiled with __init and unlzma is not exported to modules.
 
+Move INIT definition into separate header files for bzip2/lzma/inflate/lzo
+so it can be defined differently for each decompressor.
+
 Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
 ---
- fs/squashfs/Kconfig                   |    1 +
  include/linux/decompress/bunzip2_mm.h |   12 ++++++++++++
  include/linux/decompress/inflate_mm.h |   12 ++++++++++++
  include/linux/decompress/mm.h         |    3 ---
  include/linux/decompress/unlzma_mm.h  |   20 ++++++++++++++++++++
+ include/linux/decompress/unlzo_mm.h   |   12 ++++++++++++
  lib/Kconfig                           |    3 +++
  lib/decompress_bunzip2.c              |    1 +
  lib/decompress_inflate.c              |    1 +
- lib/decompress_unlzma.c               |    5 ++++-
- 9 files changed, 54 insertions(+), 4 deletions(-)
+ lib/decompress_unlzma.c               |    6 +++++-
+ lib/decompress_unlzo.c                |    1 +
+ 10 files changed, 67 insertions(+), 4 deletions(-)
+ create mode 100644 include/linux/decompress/bunzip2_mm.h
+ create mode 100644 include/linux/decompress/inflate_mm.h
+ create mode 100644 include/linux/decompress/unlzma_mm.h
+ create mode 100644 include/linux/decompress/unlzo_mm.h
 
-diff --git a/fs/squashfs/Kconfig b/fs/squashfs/Kconfig
-index 0294aa2..7ec5d7e 100644
---- a/fs/squashfs/Kconfig
-+++ b/fs/squashfs/Kconfig
-@@ -30,6 +30,7 @@ config SQUASHFS_LZMA
- 	bool "Include support for LZMA compressed file systems"
- 	depends on SQUASHFS
- 	select DECOMPRESS_LZMA
-+	select DECOMPRESS_LZMA_NEEDED
- 
- config SQUASHFS_EMBEDDED
- 
 diff --git a/include/linux/decompress/bunzip2_mm.h b/include/linux/decompress/bunzip2_mm.h
 new file mode 100644
 index 0000000..cac6fef
@@ -69,10 +65,10 @@ index 0000000..ca4a2ae
 +
 +#endif
 diff --git a/include/linux/decompress/mm.h b/include/linux/decompress/mm.h
-index 12ff8c3..80f5ba4 100644
+index ad5ec1d..f3f6526 100644
 --- a/include/linux/decompress/mm.h
 +++ b/include/linux/decompress/mm.h
-@@ -53,8 +53,6 @@ static void free(void *where)
+@@ -63,8 +63,6 @@ static void free(void *where)
  
  #define set_error_fn(x)
  
@@ -81,7 +77,7 @@ index 12ff8c3..80f5ba4 100644
  #else /* STATIC */
  
  /* Code active when compiled standalone for use when loading ramdisk: */
-@@ -77,7 +75,6 @@ static void free(void *where)
+@@ -87,7 +85,6 @@ static void free(void *where)
  static void(*error)(char *m);
  #define set_error_fn(x) error = x;
  
@@ -115,12 +111,30 @@ index 0000000..859287e
 +#endif
 +
 +#endif
+diff --git a/include/linux/decompress/unlzo_mm.h b/include/linux/decompress/unlzo_mm.h
+new file mode 100644
+index 0000000..e3f1573
+--- /dev/null
++++ b/include/linux/decompress/unlzo_mm.h
+@@ -0,0 +1,12 @@
++#ifndef UNLZO_MM_H
++#define UNLZO_MM_H
++
++#ifdef STATIC
++/* Code active when included from pre-boot environment: */
++#define INIT
++#else
++/* Compile for initramfs/initrd code only */
++#define INIT __init
++#endif
++
++#endif
 diff --git a/lib/Kconfig b/lib/Kconfig
-index bb1326d..25e7f28 100644
+index 170d8ca..390e88c 100644
 --- a/lib/Kconfig
 +++ b/lib/Kconfig
-@@ -117,6 +117,9 @@ config DECOMPRESS_BZIP2
- config DECOMPRESS_LZMA
+@@ -121,6 +121,9 @@ config DECOMPRESS_LZO
+ 	select LZO_DECOMPRESS
  	tristate
  
 +config DECOMPRESS_LZMA_NEEDED
@@ -130,7 +144,7 @@ index bb1326d..25e7f28 100644
  # Generic allocator support is selected if needed
  #
 diff --git a/lib/decompress_bunzip2.c b/lib/decompress_bunzip2.c
-index 600f473..6eb6433 100644
+index a4e971d..04386b3 100644
 --- a/lib/decompress_bunzip2.c
 +++ b/lib/decompress_bunzip2.c
 @@ -52,6 +52,7 @@
@@ -154,7 +168,7 @@ index fc686c7..cb6bcab 100644
  
  #define GZIP_IOBUF_SIZE (16*1024)
 diff --git a/lib/decompress_unlzma.c b/lib/decompress_unlzma.c
-index ca82fde..b2fd927 100644
+index ca82fde..a614b26 100644
 --- a/lib/decompress_unlzma.c
 +++ b/lib/decompress_unlzma.c
 @@ -36,6 +36,7 @@
@@ -174,13 +188,28 @@ index ca82fde..b2fd927 100644
  			      int(*fill)(void*, unsigned int),
  			      int(*flush)(void*, unsigned int),
  			      unsigned char *output,
-@@ -664,4 +665,6 @@ STATIC int INIT decompress(unsigned char *buf, int in_len,
- {
- 	return unlzma(buf, in_len - 4, fill, flush, output, posp, error_fn);
+@@ -652,6 +653,9 @@ exit_1:
+ exit_0:
+ 	return ret;
  }
-+#elif defined(CONFIG_DECOMPRESS_LZMA_NEEDED)
++#if defined(CONFIG_DECOMPRESS_LZMA_NEEDED) && !defined(PREBOOT)
 +EXPORT_SYMBOL(unlzma);
- #endif
++#endif
+ 
+ #ifdef PREBOOT
+ STATIC int INIT decompress(unsigned char *buf, int in_len,
+diff --git a/lib/decompress_unlzo.c b/lib/decompress_unlzo.c
+index bcb3a4b..af06d6f 100644
+--- a/lib/decompress_unlzo.c
++++ b/lib/decompress_unlzo.c
+@@ -39,6 +39,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/lzo.h>
++#include <linux/decompress/unlzo_mm.h>
+ #include <linux/decompress/mm.h>
+ 
+ #include <linux/compiler.h>
 -- 
-1.5.2.5
+1.7.1
 

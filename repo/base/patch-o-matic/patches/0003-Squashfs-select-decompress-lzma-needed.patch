@@ -1,0 +1,25 @@
+From ca2735d4b6477da84051a6a89269fca64d4612c7 Mon Sep 17 00:00:00 2001
+From: Phillip Lougher <phillip@lougher.demon.co.uk>
+Date: Sun, 6 Dec 2009 02:15:08 +0000
+Subject: [PATCH] Squashfs: select DECOMPRESS_LZMA_NEEDED when including support for lzma
+
+Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
+---
+ fs/squashfs/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/fs/squashfs/Kconfig b/fs/squashfs/Kconfig
+index 0294aa2..7ec5d7e 100644
+--- a/fs/squashfs/Kconfig
++++ b/fs/squashfs/Kconfig
+@@ -30,6 +30,7 @@ config SQUASHFS_LZMA
+ 	bool "Include support for LZMA compressed file systems"
+ 	depends on SQUASHFS
+ 	select DECOMPRESS_LZMA
++	select DECOMPRESS_LZMA_NEEDED
+ 
+ config SQUASHFS_EMBEDDED
+ 
+-- 
+1.7.1
+
