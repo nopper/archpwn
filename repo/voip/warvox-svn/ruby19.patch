@@ -1,5 +1,6 @@
---- main.old	2009-10-29 19:09:40.718706797 +0100
-+++ src/ruby-kissfft/main.c	2009-10-29 19:15:08.629446709 +0100
+diff -ur warvox/src/ruby-kissfft/main.c warvox-build//src/ruby-kissfft/main.c
+--- warvox/src/ruby-kissfft/main.c	2010-06-29 17:38:35.182817155 +0200
++++ warvox/src/ruby-kissfft/main.c	2010-06-29 17:51:35.957329208 +0200
 @@ -78,11 +78,11 @@
  		return Qnil;
  	}
@@ -10,7 +11,7 @@
  	}
  
 -	if(TYPE(RARRAY(r_data)->ptr[0]) != T_FIXNUM ) {
-+	if(TYPE(RARRAY_PTR(r_data)[0]) != T_FIXNUM ) {
++	if(TYPE(RARRAY_PTR(r_data)) != T_FIXNUM ) {
  		return Qnil;
  	}	
  
