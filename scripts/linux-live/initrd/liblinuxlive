@@ -96,7 +96,8 @@ debug_shell()
 #
 header()
 {
-   echo "[0;1m""$@""[0;0m"
+   #echo "[0;1m""$@""[0;0m"
+   echo -e " \033[1;31m*\033[1;0m ""$@"
 }
 
 fatal()
