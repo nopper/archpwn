@@ -4,7 +4,7 @@ auto_modules ()
     aliases="$(find /sys/devices/ -name modalias -exec cat {} +)"
     mods=""
     for a in $aliases; do
-        m="$(resolve-modalias "/lib/modules/${KERNELVERSION}/modules.alias" "$a")"
+        m="$(modprobe --set-version ${KERNELVERSION} --resolve-alias "$a")"
         [ -n "$m" ] && mods="$mods $m"
     done
 
@@ -87,12 +87,12 @@ add_device ()
 add_symlink ()
 {
     local fil dest dir
-    if [ -L ${1} ]; then
+    if [ -h ${1} ]; then
         fil="${1##$BASEDIR}"
         dest="${2##$BASEDIR}"
         add_dir $(dirname "${dest}")
         add_dir $(dirname "${fil}")
-        if ! grep "slink ${dest} " "${FILELIST}" 2>&1 > /dev/null; then
+        if ! grep "slink ${fil} " "${FILELIST}" 2>&1 > /dev/null; then
             msg "  adding link ${fil} -> ${dest}"
             echo "slink ${fil} ${dest} $(stat -c '%a' ${1}) 0 0" >> "${FILELIST}"
         fi
@@ -124,7 +124,7 @@ add_file ()
             dest="${2}"
         else
             dest="${fil##$BASEDIR}"
-            if [ "${dest:0:1}" != "/" ]; then
+            if [ "${dest}" = "${dest#/}" ]; then
                 dest="/${dest}"
             fi
         fi

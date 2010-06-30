@@ -1,18 +1,23 @@
 install ()
 {
-    MODULES="cdrom ide-cd_mod ide-core ide-generic aufs squashfs isofs loop xfs $(all_modules '/kernel/fs' | grep -v "nls") "
+    MODULES="libcrc32c crc32c cdrom ide-cd_mod ide-core ide-generic aufs squashfs isofs loop xfs $(all_modules '/kernel/fs' | grep -v "nls") "
     # need usb modules for external drives
     MODULES="${MODULES} $(checked_modules "/usb/host" | grep -ve "_cs" -e "sl1811-hcd" -e "isp116x-hcd")"
     MODULES=$(echo ${MODULES}) #trim whitespace
     if [ "x${MODULES}" != "x" ]; then
         MODULES="${MODULES} usb_storage sd_mod sr_mod"
     fi
-    BINARIES="cp ls find touch rm test chmod chown grep less sed basename tr"
-    #FILES="/usr/lib/liblinuxlive"
+
+    BINARIES=""
     FiLES=""
-    add_dir /real_root
     add_dir /tmpfs
     add_dir /bootmnt
+    add_dir /tmpfs.sqfs
+
+    add_binary /lib/udev/cdrom_id
+
+    add_file $CWD/rootfs/lib/udev/rules.d/60-cdrom_id.rules
+
     SCRIPT="archiso"
 }
 

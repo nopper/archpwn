@@ -1,27 +1,17 @@
 # vim: set ft=sh:
 run_hook ()
 {
-    msg -n ":: Loading keymap..."
-    . /keymap
-    if [ "${UTF8}" = "yes" ]; then
-        /bin/kbd_mode -u
-        printf "\033%%G" >> /dev/console
-        [ -n "${KEYMAP}" ] && /bin/loadkeys -q -u ${KEYMAP}
-    else
-        /bin/kbd_mode -a
-        printf "\033%%@" >> /dev/console
-        [ -n "${KEYMAP}" ] && /bin/loadkeys -q ${KEYMAP}
-    fi
-    if [ -n "${CONSOLEFONT}" ]; then
+    if [ -e /keymap.bin ]; then
+        msg -n ":: Loading keymap..."
+        . /keymap.utf8
         if [ "${UTF8}" = "yes" ]; then
-             CONSOLEMAP=""
-        fi
-        if [ -n "${CONSOLEMAP}" ]; then
-            /bin/setfont -m ${CONSOLEMAP} ${CONSOLEFONT} -C /dev/console
+            /usr/bin/kbd_mode -u -C /dev/console
+            printf "\033%%G" >> /dev/console
         else
-            /bin/setfont ${CONSOLEFONT} -C /dev/console
+            /usr/bin/kbd_mode -a -C /dev/console
+            printf "\033%%@" >> /dev/console
         fi
-        printf "\033(K" >> /dev/console
+        /sbin/loadkmap < /keymap.bin
+        msg "done."
     fi
-    msg "done."
 }

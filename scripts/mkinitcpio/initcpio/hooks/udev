@@ -1,10 +1,8 @@
 # vim: set ft=sh:
 run_hook ()
 {
-    info -n "Loading udev ... "
-    echo > /proc/sys/kernel/hotplug
-    /sbin/udevd --daemon
-    /sbin/udevadm trigger
+    info -n "Triggering uevents... "
+    /sbin/udevadm trigger --action=add
     /sbin/udevadm settle
     hl "done."; echo
 }

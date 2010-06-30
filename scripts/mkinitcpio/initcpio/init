@@ -1,11 +1,12 @@
-#!/bin/sh
+#!/bin/busybox ash
+# Install busybox's applets as symlinks
+/bin/busybox --install -s
 
 . /init_functions
 
 info "Loading Initramfs"
-
-/bin/mount -t sysfs none /sys
-/bin/mount -t proc  none /proc
+/bin/mount -t proc proc /proc
+/bin/mount -t sysfs sys /sys
 
 # Suppressing all printk
 echo "0" > /proc/sys/kernel/printk
@@ -13,45 +14,60 @@ echo "0" > /proc/sys/kernel/printk
 read CMDLINE </proc/cmdline
 export CMDLINE
 
-# Used so hooks can override params to kinit
-export kinit_params=""
 export root=""
+export init=""
 echo "/sbin/modprobe" > /proc/sys/kernel/modprobe
+
+# set default mount handler
+mount_handler="default_mount_handler"
+
+# if available, start udevd at this stage
+if [ -x /sbin/udevd ]; then
+    info "Starting udevd..."
+    echo > /proc/sys/kernel/hotplug
+    /sbin/udevd --daemon --resolve-names=never
+    export udevd_running=1
+    msg "done."
+else
+    export udevd_running=0
+fi
 
 for cmd in ${CMDLINE}; do
     case "${cmd}" in
         \#*) break ;; # ignore everything after a # in the commandline
         # The kernel passes those to the kernel on its own
         [0123456Ss]) ;;
+        [0-9]*) ;;
         single) ;;
-        #Allow "init=X" to pass-through
-        init=*) kinit_params="${kinit_params} ${cmd}" ;;
-        # only export stuff that does work with dash :)
-        *=*) cmd="$(replace -s= "${cmd}" '.' '_')"
-             cmd="$(replace -s= "${cmd}" '-' '_')"
-             export "${cmd}"
+        rw) readwrite="yes" ;;
+        ro) readwrite="no" ;;
+        # only export stuff that does work with ash :)
+        *=*) rhs="$(echo "${cmd}" | cut -d= -f2-)"
+             cmd="$(echo "${cmd}" | cut -d= -f1 | sed 's|\.|_|g')"
+             cmd="$(echo "${cmd}" | sed 's|-|_|g')=${rhs}"
+             (echo "${cmd}" | grep -qe '^[0-9]') || export "${cmd}"
              ;;
-        *)   cmd="$(replace "${cmd}" '.' '_')"
-             cmd="$(replace "${cmd}" '-' '_')"
-             export "${cmd}=y" 
-           ;;
+        *)   cmd="$(echo "${cmd}" | sed 's|\.|_|g')"
+             cmd="$(echo "${cmd}" | sed 's|-|_|g')"
+             (echo "${cmd}" | grep -qe '^[0-9]') || export "${cmd}=y"
+             ;;
     esac
 done
 
 if [ -n "${disablehooks}" ]; then
-    for d in $(replace "${disablehooks}" ','); do
+    for d in $(echo "${disablehooks}" | sed 's|,| |g'); do
         export "hook_${d}=disabled"
     done
 fi
 
 if [ -n "${disablemodules}" ]; then
-    for d in $(replace "${disablemodules}" ','); do
+    for d in $(echo "${disablemodules}" | sed 's|,| |g'); do
         export "mod_${d}=disabled"
     done
 fi
 
 if [ -n "${earlymodules}" ]; then
-    for m in $(replace "${earlymodules}" ','); do
+    for m in $(echo "${earlymodules}" | sed 's|,| |g'); do
         /sbin/modprobe -q ${m} > /dev/null 2>&1
     done
 fi
@@ -67,18 +83,16 @@ for m in ${MODULES}; do
 done
 
 # If rootdelay is empty or not a non-negative integer, set it to 10
-if [ -z "${rootdelay}" -o ! "${rootdelay}" -ge 0 ]; then
+if [ -z "${rootdelay}" ] || ! [ "${rootdelay}" -ge 0 ]; then
     export rootdelay=10
 fi
-# We'll wait for the root device, so make sure klibc doesn't
-export kinit_params="${kinit_params} rootdelay=0"
 
 if [ -e "/hooks" ]; then
     for h in ${HOOKS}; do
         TST=""
         eval "TST=\$hook_${h}"
         if [ "${TST}" != "disabled" ]; then
-            run_hook () { warn "${h}: no run function defined"; }
+            run_hook () { msg "${h}: no run function defined"; }
             if [ -e "/hooks/${h}" ]; then
                . /hooks/${h}
                info "Running Hook [${h}]"
@@ -89,50 +103,47 @@ if [ -e "/hooks" ]; then
 fi
 
 if [ "${break}" = "y" ]; then
-    warn ":: Break requested, type 'exit' to resume operation"
-    warn "   NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
-    PS1="ramfs$ " /bin/sh -i
-fi
-
-# If we boot from NFS, don't check for a block device in /dev
-# Let kinit do it all
-if [ -z "${nfsroot}" -a "${root}" != "/dev/nfs" ]; then
-    if ! poll_device "${root}" ${rootdelay}; then
-        warn "\nRoot device '${root}' doesn't exist, attempting to create it"
-
-        eval $(/bin/parseblock "${root}")
-        if [ -z "${BLOCKDEVICE}" ]; then
-            err "ERROR: Failed to parse block device ids for '${root}'"
-        else
-            echo "/bin/mknod /dev/root b ${BLOCKDEVICE}"
-            /bin/mknod /dev/root b ${BLOCKDEVICE} >/dev/null
-            export root="/dev/root"
-        fi
-        if [ ! -b "${root}" -a ! -L "${root}" ]; then
-            err "Unable to detect or create root device '${root}'"
-            warn "You are being dropped to a recovery shell"
-            warn "    Type 'reboot' to reboot"
-            warn "    Type 'exit' to try and continue booting"
-            warn "NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
-            echo ""
-            warn "If the device '${root}' gets created while you are here,"
-            warn "try adding 'rootdelay=10' or higher to the kernel command-line"
-            PS1="ramfs$ " /bin/sh -i
-            info "Trying to continue (this will most likely fail)..."
-        fi
-    fi
+    warn "Break requested, type 'exit' to resume operation"
+    launch_interactive_shell
 fi
 
 if [ -f "/message" ]; then
     msg "$(cat /message)"
 fi
-info "Initramfs Completed - control passing to kinit"
 
-#Special handling if udev is running
-udevpid=$(/bin/minips -C udevd -o pid=)
-if [ -n "${udevpid}" ]; then
-    /bin/kill -9 ${udevpid} > /dev/null 2>&1
-    /bin/sleep 0.01
+# Mount root at /new_root
+mkdir -p /new_root
+${mount_handler} /new_root
+
+[ -z "${init}" ] && init="/sbin/init"
+if [ "$(stat -c %D /)" = "$(stat -c %D /new_root)" ]; then
+    # Nothing got mounted on /new_root. This is the end, we don't know what to do anymore
+    # We fall back into a shell, but the shell has now PID 1
+    # This way, manual recovery is still possible.
+    err "Failed to mount the real root device."
+    err "Bailing out, you are on your own. Good luck."
+    echo
+    launch_interactive_shell --exec
+elif [ ! -x "/new_root${init}" ]; then
+    # Successfully mounted /new_root, but ${init} is missing
+    # The same logic as above applies
+    err "Root device mounted successfully, but ${init} does not exist."
+    err "Bailing out, you are on your own. Good luck."
+    echo
+    launch_interactive_shell --exec
 fi
 
-exec /bin/kinit "$@" -- "root=${root}" ${kinit_params} > /dev/null 2>&1
+#Special handling if udev is running
+udevpid=$(/bin/pidof udevd)
+if [ -n "${udevpid}" ]; then
+    # Settle pending uevents, then kill udev
+    /sbin/udevadm settle
+    /bin/kill ${udevpid} > /dev/null 2>&1
+    while /bin/pidof udevd >/dev/null; do
+        sleep 0.1
+    done
+fi
+
+umount /proc
+umount /sys
+exec /sbin/switch_root -c /dev/console /new_root ${init} "$@"

@@ -1,38 +1,99 @@
 
 install() {
-	[ -x /sbin/fbcondecor_helper ] || return 1
+    (
+        . /etc/conf.d/fbsplash
 
-	. /etc/conf.d/fbsplash
+        add_binary /sbin/fbcondecor_helper
 
-	[ -n "$( echo ${SPLASH_THEMES} )" ] || return 1
+        # add some stuff maybe required by the helper
+        #add_device /dev/tty0 c 4 0
+        for dir in /lib/splash/proc /lib/splash/sys # /dev/fb /dev/misc /dev/vc
+        do
+            add_dir $dir
+        done
 
-	add_binary "/sbin/fbcondecor_helper"
+        # add a minimal conf file to avoid kernel panic because of syntax
+        file=$( /usr/bin/mktemp )
+        for var in SPLASH_MESSAGE_INIT SPLASH_MODE_REQ SPLASH_THEME
+        do
+            eval value=\"\$$var\"
+            [ -n "$value" ] && echo $var="'$value'"
+        done > $file
+        add_file $file /etc/conf.d/fbsplash
 
-	# stuff needed to start the helper 
-	add_device "/dev/tty0" c 4 0
-	for DIR in /dev/fb /dev/misc /dev/vc /lib/splash/proc /lib/splash/sys
-	do
-		add_dir ${DIR}
-	done
+        # List file paths contained in given Fbsplash theme cfg file
+        _get_cfg_files() {
+            < "$1" /bin/sed -re '
+                # convert all whitespace into single blanks
+                s,[[:space:]]+, ,g ; t L1
+                :L1
+                # drop comments, grouping directives and blank lines
+                /^ *([#<]|$)/ d
+                # get a filepath or drop
+                s,.*[ =]([^ ]*/[^ ]+).*,\1, ; t ; d
+            ' | /usr/bin/sort -u
+        }
 
-	for theme in ${SPLASH_THEMES}
-	do
-		add_full_dir "/etc/splash/${theme}"
-	done
-	
-	for SYMLINK in /etc/splash/default
-	do
-		[ -L ${SYMLINK} ] || continue
-		add_symlink ${SYMLINK} "$( readlink ${SYMLINK} )"
-	done
-	
-	add_file /etc/conf.d/fbsplash
+        # Check if cfg file name or path
+        _match_cfg() {
+            [[ "$1" =~ (^|/)[0-9]+x[0-9]+\.cfg$ ]]
+        }
 
-	SCRIPT="fbsplash"
+    # Add non-cfg files in given dir
+        _add_non_cfg_files() {
+            local file dir="$1"
+            for file in $( /bin/ls "$dir" ); do
+                if [ -f "$dir/$file" ]; then
+                    _match_cfg "$file" || add_file "$dir/$file"
+                fi
+            done
+        }
+
+        # add global non-cfg files
+        _add_non_cfg_files /etc/splash
+
+        # add themes
+        for theme in ${SPLASH_THEMES[*]}; do # string list and array allowed
+            [ ${theme:0:1} = / ] || theme=/etc/splash/$theme
+            if _match_cfg $theme && \
+                add_file $theme
+            then
+                dir=$( dirname $theme )
+                # add non-cfg files in theme dir
+                _add_non_cfg_files $dir
+                # add files refered in cfg file by paths
+                for file in $( _get_cfg_files $theme ); do
+                    if [ ${file:0:1} = / ]; then
+                        add_file $file
+                        continue
+                    fi
+                    # path may be relative to theme-dir or to /etc/splash
+                    [ -e $dir/$file -o ! -f /etc/splash/$file ] && add_file $dir/$file
+                    [ -e /etc/splash/$file -o ! -f $dir/$file ] && add_file /etc/splash/$file
+                done
+            elif [ ! -d $theme ]; then
+                err "directory '${theme}' does not exist"
+            else
+                add_full_dir $theme
+            fi
+        done
+
+    # add default symlink if any
+        for symlink in /etc/splash/default
+        do
+            [ -L $symlink ] && add_symlink $symlink "$( readlink $symlink )"
+        done
+    )
+
+    SCRIPT="fbsplash"
 }
 
 help() {
-	echo "This hook includes Fbsplash in the initramfs image."
+cat<<HELPEOF
+  This hook adds Fbsplash and themes specified in /etc/conf.d/fbsplash.
+  The hook script is responsible for starting Fbsplash if no fbcondecor
+  kernel patch is detected, so put this somewhere after udev.
+HELPEOF
 }
 
 #EOF

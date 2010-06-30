@@ -1,22 +1,22 @@
 run_hook ()
 {
-	# don't paint again if we have a fbcondecor patched kernel
-	[ -e /dev/fbsplash -o -e /dev/fbcondecor ] && return
+    # don't paint again if we have a fbcondecor patched kernel
+    [ -e /dev/fbsplash -o -e /dev/fbcondecor ] && return
 
-	SPLASH_MODE_REQ="off"
-	for option in $( replace "${splash}" ',' ); do
-		case ${option} in
-			silent|verbose) SPLASH_MODE_REQ=${option} ;;
-		esac
-	done
+    export SPLASH_MODE_REQ="off"
+    SPLASH_MESSAGE_INIT="Initializing the Kernel..."
 
-	[ "${SPLASH_MODE_REQ}" = 'silent' ] || return 0
+    . /etc/conf.d/fbsplash
 
-	SPLASH_MESSAGE_INIT="Initializing the Kernel..."
-	. /etc/conf.d/fbsplash
-	
-	export BOOT_MSG="${SPLASH_MESSAGE_INIT}"
+    case ",${splash},"
+        in *,silent,*  ) SPLASH_MODE_REQ=silent
+        ;; *,verbose,* ) SPLASH_MODE_REQ=verbose
+    esac
 
-	## use 'init' to get fadein if in cmdline options
-	/sbin/fbcondecor_helper 2 init 0 0 $SPLASH_THEME
+    [ "${SPLASH_MODE_REQ}" = 'silent' ] || return 0
+
+    export BOOT_MSG="${SPLASH_MESSAGE_INIT}"
+
+    ## use 'init' to get fadein if in cmdline options
+    /sbin/fbcondecor_helper 2 init 0 0 $SPLASH_THEME
 }
