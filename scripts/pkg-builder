@@ -56,8 +56,8 @@ PKGDEST="%PKGDEST%"
 SRCDEST="%SRCDEST%"
 PACKAGER="Francesco Piccinno <stack.box@gmail.com>"
 BUILDSCRIPT='PKGBUILD'
-PKGEXT='.pkg.tar.gz'
-SRCEXT='.src.tar.gz'
+PKGEXT='.pkg.tar.xz'
+SRCEXT='.src.tar.xz'
 DB_COMPRESSION='gz'
 DB_CHECKSUMS=(md5)
 
@@ -130,7 +130,7 @@ class Builder(ConsoleP):
 
         os.chdir(self.dst)
         os.system("repo-add archpwn.db.tar.gz %s > /dev/null 2>&1" % \
-                  " ".join(glob.glob("*.pkg.tar.gz")))
+                  " ".join(glob.glob("*.pkg.tar.xz")))
         self.info("archpwn.db succesfully updated.")
 
         os.chdir(origdir)
