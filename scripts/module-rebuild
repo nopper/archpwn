@@ -152,20 +152,19 @@ class ModuleRebuild(ConsoleP):
         sep = '\(\'\|\\"\)*'
 
         for file in os.listdir(dirname):
+
+            if file != 'PKGBUILD' and not file.endswith('.install'):
+                continue
+            path = os.path.join(dirname, file)
+
+            os.system('sed -i "s:\(_kernelver=%s\)\\`uname -r\\`:\\1%s:g" %s' % (sep, self.kver, path))
+            os.system('sed -i "s:^\(_kernver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
+            os.system('sed -i "s:\(kernelver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
+            os.system('sed -i "s:\(KERNEL_VERSION=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
+
+            # Let's adjust the depends=()
             if file == 'PKGBUILD':
-                path = os.path.join(dirname, file)
-
-                os.system('sed -i "s:\(_kernelver=%s\)\\`uname -r\\`:\\1%s:g" %s' % (sep, self.kver, path))
-                os.system('sed -i "s:^\(_kernver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
-                os.system('sed -i "s:\(kernelver=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
-                os.system('sed -i "s:\(KERNEL_VERSION=%s\).*-ARCH:\\1%s:g" %s' % (sep, self.kver, path))
-
-                # Let's adjust the depends=()
                 os.system('sed -i "s:\([\'\\"]\)kernel26\([\'\\"><=]\):\\1kernel26-pwn\\2:g" %s' % path)
-
-            elif file.endswith('.install'):
-                os.system('sed -i "s:\(KERNEL_VERSION=%s\).*-ARCH:\\1%s:g" %s' \
-                          % (sep, self.kver, os.path.join(dirname, file)))
 
     def create_dep_graph(self, root='kernel26'):
         idx = 0
