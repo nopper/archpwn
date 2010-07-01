@@ -68,11 +68,11 @@ class ModuleRebuild(ConsoleP):
                     continue
 
     def print_deps(self, root):
-        self.info('These are the packages that depends on kernel26')
+        self.info('These are the packages that depend on kernel26')
 
         skipped = (
             'madwifi',
-            'openswan-klips',
+            'openswan-klips', # Not present anymore
 
             # Unused
             'archboot',
@@ -81,20 +81,15 @@ class ModuleRebuild(ConsoleP):
             'kqemu',
 
             # Modems? :D
-            'fcpci',
-            'fcpcmcia',
-            'intel-536ep',
-            'intel-537',
-            'martian',
-            'slmodem',
+            'fcpcmcia', # Doesn't build cleanly
 
             # Misc
-            'pyinotify',
-            'speakup',
+            'pyinotify', # Useless
+            'speakup', # Useless
 
             # Compilation error or version mismatch
-            'nilfs',
-            'shfs',
+            #'nilfs',
+            #'shfs',
             'qc-usb',
             'qc-usb-messenger',
             'em8300',
@@ -103,15 +98,23 @@ class ModuleRebuild(ConsoleP):
 
             # uname -r in install process.
             'cdfs',
-            'vhba-module',
-            'nouveau-drm',
+            'nouveau-drm', # Already present in kernel
 
             # Patched modules
-            'tiacx',
+            'tiacx', # aircrack patchset
         )
 
         forced = (
-            # 'aufs2-util',
+            'aufs2',
+            'aufs2-util',
+
+            'vhba-module',
+
+            'fcpci',
+            'intel-536ep',
+            'intel-537',
+            'martian',
+            'slmodem',
         )
 
         for child in self.graph['kernel26']:
@@ -123,8 +126,13 @@ class ModuleRebuild(ConsoleP):
 
             self.add_pkg(child)
 
+        self.info('Forcing modules:')
+
         for force in forced:
-            self.add_pkg(self.graph[force])
+            try:
+                self.add_pkg(self.graph[force])
+            except:
+                self.error("%20s => not-present" % force)
 
     def add_pkg(self, child):
         try:
@@ -182,7 +190,7 @@ class ModuleRebuild(ConsoleP):
                 if idx % 5 == 0:
                     anim.update("Parsing %d PKGBUILDs ..." % idx)
 
-                if not pdeps or not pname:
+                if not pdeps or not pname or not isinstance(pname, basestring):
                     continue
 
                 if pname in self.graph:
