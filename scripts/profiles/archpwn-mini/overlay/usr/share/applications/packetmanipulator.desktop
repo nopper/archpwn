@@ -1,9 +1,0 @@
-[Desktop Entry]
-Exec=PacketManipulator
-Icon=preferences-web-browser-cache
-Name=PacketManipulator
-StartupNotify=true
-Terminal=0
-Type=Application
-X-KDE-SubstituteUID=false
-Categories=Spoofing

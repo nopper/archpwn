@@ -1,9 +1,0 @@
-[Desktop Entry]
-Exec=sudo ike-scan --help;echo;sudo -s
-Icon=preferences-web-browser-cache
-Name=ike-scan
-StartupNotify=true
-Terminal=1
-Type=Application
-X-KDE-SubstituteUID=false
-Categories=Network-Mapping-VPN
