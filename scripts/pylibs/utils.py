@@ -53,6 +53,8 @@ def foreach_pkg(pdir):
         for file in files:
             if file.endswith('.pkg.tar.gz'):
                 yield os.path.join(root, file)
+            if file.endswith('.pkg.tar.xz'):
+                yield os.path.join(root, file)
 
 class ConsoleP(object):
     def __init__(self, name):

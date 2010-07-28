@@ -21,18 +21,39 @@ import os
 import sys
 import os.path
 
-from tarfile import TarFile
+try:
+    from tarfile import TarFile
+    from lzma import LZMAFile
+except ImportError:
+    print "You need to install python-pyliblzma to handle .xz pkg files"
+
 from tempfile import mkstemp
 from collections import defaultdict
 
 class Pkg(object):
     def __init__(self, path):
-        self.fd = TarFile.gzopen(path)
+        if path.endswith('.gz'):
+            self.fd = TarFile.gzopen(path)
+        elif path.endswith('.xz'):
+            self.fd = TarFile.open(fileobj=LZMAFile(path))
+        else:
+            raise Exception('Unsupported file type %s' % path)
+
         self.pkg_info = defaultdict(list)
-        self.members = None
+        self.members = []
+
+        # Extract most used information
 
         if self.parse_pkginfo():
             self.parse_contents()
+
+        self.name = self.pkg_info.get('pkgname')
+        self.desc = self.pkg_info.get('pkgdesc')[0]
+        self.depends = self.pkg_info.get('depend') or []
+        self.groups = self.pkg_info.get('group') or []
+
+        if isinstance(self.name, (list, tuple)) and len(self.name) == 1:
+            self.name = self.name[0]
 
     def is_executable(self, member):
         xbit = 7 << 6
@@ -85,7 +106,8 @@ class Pkg(object):
             self.members = [member.path for member in members]
             self.members.sort()
         except StopIteration:
-            self.pkg_info.clear()
+            self.members = []
+            #self.pkg_info.clear()
 
     def parse_pkginfo(self):
         try:
