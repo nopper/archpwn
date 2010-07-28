@@ -1,6 +1,5 @@
-
 pkgname=chakra-hardware-detection
-pkgver=20091114
+pkgver=20100412
 pkgrel=1
 pkgdesc="Hardware detection scripts for Chakra"
 arch=('any')

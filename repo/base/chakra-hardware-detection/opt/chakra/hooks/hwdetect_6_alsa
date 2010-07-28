@@ -12,6 +12,7 @@ hwdetect_alsa()
 	$alsa_amixer -c 0 sset "Center" 70% unmute &>/dev/null
 	$alsa_amixer -c 0 sset "LFE" 70% unmute &> /dev/null
 	$alsa_amixer -c 0 sset "Headphone" 70% unmute &>/dev/null
+	$alsa_amixer -c 0 sset "Speaker" 70% unmute &>/dev/null
 	$alsa_amixer -c 0 sset "PCM" 70% unmute &>/dev/null
 	$alsa_amixer -c 0 sset "Line" 70% unmute &>/dev/null
 	$alsa_amixer -c 0 sset "External" 70% unmute &>/dev/null
