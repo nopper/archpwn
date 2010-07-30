@@ -4,8 +4,8 @@
 
 export PATH=.:/:/usr/sbin:/usr/bin:/sbin:/bin
 
-mount -n -t proc proc /proc
-mount -n -t sysfs sysfs /sys
+#mount -n -t proc proc /proc
+#mount -n -t sysfs sysfs /sys
 #mount -n -o remount,rw /         # for the case we forgot rw boot option
 ln -sf /proc/mounts /etc/mtab    # this allows us to use umount -a
 
