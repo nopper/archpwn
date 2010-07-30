@@ -11,6 +11,18 @@ info "Loading Initramfs"
 # Suppressing all printk
 echo "0" > /proc/sys/kernel/printk
 
+if grep -q devtmpfs /proc/filesystems 2>/dev/null; then
+  /bin/mount -n -t devtmpfs udev /dev -o mode=0755,size=10M,nosuid
+else
+  /bin/mount -n -t tmpfs udev /dev -o mode=0755,size=10M,nosuid
+  # We don't have devtmpfs, so add the most important standard devices
+  /bin/mknod /dev/null c 1 3
+  /bin/mknod /dev/zero c 1 5
+  /bin/mknod /dev/console c 5 1
+  # /dev/mem is needed if we want to load uvesafb before triggering uevents
+  /bin/mknod /dev/mem c 1 1
+fi
+
 read CMDLINE </proc/cmdline
 export CMDLINE
 
@@ -23,11 +35,11 @@ mount_handler="default_mount_handler"
 
 # if available, start udevd at this stage
 if [ -x /sbin/udevd ]; then
-    info "Starting udevd..."
+    info -n "Starting udevd... "
     echo > /proc/sys/kernel/hotplug
     /sbin/udevd --daemon --resolve-names=never
     export udevd_running=1
-    msg "done."
+    hl "done."; echo
 else
     export udevd_running=0
 fi
@@ -144,6 +156,7 @@ if [ -n "${udevpid}" ]; then
     done
 fi
 
-umount /proc
-umount /sys
+mount --move /proc /new_root/proc
+mount --move /sys /new_root/sys
+mount --move /dev /new_root/dev
 exec /sbin/switch_root -c /dev/console /new_root ${init} "$@"
