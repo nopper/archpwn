@@ -60,6 +60,9 @@ class ModuleRebuild(ConsoleP):
                     pbuild = PkgBuild(os.path.join(pkgdir, 'PKGBUILD'))
                     pname = pbuild.get('pkgname')
 
+                    if isinstance(pname, (tuple, list)):
+                        pname = pname[0]
+
                     self.add_pkg(RNode(pname, pkgdir))
 
                 except Exception, err:
