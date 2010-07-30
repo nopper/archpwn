@@ -1,0 +1,986 @@
+{
+  "edb": {
+    "path": "", 
+    "term": false, 
+    "name": "Evans Debugger", 
+    "exec": "edb"
+  }, 
+  "smbrelay3": {
+    "path": "/opt/windows/smbrelay", 
+    "term": true, 
+    "name": "SMBRelay3", 
+    "exec": "wine smbrelay3.exe;sudo -s "
+  }, 
+  "httprint-win32": {
+    "path": "", 
+    "term": false, 
+    "name": "Httprint_GUI", 
+    "exec": "wine /opt/windows/httprint-win32/httprint_gui.exe"
+  }, 
+  "icmp_redirect": {
+    "path": "", 
+    "term": true, 
+    "name": "ICMP Redirect", 
+    "exec": "icmp_redirect;sudo -s"
+  }, 
+  "fasttrack": {
+    "path": "/usr/share/fasttrack/", 
+    "term": true, 
+    "name": "Fast Track", 
+    "exec": "sudo python fast-track.py; sudo -s "
+  }, 
+  "netenum": {
+    "path": "", 
+    "term": true, 
+    "name": "Netenum", 
+    "exec": "netenum;sudo -s"
+  }, 
+  "nmap": {
+    "path": "", 
+    "term": true, 
+    "name": "Nmap", 
+    "exec": "nmap;sudo -s"
+  }, 
+  "zerowine": {
+    "path": "/usr/share/zerowine", 
+    "term": true, 
+    "name": "ZeroWine", 
+    "exec": "cd /usr/share/zerowine;ls;sudo -s"
+  }, 
+  "tcpreplay": {
+    "path": "", 
+    "term": true, 
+    "name": "tcpreplay", 
+    "exec": "tcpreplay -h 2>&1| head -n 20; echo \"Output is truncated. Use tcpreplay -h to see full list of options\"; echo ; sudo -s"
+  }, 
+  "sqlix": {
+    "path": "/usr/share/sqlix/", 
+    "term": true, 
+    "name": "SQLiX", 
+    "exec": "sqlix | head -n24; echo;echo \"There are more options available type sqlix to see the full list\" ; echo;sudo -s"
+  }, 
+  "stunnel": {
+    "path": "", 
+    "term": true, 
+    "name": "stunnel", 
+    "exec": "stunnel -h;sudo -s"
+  }, 
+  "olly": {
+    "path": "/opt/windows/ollydbg/", 
+    "term": false, 
+    "name": "OllyDBG", 
+    "exec": "wine ollydbg.exe"
+  }, 
+  "cisco-global-exploiter": {
+    "path": "/usr/share/doc/cisco-global-exploiter/", 
+    "term": true, 
+    "name": "Cisco Global Exploiter", 
+    "exec": "cge.pl; sudo -s"
+  }, 
+  "3proxy": {
+    "path": "", 
+    "term": true, 
+    "name": "3proxy", 
+    "exec": "man 3proxy;sudo -s"
+  }, 
+  "sqlbrute": {
+    "path": "", 
+    "term": true, 
+    "name": "SQLbrute", 
+    "exec": "sqlbrute -h ;sudo -s"
+  }, 
+  "htop": {
+    "path": "", 
+    "term": true, 
+    "name": "Htop", 
+    "exec": "xterm htop"
+  }, 
+  "cisco-auditing-tool": {
+    "path": "/usr/share/cisco-auditing-tool/", 
+    "term": true, 
+    "name": "Cisco Auditing Tool", 
+    "exec": "echo;pwd;echo;cisco-auditing-tool --help; sudo -s"
+  }, 
+  "hping2": {
+    "path": "", 
+    "term": true, 
+    "name": "Hping2", 
+    "exec": "hping2 -h 2>&1 | head -n 20;echo;echo More help is available use hping -h to see all parameters;echo ;sudo -s"
+  }, 
+  "ptunnel": {
+    "path": "", 
+    "term": true, 
+    "name": "ptunnel", 
+    "exec": "ptunnel -h;sudo -s"
+  }, 
+  "btscanner": {
+    "path": "", 
+    "term": true, 
+    "name": "Btscanner", 
+    "exec": "btscanner -h;sudo -s"
+  }, 
+  "cisco-ocs": {
+    "path": "", 
+    "term": true, 
+    "name": "Cisco OCS Mass Scanner", 
+    "exec": "ocs; sudo -s"
+  }, 
+  "hping3": {
+    "path": "", 
+    "term": true, 
+    "name": "Hping3", 
+    "exec": "hping3 -h 2>&1 | head -n 20;echo;echo More help is available use hping3 -h to see all parameters;echo ;sudo -s"
+  }, 
+  "gooscan": {
+    "path": "", 
+    "term": true, 
+    "name": "Gooscan", 
+    "exec": "gooscan;sudo -s"
+  }, 
+  "nemesis": {
+    "path": "", 
+    "term": true, 
+    "name": "nemesis", 
+    "exec": "nemesis -h ; sudo -s"
+  }, 
+  "tinyproxy": {
+    "path": "", 
+    "term": true, 
+    "name": "TinyProxy", 
+    "exec": "tinyproxy -h;sudo -s"
+  }, 
+  "igrp": {
+    "path": "", 
+    "term": true, 
+    "name": "igrp route injection", 
+    "exec": "igrp;sudo -s"
+  }, 
+  "elettra-gui": {
+    "path": "", 
+    "term": true, 
+    "name": "elettra GUI", 
+    "exec": "sudo elettra_gui"
+  }, 
+  "mdk3": {
+    "path": "", 
+    "term": true, 
+    "name": "mdk3", 
+    "exec": "sudo mdk3; sudo -s"
+  }, 
+  "MsfCli3": {
+    "path": "/opt/metasploit3/", 
+    "term": true, 
+    "name": "Framework3-MsfCli", 
+    "exec": "msfcli; sudo -s"
+  }, 
+  "hcidump": {
+    "path": "", 
+    "term": true, 
+    "name": "HCIDump", 
+    "exec": "hcidump --help;sudo -s"
+  }, 
+  "pblind": {
+    "path": "", 
+    "term": true, 
+    "name": "Pblind", 
+    "exec": "pblind.py; sudo -s"
+  }, 
+  "sqlninja": {
+    "path": "/usr/share/sqlninja/", 
+    "term": true, 
+    "name": "SQL Ninja", 
+    "exec": "sqlninja; sudo -s"
+  }, 
+  "hydra": {
+    "path": "", 
+    "term": true, 
+    "name": "Hydra", 
+    "exec": "hydra;sudo -s"
+  }, 
+  "xspy": {
+    "path": "", 
+    "term": true, 
+    "name": "xspy", 
+    "exec": "xspy -h;sudo -s"
+  }, 
+  "rtsort": {
+    "path": "", 
+    "term": true, 
+    "name": "RTSort", 
+    "exec": "rtsort;sudo -s"
+  }, 
+  "dnstracer": {
+    "path": "", 
+    "term": true, 
+    "name": "DNSTracer", 
+    "exec": "dnstracer;sudo -s"
+  }, 
+  "airsnarf": {
+    "path": "/usr/share/airsnarf/", 
+    "term": true, 
+    "name": "AirSnarf", 
+    "exec": "echo;echo *** Be careful Airsnarf needs first some tweaks ***;echo;ls -ls;sudo -s"
+  }, 
+  "sing": {
+    "path": "", 
+    "term": true, 
+    "name": "Sing", 
+    "exec": "sing --help ;sudo -s"
+  }, 
+  "john": {
+    "path": "", 
+    "term": true, 
+    "name": "John", 
+    "exec": "john;sudo -s"
+  }, 
+  "elettra": {
+    "path": "", 
+    "term": true, 
+    "name": "elettra", 
+    "exec": "elettra;sudo -s"
+  }, 
+  "sipvicious": {
+    "path": "/usr/share/sipvicious", 
+    "term": true, 
+    "name": "SIPvicious", 
+    "exec": "cd /usr/share/sipvicious;ls;sudo -s"
+  }, 
+  "blueprint": {
+    "path": "/usr/share/blueprint/", 
+    "term": true, 
+    "name": "Blueprint", 
+    "exec": "blueprint;sudo -s"
+  }, 
+  "rsakeyfind": {
+    "path": "", 
+    "term": true, 
+    "name": "RSAkeyfind", 
+    "exec": "rsakeyfind;sudo -s"
+  }, 
+  "radare": {
+    "path": "/usr/share/radare", 
+    "term": true, 
+    "name": "radare", 
+    "exec": "cd /usr/share/radare;ls;sudo -s"
+  }, 
+  "cmospwd": {
+    "path": "", 
+    "term": true, 
+    "name": "CmosPwd", 
+    "exec": "cmospwd --help;sudo -s"
+  }, 
+  "p0f": {
+    "path": "", 
+    "term": true, 
+    "name": "P0f", 
+    "exec": "p0f --help;sudo -s"
+  }, 
+  "chkrootkit": {
+    "path": "", 
+    "term": true, 
+    "name": "chkrootkit", 
+    "exec": "sudo chkrootkit -h;sudo -s"
+  }, 
+  "admsnmp": {
+    "path": "/usr/share/admsnmp/", 
+    "term": true, 
+    "name": "ADMSnmp", 
+    "exec": "admsnmp;sudo -s"
+  }, 
+  "chntpw": {
+    "path": "", 
+    "term": true, 
+    "name": "chntpw", 
+    "exec": "chntpw --help;sudo -s"
+  }, 
+  "spike": {
+    "path": "/usr/share/spike", 
+    "term": true, 
+    "name": "Spike", 
+    "exec": "cd /usr/share/spike;ls;sudo -s"
+  }, 
+  "foremost": {
+    "path": "", 
+    "term": true, 
+    "name": "Foremost", 
+    "exec": "foremost -h;echo;echo Find the formost.conf in /etc;echo;sudo -s"
+  }, 
+  "startXnest": {
+    "path": "", 
+    "term": false, 
+    "name": "startXnest", 
+    "exec": "startXnest"
+  }, 
+  "enumiax": {
+    "path": "", 
+    "term": true, 
+    "name": "EnumIAX", 
+    "exec": "enumiax;sudo -s "
+  }, 
+  "httprint-linux": {
+    "path": "", 
+    "term": true, 
+    "name": "Httprint", 
+    "exec": "httprint ; sudo -s"
+  }, 
+  "samdump2": {
+    "path": "", 
+    "term": true, 
+    "name": "samdump2", 
+    "exec": "samdump2 -h;sudo -s"
+  }, 
+  "scalpel": {
+    "path": "", 
+    "term": true, 
+    "name": "scalpel", 
+    "exec": "scalpel -h;sudo -s"
+  }, 
+  "brutessh": {
+    "path": "/usr/share/brutessh/", 
+    "term": true, 
+    "name": "BruteSSH", 
+    "exec": "sudo brutessh; sudo -s"
+  }, 
+  "wsfuzzer": {
+    "path": "/usr/share/wsfuzzer/", 
+    "term": true, 
+    "name": "WSFuzzer", 
+    "exec": "python WSFuzzer.py;sudo -s"
+  }, 
+  "csrftester": {
+    "path": "/usr/share/csrftester/", 
+    "term": false, 
+    "name": "CSRFTester", 
+    "exec": "csrftester"
+  }, 
+  "ssldump": {
+    "path": "", 
+    "term": true, 
+    "name": "SSLDump", 
+    "exec": "ssldump -h;sudo -s"
+  }, 
+  "wipe": {
+    "path": "", 
+    "term": true, 
+    "name": "Wipe", 
+    "exec": "wipe -h;sudo -s"
+  }, 
+  "sshatter": {
+    "path": "/usr/share/sshatter/", 
+    "term": true, 
+    "name": "SSHater", 
+    "exec": "sshatter;sudo -s"
+  }, 
+  "propecia": {
+    "path": "", 
+    "term": true, 
+    "name": "Propecia", 
+    "exec": "propecia2;sudo -s"
+  }, 
+  "nstx": {
+    "path": "", 
+    "term": true, 
+    "name": "nstx", 
+    "exec": "nstxd -h;sudo -s"
+  }, 
+  "metacoretex": {
+    "path": "", 
+    "term": false, 
+    "name": "Metacoretex", 
+    "exec": "metacoretex"
+  }, 
+  "snmpwalk": {
+    "path": "", 
+    "term": true, 
+    "name": "SNMP Walk", 
+    "exec": "snmpwalk;sudo -s"
+  }, 
+  "obexftp": {
+    "path": "", 
+    "term": true, 
+    "name": "ObexFTP", 
+    "exec": " obexftp --help | head -n 20; echo \"Output is truncated. Use obexftp --help to see the full list of options\"; echo ;sudo -s"
+  }, 
+  "itrace": {
+    "path": "", 
+    "term": true, 
+    "name": "itrace", 
+    "exec": "itrace --help;sudo -s"
+  }, 
+  "jbrofuzz": {
+    "path": "", 
+    "term": false, 
+    "name": "JBroFuzz", 
+    "exec": "jbrofuzz"
+  }, 
+  "minicom": {
+    "path": "", 
+    "term": true, 
+    "name": "Minicom", 
+    "exec": "minicom -h;sudo -s"
+  }, 
+  "gdb": {
+    "path": "", 
+    "term": true, 
+    "name": "GDB GNU Debugger", 
+    "exec": "gdb --help | head -n 20;echo;echo \"Output is truncated, get full list using gdb --help\";sudo -s"
+  }, 
+  "bed": {
+    "path": "/usr/share/bed/", 
+    "term": true, 
+    "name": "Bed", 
+    "exec": "bed;sudo -s"
+  }, 
+  "wyd": {
+    "path": "", 
+    "term": true, 
+    "name": "wyd", 
+    "exec": "wyd; sudo -s"
+  }, 
+  "rtgen": {
+    "path": "", 
+    "term": true, 
+    "name": "RTGen", 
+    "exec": "rtgen;sudo -s"
+  }, 
+  "rcrack": {
+    "path": "", 
+    "term": true, 
+    "name": "Rainbowcrack", 
+    "exec": "rcrack;sudo -s"
+  }, 
+  "miredo-server": {
+    "path": "", 
+    "term": true, 
+    "name": "miredo-server", 
+    "exec": "miredo-server -h;sudo -s"
+  }, 
+  "proxytunnel": {
+    "path": "", 
+    "term": true, 
+    "name": "ProxyTunnel", 
+    "exec": "proxytunnel --help;sudo -s"
+  }, 
+  "lodowep": {
+    "path": "/usr/share/lodowep/", 
+    "term": true, 
+    "name": "Lodowep", 
+    "exec": "cat README;echo;echo;sudo -s"
+  }, 
+  "unicornscan": {
+    "path": "", 
+    "term": true, 
+    "name": "UnicornScan", 
+    "exec": "us -h;sudo -s"
+  }, 
+  "packit": {
+    "path": "", 
+    "term": true, 
+    "name": "Packit", 
+    "exec": "packit;sudo -s"
+  }, 
+  "webscarab": {
+    "path": "", 
+    "term": false, 
+    "name": "Webscarab Lite", 
+    "exec": "webscarab"
+  }, 
+  "sqlpat": {
+    "path": "/usr/share/doc/sqlpat/", 
+    "term": true, 
+    "name": "sqlpat", 
+    "exec": "sqlbf;sudo -s"
+  }, 
+  "macchanger": {
+    "path": "", 
+    "term": true, 
+    "name": "MacChanger", 
+    "exec": "macchanger --help;sudo -s"
+  }, 
+  "magicrescue": {
+    "path": "/usr/share/magicrescue", 
+    "term": true, 
+    "name": "Magicrescue", 
+    "exec": "magicrescue;echo;echo Find recipes, tools and additional info in /usr/share/magicrescue;echo;sudo -s"
+  }, 
+  "dsniff": {
+    "path": "", 
+    "term": true, 
+    "name": "DSniff", 
+    "exec": "dsniff -h;sudo -s "
+  }, 
+  "scapy": {
+    "path": "", 
+    "term": true, 
+    "name": "Scapy", 
+    "exec": "scapy; sudo -s"
+  }, 
+  "ettercap": {
+    "path": "", 
+    "term": true, 
+    "name": "Ettercap", 
+    "exec": "ettercap -C"
+  }, 
+  "aircrack-ng": {
+    "path": "", 
+    "term": true, 
+    "name": "aircrack-ng", 
+    "exec": "aircrack-ng; sudo -s"
+  }, 
+  "sslscan": {
+    "path": "", 
+    "term": true, 
+    "name": "sslscan", 
+    "exec": "sslscan --help;sudo -s"
+  }, 
+  "onesixtyone": {
+    "path": "", 
+    "term": true, 
+    "name": "onesixtyone", 
+    "exec": "onesixtyone -h;sudo -s"
+  }, 
+  "socat": {
+    "path": "", 
+    "term": true, 
+    "name": "socat", 
+    "exec": "socat -?;sudo -s"
+  }, 
+  "webshag": {
+    "path": "/usr/share/webshag/", 
+    "term": false, 
+    "name": "Webshag", 
+    "exec": "webshag"
+  }, 
+  "ratproxy": {
+    "path": "/usr/share/doc/ratproxy/", 
+    "term": true, 
+    "name": "Ratproxy", 
+    "exec": "ratproxy --help; sudo -s"
+  }, 
+  "aesfix": {
+    "path": "", 
+    "term": true, 
+    "name": "AESfix", 
+    "exec": "aesfix;sudo -s"
+  }, 
+  "tcptraceroute": {
+    "path": "", 
+    "term": true, 
+    "name": "TCPtraceroute", 
+    "exec": "tcptraceroute;sudo -s"
+  }, 
+  "seat": {
+    "path": "/usr/share/seat/", 
+    "term": false, 
+    "name": "SEAT", 
+    "exec": "seat"
+  }, 
+  "mboxgrep": {
+    "path": "", 
+    "term": true, 
+    "name": "MboxGrep", 
+    "exec": "mboxgrep --help ;sudo -s"
+  }, 
+  "driftnet": {
+    "path": "", 
+    "term": true, 
+    "name": "Driftnet", 
+    "exec": "driftnet -h;sudo -s"
+  }, 
+  "asp-audit": {
+    "path": "", 
+    "term": true, 
+    "name": "ASP-Audit", 
+    "exec": "asp-audit.pl;sudo -s"
+  }, 
+  "sipp": {
+    "path": "", 
+    "term": true, 
+    "name": "SIPP ", 
+    "exec": "sipp -h;sudo -s "
+  }, 
+  "burpsuite": {
+    "path": "/usr/share/burpsuite/", 
+    "term": false, 
+    "name": "Burpsuite", 
+    "exec": "cd /usr/share/burpsuite;java -jar burpsuite_v1.1.jar"
+  }, 
+  "medusa": {
+    "path": "", 
+    "term": true, 
+    "name": "Medusa", 
+    "exec": "medusa;sudo -s"
+  }, 
+  "dns2tcp": {
+    "path": "", 
+    "term": true, 
+    "name": "dns2tcp", 
+    "exec": "dns2tcpd -h;sudo -s"
+  }, 
+  "curl": {
+    "path": "", 
+    "term": true, 
+    "name": "Curl", 
+    "exec": "curl --help;sudo -s"
+  }, 
+  "MsfConsole3": {
+    "path": "/opt/metasploit3/", 
+    "term": true, 
+    "name": "Framework3-MsfConsole", 
+    "exec": "msfconsole; sudo -s"
+  }, 
+  "asleap": {
+    "path": "", 
+    "term": true, 
+    "name": "ASLEAP", 
+    "exec": "asleap -h;sudo -s"
+  }, 
+  "wfuzz": {
+    "path": "/usr/share/wfuzz", 
+    "term": true, 
+    "name": "Wfuzz", 
+    "exec": "wfuzz; sudo -s"
+  }, 
+  "irdpresponder": {
+    "path": "", 
+    "term": true, 
+    "name": "IRDP Responder", 
+    "exec": "irdpresponder;sudo -s"
+  }, 
+  "xprobe2": {
+    "path": "", 
+    "term": true, 
+    "name": "XProbe2", 
+    "exec": "xprobe2;sudo -s"
+  }, 
+  "peach": {
+    "path": "/usr/share/peach/", 
+    "term": true, 
+    "name": "Peach", 
+    "exec": "echo;pwd;echo;ls -ls;sudo -s"
+  }, 
+  "packetmanipulator": {
+    "path": "", 
+    "term": false, 
+    "name": "PacketManipulator", 
+    "exec": "PacketManipulator"
+  }, 
+  "inguma": {
+    "path": "/usr/share/inguma/", 
+    "term": true, 
+    "name": "Inguma", 
+    "exec": "echo;echo;echo You can use the help command to get the list of commands;echo;echo;sudo python inguma.py 2>/dev/null"
+  }, 
+  "rtdump": {
+    "path": "", 
+    "term": true, 
+    "name": "RTDump", 
+    "exec": "rtdump;sudo -s"
+  }, 
+  "cowpatty": {
+    "path": "", 
+    "term": true, 
+    "name": "Cowpatty", 
+    "exec": "cowpatty; sudo -s"
+  }, 
+  "rkhunter": {
+    "path": "", 
+    "term": true, 
+    "name": "rkhunter", 
+    "exec": "sudo rkhunter;sudo -s"
+  }, 
+  "kismet": {
+    "path": "", 
+    "term": true, 
+    "name": "Kismet", 
+    "exec": "kismet; sudo -s"
+  }, 
+  "ussp-push": {
+    "path": "", 
+    "term": true, 
+    "name": "Ussp-Push", 
+    "exec": "ussp-push;sudo -s"
+  }, 
+  "dnsenum": {
+    "path": "", 
+    "term": true, 
+    "name": "Dns Enum", 
+    "exec": "dnsenum;sudo -s"
+  }, 
+  "ciscos": {
+    "path": "", 
+    "term": true, 
+    "name": "Cisco Passwd Scanner", 
+    "exec": "ciscos; sudo -s"
+  }, 
+  "vinetto": {
+    "path": "", 
+    "term": true, 
+    "name": "Vinetto", 
+    "exec": "vinetto -h;sudo -s"
+  }, 
+  "bunny": {
+    "path": "/usr/share/bunny/", 
+    "term": true, 
+    "name": "bunny", 
+    "exec": "cd /usr/share/bunny;ls;sudo -s"
+  }, 
+  "psk-crack": {
+    "path": "", 
+    "term": true, 
+    "name": "PSK-Crack", 
+    "exec": "psk-crack; sudo -s"
+  }, 
+  "voiper": {
+    "path": "/usr/share/voiper/", 
+    "term": true, 
+    "name": "Voiper", 
+    "exec": "ls;sudo -s"
+  }, 
+  "cryptcat": {
+    "path": "", 
+    "term": true, 
+    "name": "CryptCat", 
+    "exec": "cryptcat -h;sudo -s"
+  }, 
+  "listurls": {
+    "path": "", 
+    "term": true, 
+    "name": "List-Urls", 
+    "exec": "list-urls;sudo -s"
+  }, 
+  "ntop": {
+    "path": "", 
+    "term": true, 
+    "name": "ntop", 
+    "exec": "ntop -h;sudo -s"
+  }, 
+  "wapiti": {
+    "path": "", 
+    "term": true, 
+    "name": "Wapiti", 
+    "exec": "wapiti | head -n 20 ; echo ; echo \"The output is truncated. Use \"wapiti\" to see the full help \";echo;sudo -s"
+  }, 
+  "ike-scan": {
+    "path": "", 
+    "term": true, 
+    "name": "ike-scan", 
+    "exec": "sudo ike-scan --help;echo;sudo -s"
+  }, 
+  "smbclient": {
+    "path": "", 
+    "term": true, 
+    "name": "SMBClient.py", 
+    "exec": "echo;echo SMB-Client, use \"help\" to get some assistance;echo;echo;smbclient.py;sudo -s"
+  }, 
+  "fping": {
+    "path": "", 
+    "term": true, 
+    "name": "Fping", 
+    "exec": "sudo fping -h | head -n 20;echo;echo More help is available use fping -h to see all parameters;echo ;sudo -s"
+  }, 
+  "MsfWeb3": {
+    "path": "/opt/metasploit3/", 
+    "term": true, 
+    "name": "Framework3-Msfweb", 
+    "exec": "msfweb; sudo -s"
+  }, 
+  "bkhive": {
+    "path": "", 
+    "term": true, 
+    "name": "bkhive", 
+    "exec": "bkhive -h;sudo -s"
+  }, 
+  "5nmp": {
+    "path": "/usr/share/5nmp/", 
+    "term": false, 
+    "name": "5nmp", 
+    "exec": "cd /usr/share/5nmp/ ; mono 5NMP.exe"
+  }, 
+  "dirbuster": {
+    "path": "/usr/share/dirbuster/", 
+    "term": true, 
+    "name": "DirBuster", 
+    "exec": "dirbuster -h;sudo -s"
+  }, 
+  "lynis": {
+    "path": "", 
+    "term": true, 
+    "name": "lynis", 
+    "exec": "sudo lynis;sudo -s"
+  }, 
+  "netdiscover": {
+    "path": "", 
+    "term": true, 
+    "name": "Netdiscover", 
+    "exec": "netdiscover -h;sudo -s"
+  }, 
+  "erase_registrations": {
+    "path": "", 
+    "term": true, 
+    "name": "Erase_Registrations", 
+    "exec": "erase_registrations;sudo -s "
+  }, 
+  "airmon-ng": {
+    "path": "", 
+    "term": true, 
+    "name": "airmon-ng", 
+    "exec": "airmon-ng; sudo -s"
+  }, 
+  "genpmk": {
+    "path": "", 
+    "term": true, 
+    "name": "Genpmk", 
+    "exec": "genpmk; sudo -s"
+  }, 
+  "amap": {
+    "path": "", 
+    "term": true, 
+    "name": "Amap", 
+    "exec": "amap; sudo -s"
+  }, 
+  "zzuf": {
+    "path": "", 
+    "term": true, 
+    "name": "ZZuf", 
+    "exec": "zzuf --help;sudo -s"
+  }, 
+  "fierce": {
+    "path": "/usr/share/fierce/", 
+    "term": true, 
+    "name": "Fierce", 
+    "exec": "fierce.pl -h;sudo -s"
+  }, 
+  "pyrit": {
+    "path": "", 
+    "term": true, 
+    "name": "pyrit", 
+    "exec": "pyrit; sudo -s"
+  }, 
+  "rfidiot": {
+    "path": "/usr/share/rfidiot/", 
+    "term": true, 
+    "name": "RFIdiot", 
+    "exec": "ls;sudo -s"
+  }, 
+  "autopsy": {
+    "path": "", 
+    "term": true, 
+    "name": "autopsy", 
+    "exec": "autopsy ;sudo -s"
+  }, 
+  "MsfGUI3": {
+    "path": "/opt/metasploit3/", 
+    "term": false, 
+    "name": "Framework3-MsfGUI", 
+    "exec": "msfgui; sudo -s"
+  }, 
+  "sipsak": {
+    "path": "", 
+    "term": true, 
+    "name": "SIPSak ", 
+    "exec": "sipsak | head -n 20; echo ; echo \"Output is truncated use sipsak --help to see full list of options\"; echo ;sudo -s "
+  }, 
+  "miredo": {
+    "path": "", 
+    "term": true, 
+    "name": "miredo", 
+    "exec": "miredo -h;sudo -s"
+  }, 
+  "tctrace": {
+    "path": "", 
+    "term": true, 
+    "name": "Tctrace", 
+    "exec": "tctrace -h;sudo -s"
+  }, 
+  "ADM-dns-tools": {
+    "path": "", 
+    "term": true, 
+    "name": "ADM-dns-tools", 
+    "exec": "cd /usr/share/admid-pack/;ls -lh;sudo -s"
+  }, 
+  "iaxflood": {
+    "path": "", 
+    "term": true, 
+    "name": "iaxflood", 
+    "exec": "iaxflood ;sudo -s "
+  }, 
+  "dcfldd": {
+    "path": "", 
+    "term": true, 
+    "name": "DCFLDD", 
+    "exec": "dcfldd --help;sudo -s"
+  }, 
+  "netmask": {
+    "path": "", 
+    "term": true, 
+    "name": "Netmask", 
+    "exec": "netmask -h;sudo -s"
+  }, 
+  "MsfUpdate3": {
+    "path": "/opt/metasploit3/", 
+    "term": true, 
+    "name": "Framework3-MsfUpdate", 
+    "exec": "svn update; sudo -s"
+  }, 
+  "metagoofil": {
+    "path": "", 
+    "term": true, 
+    "name": "Metagoofil", 
+    "exec": "metagoofil.py;sudo -s"
+  }, 
+  "aeskeyfind": {
+    "path": "", 
+    "term": true, 
+    "name": "AESkeyfind", 
+    "exec": "aeskeyfind;sudo -s"
+  }, 
+  "tcpick": {
+    "path": "", 
+    "term": true, 
+    "name": "TcPick", 
+    "exec": "tcpick --help;sudo -s"
+  }, 
+  "packeth": {
+    "path": "", 
+    "term": false, 
+    "name": "packETH", 
+    "exec": "packETH"
+  }, 
+  "paros": {
+    "path": "/usr/share/paros", 
+    "term": false, 
+    "name": "Paros Proxy", 
+    "exec": "paros"
+  }, 
+  "iwar": {
+    "path": "", 
+    "term": true, 
+    "name": "iWar ", 
+    "exec": "iwar -h;sudo -s "
+  }, 
+  "snmpenum": {
+    "path": "/usr/share/snmpenum/", 
+    "term": true, 
+    "name": "Snmp Enum", 
+    "exec": "snmpenum.pl;sudo -s"
+  }, 
+  "sqlmap": {
+    "path": "/usr/share/sqlmap/", 
+    "term": true, 
+    "name": "SQLMap", 
+    "exec": "sqlmap -h;sudo -s"
+  }, 
+  "grendelscan": {
+    "path": "/usr/share/grendel-scan/", 
+    "term": false, 
+    "name": "Grendel Scan", 
+    "exec": "./grendel.sh"
+  }, 
+  "airgraph-ng": {
+    "path": "", 
+    "term": true, 
+    "name": "airgraph-ng", 
+    "exec": "airgraph-ng -h; sudo -s"
+  }
+}
