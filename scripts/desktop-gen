@@ -28,6 +28,7 @@ try:
     import json
 except ImportError:
     print "You need python-json to be installed to run this script"
+    sys.exit(-1)
 
 from optparse import OptionParser
 
@@ -118,6 +119,13 @@ class Generator(ConsoleP):
         self.LAUNCHER_PREFIX = options.launcher_dir
         self.PENTEST_PREFIX = options.pentest_dir
 
+        if not options.output_file:
+            print 'You must specify an output file with -o'
+            sys.exit(-1)
+
+        self.is_squash = options.squash
+        self.output_file = options.output_file
+
         ConsoleP.__init__(self, 'desktopgen')
 
         if os.getuid() != 0:
@@ -125,7 +133,8 @@ class Generator(ConsoleP):
             self.warning('Sleeping 3 seconds leaving you the time to read this message')
             time.sleep(3)
 
-        self.load_settings('desktop-entries.json')
+        self.load_settings(os.path.join(os.path.dirname(sys.argv[0]), \
+                                        'desktop-entries.json'))
         self.destdir = tempfile.mkdtemp(prefix='archpwn')
 
         self.debug('Using %s as temporary directory' % self.destdir)
@@ -148,7 +157,16 @@ class Generator(ConsoleP):
             self.desktops = json.loads(contents)
         except:
             print "Unable to load desktop entries from %s file" % fname
-            raise
+            sys.exit(-1)
+
+    def sanitize(self, txt):
+        targets = ('-svn', '-git', '-hg', '-cvs')
+
+        for target in targets:
+            if txt.endswith(target):
+                return txt[:-len(target)]
+
+        return txt
 
     def add_generic_file(self, fname, contents, mode=None):
         if fname[0] == '/':
@@ -166,7 +184,8 @@ class Generator(ConsoleP):
 
     def add_desktop_entry(self, pkg, contents):
         self.add_generic_file(
-            os.path.join(self.DESKTOP_PREFIX, '%s.desktop' % pkg.name),
+            os.path.join(self.DESKTOP_PREFIX, \
+                         '%s.desktop' % self.sanitize(pkg.name)),
             contents,
             755
         )
@@ -220,7 +239,10 @@ class Generator(ConsoleP):
         return execstr
 
     def generate_from_json(self, pkg):
-        pdict = self.desktops[pkg.name]
+        try:
+            pdict = self.desktops[pkg.name]
+        except KeyError:
+            pdict = self.desktops[self.sanitize(pkg.name)]
 
         term = pdict['term']
         path = pdict['path']
@@ -236,7 +258,7 @@ class Generator(ConsoleP):
             'term': term and 'true' or 'false',
             'icon': self.get_icon(term),
             'comment': pkg.desc,
-            'categories': get_categories(pkg.groups),
+            'categories': ';'.join(get_categories(pkg.groups)),
         }
 
         self.add_desktop_entry(pkg, entry)
@@ -255,18 +277,18 @@ class Generator(ConsoleP):
                     term = False
                     break
 
-        main_cat = pkg.groups[0]
-        path = os.path.join(self.PENTEST_PREFIX, main_cat, pkg.name)
+        main_cat = get_directory(pkg.groups[0])
+        path = os.path.join(self.PENTEST_PREFIX, main_cat, self.sanitize(pkg.name))
         exes = 'ls -lh;sudo -s'
 
         entry = DESKTOP_ENTRY % {
-            'name': pkg.name,
+            'name': self.sanitize(pkg.name),
             'exec': exes,
             'path': path,
             'term': term and 'true' or 'false',
             'icon': self.get_icon(term),
             'comment': pkg.desc,
-            'categories': get_categories(pkg.groups),
+            'categories': ';'.join(get_categories(pkg.groups)),
         }
 
         self.add_desktop_entry(pkg, entry)
@@ -289,12 +311,14 @@ class Generator(ConsoleP):
         os.chdir(cwd)
 
     def create_symlink(self, pkg):
+        sname = self.sanitize(pkg.name)
+
         if len(pkg.members) == 1:
             member = pkg.members[0]
             self.info("Symlinking single %s binary for %s" % (member, pkg.name))
 
             for cat in iget_directories(pkg.groups):
-                dest = os.path.join(self.PENTEST_PREFIX, cat, pkg.name)
+                dest = os.path.join(self.PENTEST_PREFIX, cat, sname)
                 self.symlink('/' + member, dest)
 
             return
@@ -310,20 +334,22 @@ class Generator(ConsoleP):
                member.startswith('sbin/'):
                 bin_cnt += 1
                 bin_members.append('/' + member)
-            elif member.startswith('usr/share/' + pkg.name + '/'):
+            elif member.startswith('usr/share/' + pkg.name + '/') or \
+                 member.startswith('usr/share/' + sname + '/'):
                 share_cnt += 1
 
         if share_cnt > bin_cnt:
-            self.info("Symlinking /usr/share/%s directory for %s" % (pkg.name, pkg.name))
+            self.info("Symlinking /usr/share/%s directory for %s" % \
+                      (sname, pkg.name))
 
             for cat in iget_directories(pkg.groups):
-                dest = os.path.join(self.PENTEST_PREFIX, cat, pkg.name)
-                self.symlink('/usr/share/%s' % pkg.name, dest)
+                dest = os.path.join(self.PENTEST_PREFIX, cat, sname)
+                self.symlink('/usr/share/%s' % sname, dest)
         else:
             self.info("Symlinking all binaries for %s" % (pkg.name))
 
             for cat in iget_directories(pkg.groups):
-                dest = os.path.join(self.PENTEST_PREFIX, cat, pkg.name)
+                dest = os.path.join(self.PENTEST_PREFIX, cat, sname)
                 self.symlink(bin_members, dest)
 
     def generate_menu(self):
@@ -361,11 +387,28 @@ class Generator(ConsoleP):
     def make_tarball(self):
         self.info('Generating tarball')
 
-        tfd = tarfile.open('shortcuts-2.tar.bz2', 'w:bz2')
+        tfd = tarfile.open(self.output_file, 'w:bz2')
         tfd.add(self.destdir, arcname='.', recursive=True)
         tfd.close()
 
-        self.info('Tarball created succesfully')
+        self.info('Tarball %s succesfully created' % self.output_file)
+
+    def make_squash(self):
+        self.info('Generating lzm file')
+
+        paths = ''
+
+        for dir in os.listdir(self.destdir):
+            paths += '%s/%s ' % (self.destdir, dir)
+
+        os.system(
+            'mksquashfs %(paths)s %(output)s '
+            '-keep-as-directory -noappend -all-root' % {
+                'paths': paths,
+                'output': self.output_file
+        })
+
+        self.info('Squashfs file %s succesfully created' % self.output_file)
 
     def run(self):
         self.generate_menu()
@@ -385,12 +428,16 @@ class Generator(ConsoleP):
 
             self.create_symlink(pkg)
 
-            if pkg.name in self.desktops:
+            if pkg.name in self.desktops or \
+               self.sanitize(pkg.name) in self.desktops:
                 self.generate_from_json(pkg)
             else:
                 self.autogenerate(pkg)
 
-        self.make_tarball()
+        if self.is_squash:
+            self.make_squash()
+        else:
+            self.make_tarball()
 
 if __name__ == '__main__':
     parser = OptionParser(usage="%s <repodir>" % sys.argv[0])
@@ -405,10 +452,15 @@ if __name__ == '__main__':
                       help='Directory where all auxiliary launchers will be created')
     parser.add_option('-p', '--pentest-dir', dest='pentest_dir', default='/pentest',
                       help='Directory where all symlinks will be created')
+    parser.add_option('-s', '--mksquash', dest='squash', default=False,
+                      help='Use mksquashfs instead generating a tarball')
+    parser.add_option('-o', '--output', dest='output_file',
+                      help='Output file (Example shortcuts.tar.bz2 or shortcuts.lzm)')
 
     (options, args) = parser.parse_args()
 
     if len(args) != 1:
         parser.print_help()
+        sys.exit(-1)
     else:
         Generator(options, args).run()
