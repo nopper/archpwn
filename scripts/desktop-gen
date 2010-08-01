@@ -279,7 +279,7 @@ class Generator(ConsoleP):
 
         main_cat = get_directory(pkg.groups[0])
         path = os.path.join(self.PENTEST_PREFIX, main_cat, self.sanitize(pkg.name))
-        exes = 'ls -lh;sudo -s'
+        exes = self.create_launcher_if_needed(pkg, 'ls -lh;sudo -s')
 
         entry = DESKTOP_ENTRY % {
             'name': self.sanitize(pkg.name),
