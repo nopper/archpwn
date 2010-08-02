@@ -398,17 +398,20 @@ install_arch_union () {
     find "${union}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
 
     # delete a lot of unnecessary cache/log files
-    # We don't have to delete stuff from /usr/share/doc if we are building archpwn module
-    if [ "${mod:4:7}" = "archpwn" ]; then
-        kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/ initrd"
-    else
-        kill_dirs="var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${DELDIR}"
-    fi
+    kill_dirs="usr/share/licenses var/cache/man var/cache/pacman var/log/* var/mail tmp/* initrd ${DELDIR}"
+
+    for protect in ${PROTECT}; do
+        if [ "$protect" = $mod ]; then
+            info "Module $mod is protected. Keeping man directories."
+            kill_dirs="usr/share/licenses var/cache/man var/cache/pacman var/log/* var/mail tmp/ initrd"
+            break
+        fi
+    done
 
     for x in ${kill_dirs}; do
         if [ -e "${union}/${x}" ]; then
             rm -Rf "${union}/${x}"
-    fi
+        fi
     done
 
 }
