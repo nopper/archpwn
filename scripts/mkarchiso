@@ -550,12 +550,20 @@ command_install () {
         if [ -f "$(pwd)/list/remove" ]; then
             cat "$(pwd)/list/remove" | grep -v "^#" | while read remove; do
                 if [ -e "${moduledir}/${MODULE}/${remove}" ]; then
-                    info "Removing $remove"
+                    info "Removing $remove from ${MODULE}"
                     rm -Rf ${moduledir}/${MODULE}/${remove}
                 fi
             done
         fi
 
+        info "Removing .pyc files from ${MODULE}"
+        RMPYC=$(find ${moduledir}/${MODULE}/ -name "*.pyc")
+        rm -Rf ${RMPYC}
+        info "Uncompressing .gz files in ${MODULE}"
+        find ${moduledir}/${MODULE}/ -name "*.gz" -type f -exec gunzip -f {} \;
+        if [ -f ${moduledir}/${MODULE}/usr/share/fonts/misc/fonts.dir ]; then
+            sed -i "s|.pcf.gz|.pcf|g" ${moduledir}/${MODULE}/usr/share/fonts/misc/fonts.dir
+        fi
     done
 
     info "Updating kernel module dependencies"
