@@ -232,6 +232,7 @@ class Generator(ConsoleP):
     def __init__(self, options, args):
         self.path = args[0]
         self.desktops = {}
+        self.installed = set()
 
         self.DESKTOP_PREFIX = options.desktop_dir
         self.DIRECTORIES_PREFIX = options.directories_dir
@@ -256,6 +257,9 @@ class Generator(ConsoleP):
                           'this message')
             time.sleep(3)
 
+        if options.exclude_file:
+            self.load_exclude_file(options.exclude_file)
+
         self.load_settings(os.path.join(os.path.dirname(sys.argv[0]), \
                                         'desktop-entries.json'))
         self.destdir = tempfile.mkdtemp(prefix='archpwn')
@@ -270,6 +274,19 @@ class Generator(ConsoleP):
                     self.LAUNCHER_PREFIX,
                     self.PENTEST_PREFIX):
            os.makedirs(os.path.join(self.destdir, '.' + dir))
+
+    def load_exclude_file(self, fname):
+        try:
+            fexc = open(fname, 'r')
+            contents = fexc.read()
+            fexc.close()
+
+            for line in contents.splitlines():
+                pkgname = line.split(' ', 1)[0]
+                self.installed.add(pkgname)
+        except:
+            print "Unable to load exclude list from %s file" % fname
+            sys.exit(-1)
 
     def load_settings(self, fname):
         try:
@@ -370,6 +387,8 @@ class Generator(ConsoleP):
         term = pdict['term']
         path = pdict['path']
         exes = pdict['exec']
+        icon = pdict.get('icon', self.get_icon(term))
+        comment = pdict.get('comment', pkg.desc)
 
         path = self.check_valid_path(pkg, path)
         exes = self.create_launcher_if_needed(pkg, exes)
@@ -379,8 +398,8 @@ class Generator(ConsoleP):
             'exec': exes,
             'path': path,
             'term': term and 'true' or 'false',
-            'icon': self.get_icon(term),
-            'comment': pkg.desc,
+            'icon': icon,
+            'comment': comment,
             'categories': ';'.join(get_categories(pkg.groups)),
         }
 
@@ -551,6 +570,11 @@ class Generator(ConsoleP):
             if not pkg.groups:
                 continue
 
+            if self.installed and pkg.name not in self.installed:
+                self.warning('Package %s is not installed. Skipping' % \
+                             pkg.name)
+                continue
+
             self.create_symlink(pkg)
 
             if pkg.name in self.desktops or \
@@ -590,6 +614,9 @@ if __name__ == '__main__':
     parser.add_option('-s', '--mksquash', dest='squash',
         default=False,
         help='Use mksquashfs instead generating a tarball')
+
+    parser.add_option('-e', '--exclude', dest='exclude_file',
+        help='Installed packages list (Generated with `pacman -Q > packages`)')
 
     parser.add_option('-o', '--output', dest='output_file',
         help='Output file (Ex: shortcuts.tar.bz2/shortcuts.lzm)')
