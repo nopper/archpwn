@@ -15,7 +15,7 @@ run_hook() {
     done
 
     info "Generating non-free-drivers.lzm ..."
-    mksquashfs "$HOOK_WDIR"/drivers/opt/ "$HOOK_WDIR"/non-free-drivers.lzm -keep-as-directory -noappend
+    mksquashfs "$HOOK_WDIR"/drivers/opt/ "$HOOK_WDIR"/non-free-drivers.lzm -keep-as-directory -noappend ${MKOPTION}
 
     info "Installing under modules/"
     mv "$HOOK_WDIR"/non-free-drivers.lzm "$IMGROOT/$CDNAME"/modules/
