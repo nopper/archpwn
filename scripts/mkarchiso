@@ -37,6 +37,8 @@ PACMAN_DIR=$(readlink -f $SCRIPT_DIR/../pacman)
 PACMAN_SRC="$PACMAN_DIR/src"
 PACMAN_PKG="$PACMAN_DIR/pkg"
 
+NOHOOK="n"
+MD5SUM="y"
 
 if [ -f "${PROFILE}/config" ]; then
     . ${PROFILE}/config
@@ -69,6 +71,7 @@ usage ()
     echo "    -a ARCH          Set the Arch type. Default: i686"
     echo "    -t <iso,disk>    Type of image to create. Defaults to iso."
     echo "    -v               Enable verbose output."
+    echo "    -s               Skip option (md5,hooks)"
     echo "    -h               This message."
     echo " commands:"
     echo "     install <working dir>        : install packages to the working dir"
@@ -83,7 +86,7 @@ usage ()
 }
 
 #while getopts 'i:P:p:a:t:fvh' arg; do
-while getopts 'i:P:b:M:m:a:t:c:nfvh' arg; do
+while getopts 'i:P:b:s:M:m:a:t:c:nfvh' arg; do
     case "${arg}" in
         i) CPIOCONFIG="${OPTARG}" ;;
         P) PROFILE="${OPTARG}" ;;
@@ -97,6 +100,7 @@ while getopts 'i:P:b:M:m:a:t:c:nfvh' arg; do
         n) NOLZMA="y" ;;
         f) FORCE="y" ;;
         v) QUIET="n" ;;
+        s) SKIP="${OPTARG}" ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
     esac
@@ -144,6 +148,11 @@ if [ "x${BOOT}" = "x" ]; then BOOT="syslinux"; fi
 [ "x${imgname}" = "x" ] && (warn "Bootable image name must be specified" && usage 1)
 [ "x${work_dir}" = "x" ] && (warn "please specify a working directory" && usage 1)
 
+# Extract information from $SKIP
+for info in $SKIP; do
+    if [ "$info" = "md5" ]; then MD5SUM="n"; fi
+    if [ "$info" = "hooks" ]; then NOHOOK="y"; fi
+done
 
 info "${APPNAME} : Configuration Settings"
 echo "   mkinitcpio config file:   ${CPIOCONFIG}"
@@ -156,6 +165,9 @@ echo "        working directory:   ${work_dir}"
 echo "               image name:   ${imgname}"
 echo "               image type:   ${IMG_TYPE}"
 echo "            squashfs type:   ${EXT}"
+echo "        -----------------"
+echo "             md5 checksum:   $MD5SUM"
+echo "           hooks disabled:   $NOHOOK"
 sleep 1
 
 IMGROOT="${work_dir}/img"
@@ -634,6 +646,11 @@ command_imgprepare () {
 }
 
 command_hooks () {
+    if [ "$NOHOOK" = "y" ]; then
+        info "Skipping hooks phase (-s used)"
+        return
+    fi
+
     for hook in "$HOOK_DIR"/*; do
         if [ -x $hook ]; then
             info "Running $hook"
@@ -721,7 +738,11 @@ command_img () {
         -o "${imgname}" "${IMGROOT}"
         # This adds USB support
         isohybrid "${imgname}"
-        md5sum "${imgname}" > "${imgname}".md5
+
+        if [ "$MD5SUM" = "y" ]; then
+            info "Generating md5 checksum file ($imgname.md5)"
+            md5sum "${imgname}" > "${imgname}".md5
+        fi
     else
         error "Invalid image type '$IMG_TYPE' specified"
         exit 1
