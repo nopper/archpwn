@@ -66,12 +66,133 @@ XDG_MENU = """<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
  "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
 
 <Menu>
-  <Name>%(name)s</Name>
-  <Directory>%(directory)s</Directory>
+  <Name>Applications</Name>
+  <Directory>X-GNOME-Menu-Applications.directory</Directory>
+  <LegacyDir>/etc/X11/applnk</LegacyDir>
+  <LegacyDir>/usr/share/gnome/apps</LegacyDir>
   <DefaultAppDirs/>
   <DefaultDirectoryDirs/>
   <DefaultMergeDirs/>
+
+  <Menu>
+    <Name>Archlinux</Name>
+    <Directory>Archlinux.directory</Directory>
+    <Include><Category>Archlinux</Category></Include>
+  </Menu>
+  <Menu>
+    <Name>Accessories</Name>
+    <Directory>Utility.directory</Directory>
+    <Include>
+      <And>
+        <Category>Utility</Category>
+        <Not><Category>Accessibility</Category></Not>
+        <Not><Category>System</Category></Not>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Universal Access</Name>
+    <Directory>Utility-Accessibility.directory</Directory>
+    <Include>
+      <And>
+        <Category>Accessibility</Category>
+        <Not><Category>Settings</Category></Not>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Development</Name>
+    <Directory>Development.directory</Directory>
+    <Include>
+      <And>
+        <Category>Development</Category>
+      </And>
+      <Filename>emacs.desktop</Filename>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Education</Name>
+    <Directory>Education.directory</Directory>
+    <Include>
+      <And>
+        <Category>Education</Category>
+      </And>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Games</Name>
+    <Directory>Game.directory</Directory>
+    <Include>
+      <And>
+        <Category>Game</Category>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Graphics</Name>
+    <Directory>Graphics.directory</Directory>
+    <Include>
+      <And>
+        <Category>Graphics</Category>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Internet</Name>
+    <Directory>Network.directory</Directory>
+    <Include>
+      <And>
+        <Category>Network</Category>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Multimedia</Name>
+    <Directory>AudioVideo.directory</Directory>
+    <Include>
+      <And>
+        <Category>AudioVideo</Category>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Office</Name>
+    <Directory>Office.directory</Directory>
+    <Include>
+      <And>
+        <Category>Office</Category>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>System</Name>
+    <Directory>System-Tools.directory</Directory>
+    <Include>
+      <And>
+        <Category>System</Category>
+        <Not><Category>Settings</Category></Not>
+      </And>
+    </Include>
+  </Menu>
+  <Menu>
+    <Name>Other</Name>
+    <Directory>X-GNOME-Other.directory</Directory>
+    <OnlyUnallocated/>
+    <Include>
+      <And>
+        <Not><Category>Core</Category></Not>
+        <Not><Category>Settings</Category></Not>
+        <Not><Category>Screensaver</Category></Not>
+      </And>
+    </Include>
+  </Menu>
+
+  <Menu>
+  <Name>%(name)s</Name>
+  <Directory>%(directory)s</Directory>
   %(nested_menus)s
+  </Menu>
 </Menu>
 """
 
@@ -128,9 +249,11 @@ class Generator(ConsoleP):
 
         ConsoleP.__init__(self, 'desktopgen')
 
-        if os.getuid() != 0:
-            self.warning('You should run this program as super-user or just using fakeroot')
-            self.warning('Sleeping 3 seconds leaving you the time to read this message')
+        if not self.is_squash and os.getuid() != 0:
+            self.warning('You should run this program as super-user or just '
+                          'using fakeroot environment')
+            self.warning('Sleeping 3 seconds leaving you the time to read '
+                          'this message')
             time.sleep(3)
 
         self.load_settings(os.path.join(os.path.dirname(sys.argv[0]), \
@@ -278,7 +401,8 @@ class Generator(ConsoleP):
                     break
 
         main_cat = get_directory(pkg.groups[0])
-        path = os.path.join(self.PENTEST_PREFIX, main_cat, self.sanitize(pkg.name))
+        path = os.path.join(self.PENTEST_PREFIX, main_cat, \
+                            self.sanitize(pkg.name))
         exes = self.create_launcher_if_needed(pkg, 'ls -lh;sudo -s')
 
         entry = DESKTOP_ENTRY % {
@@ -315,7 +439,8 @@ class Generator(ConsoleP):
 
         if len(pkg.members) == 1:
             member = pkg.members[0]
-            self.info("Symlinking single %s binary for %s" % (member, pkg.name))
+            self.info("Symlinking single %s binary for %s" % \
+                       (member, pkg.name))
 
             for cat in iget_directories(pkg.groups):
                 dest = os.path.join(self.PENTEST_PREFIX, cat, sname)
@@ -379,7 +504,7 @@ class Generator(ConsoleP):
             'nested_menus': nested_menus
         }
 
-        fmenu = os.path.join(self.MENU_PREFIX, 'archpwn.menu')
+        fmenu = os.path.join(self.MENU_PREFIX, 'applications.menu')
         self.add_generic_file(fmenu, menu)
 
         self.info('Menu generation complete')
@@ -442,20 +567,32 @@ class Generator(ConsoleP):
 if __name__ == '__main__':
     parser = OptionParser(usage="%s <repodir>" % sys.argv[0])
 
-    parser.add_option('-d', '--desktop-dir', dest='desktop_dir', default='/usr/share/applications/',
-                      help='Directory where all .desktop files will be placed')
-    parser.add_option('-D', '--directories-dir', dest='directories_dir', default='/usr/share/desktop-directories/',
-                      help='Directory where all .directory files will be placed')
-    parser.add_option('-m', '--menu-dir', dest='menu_dir', default='/etc/xdg/menus/',
-                      help='Directory where the archpwn XDG menu will be created')
-    parser.add_option('-l', '--launcher-dir', dest='launcher_dir', default='/usr/share/archpwn-launchers/',
-                      help='Directory where all auxiliary launchers will be created')
-    parser.add_option('-p', '--pentest-dir', dest='pentest_dir', default='/pentest',
-                      help='Directory where all symlinks will be created')
-    parser.add_option('-s', '--mksquash', dest='squash', default=False,
-                      help='Use mksquashfs instead generating a tarball')
+    parser.add_option('-d', '--desktop-dir', dest='desktop_dir',
+        default='/usr/share/applications/',
+        help='Directory where all .desktop files will be placed')
+
+    parser.add_option('-D', '--directories-dir', dest='directories_dir',
+        default='/usr/share/desktop-directories/',
+        help='Directory where all .directory files will be placed')
+
+    parser.add_option('-m', '--menu-dir', dest='menu_dir',
+        default='/etc/xdg/menus/',
+        help='Directory where the archpwn XDG menu will be created')
+
+    parser.add_option('-l', '--launcher-dir', dest='launcher_dir',
+        default='/usr/share/archpwn-launchers/',
+        help='Directory where all auxiliary launchers will be installed')
+
+    parser.add_option('-p', '--pentest-dir', dest='pentest_dir',
+        default='/pentest',
+        help='Directory where all symlinks will be created')
+
+    parser.add_option('-s', '--mksquash', dest='squash',
+        default=False,
+        help='Use mksquashfs instead generating a tarball')
+
     parser.add_option('-o', '--output', dest='output_file',
-                      help='Output file (Example shortcuts.tar.bz2 or shortcuts.lzm)')
+        help='Output file (Ex: shortcuts.tar.bz2/shortcuts.lzm)')
 
     (options, args) = parser.parse_args()
 
