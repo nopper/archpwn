@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#PKGFILE="$(pwd)/packages.list"
 PKGLIST=""
 QUIET="n"
 FORCE="y"
@@ -20,7 +19,6 @@ OVERLAY="${PROFILE}/overlay"
 EXCLUDE="${PROFILE}/exclude"
 ARCH=i686
 #ARCH=x86_64
-OS="archlinux"
 
 error () { echo -e "\033[1;31;40m!!! \033[1;37;40m$@\033[1;0m"; }
 warn ()  { echo -e "\033[1;33;40m*** \033[1;37;40m$@\033[1;0m"; }
@@ -118,12 +116,10 @@ if [ "$EUID" != "0" ]; then
     exit 1
 fi
 
-if [ "${OS}" = "archlinux" ]; then
-    if [ -f "${PROFILE}/pacman.conf-${ARCH}" ]; then
-        PACMANCONF="${PROFILE}/pacman.conf-${ARCH}"
-    else
-        PACMANCONF="/etc/pacman.conf"
-    fi
+if [ -f "${PROFILE}/pacman.conf-${ARCH}" ]; then
+    PACMANCONF="${PROFILE}/pacman.conf-${ARCH}"
+else
+    PACMANCONF="/etc/pacman.conf"
 fi
 
 command_name="${1}"
@@ -172,7 +168,7 @@ INSTROOT="${moduledir}/$(basename ${ROOT_MOD} .list)"
 CDROOT="${PROFILE}/cd-root"
 buildlog="${work_dir}/log"
 packlist="${work_dir}/packlist"
-PKGFILE="${IMGROOT}/packages.list"
+PKGFILE="${packlist}/packages.list"
 
 _kversion ()
 {
@@ -481,6 +477,7 @@ command_install () {
             remove "${union}/usr/share/icons/hicolor/icon-theme.cache"
             remove "${union}/usr/share/icons/Rodent/icon-theme.cache"
             remove "${union}/usr/share/icons/nuoveXT2/icon-theme.cache"
+            remove "${union}/usr/share/icons/gnome/icon-theme.cache"
         fi
 
         # remove the initcpio images that were generated for the host system
@@ -517,9 +514,8 @@ command_install () {
     if [ -e "$(pwd)/isolinux" ]; then
         cp -r "$(pwd)/isolinux" "${IMGROOT}"
     fi
-    if [ "${OS}" = "archlinux" ]; then
-        pacman -Q -r ${union} > ${PKGFILE}
-    fi
+
+    pacman -Q -r ${union} > ${PKGFILE}
 
     # Unmount union
     info "Unmounting union."
@@ -560,6 +556,7 @@ command_install () {
         find ${moduledir}/*/var/lib/pacman/sync -type d -exec rm -rf {} \; 2>/dev/null
     fi
 
+    rmmod aufs
 }
 
 command_overlay () {
