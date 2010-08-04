@@ -45,6 +45,7 @@ cd ${SRCNAME}
 pre_apply
 
 for p in ${PATCHES[@]}; do
+  echo "Applyinf $p ..."
   patchname=$(echo ${p} | cut -d% -f1)
   patchstrip=$(echo ${p} | cut -d% -f2)
   get_file ${patchname}

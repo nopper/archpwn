@@ -11,6 +11,7 @@ SRCNAME="linux-2.6.34-ARCH"
 PATCHES=(
     # add upstream patch from 2.6.33 series
     # ftp://ftp.kernel.org/pub/linux/kernel/v2.6/patch-2.6.34.1.bz2%1
+    ftp://ftp.kernel.org/pub/linux/kernel/v2.6/patch-2.6.34.2.bz2%1
 
     # add latest fixes from stable queue, if needed
     # http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git
@@ -19,6 +20,7 @@ PATCHES=(
     # http://aufs.sourceforge.net
     aufs2-base-20100517.patch%1
     aufs2-standalone-20100517.patch%1
+
     # squashfs4.0 lzma
     # http://git.kernel.org/?p=linux/kernel/git/pkl/squashfs-lzma.git;a=summary
     0001-Squashfs-add-LZMA-compression.patch%1
@@ -36,7 +38,7 @@ PATCHES=(
     0009-fbcondecor-0.9.6.patch%1
 )
 # Name of the resulting patch (will be bzipped afterwards)
-PATCHNAME="patch-2.6.34-1-pwn"
+PATCHNAME="patch-2.6.34.2-1-pwn"
 
 # Run this before applying patches
 pre_apply() {

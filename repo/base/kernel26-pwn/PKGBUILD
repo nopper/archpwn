@@ -8,8 +8,8 @@ pkgname=('kernel26-pwn' 'kernel26-pwn-headers')
 # pkgname=kernel26-custom       # Build kernel with a different name
 _kernelname=${pkgname#kernel26}
 _basekernel=2.6.34
-pkgver=${_basekernel}
-pkgrel=2
+pkgver=${_basekernel}.2
+pkgrel=1
 #_patchname="patch-${pkgver}-${pkgrel}-ARCH"
 _patchname="patch-${pkgver}-1-pwn"
 arch=(i686 x86_64)
@@ -22,8 +22,8 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
         # standard config files for mkinitcpio ramdisk
         kernel26.preset)
 md5sums=('10eebcb0178fb4540e2165bfd7efc7ad'
-         '544f7c0ebe04a74914ea3dc957c6d867'
-         'b533d088c24e83069a681a7a5bf44458'
+         '5735881ca44261e5c5a38280dfe3f582'
+         '9e71e5dbf507bdce847e2736902ace19'
          '25584700a0a679542929c4bed31433b6')
 
 build() {
