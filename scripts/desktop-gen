@@ -227,6 +227,9 @@ def mode(self, samples):
 
   return [(x, mode) for x in frequency if (mode == frequency[x])]
 
+SYMTYPE_FULLSHARE = 0
+SYMTYPE_SINGLEBIN = 1
+SYMTYPE_MULTIBIN  = 2
 
 class Generator(ConsoleP):
     def __init__(self, options, args):
@@ -405,7 +408,7 @@ class Generator(ConsoleP):
 
         self.add_desktop_entry(pkg, entry)
 
-    def autogenerate(self, pkg):
+    def autogenerate(self, pkg, symtype=SYMTYPE_SINGLEBIN):
         # In order to auto-generate the desktop file we need to know
         # if the package is a GUI program or not. To achieve this we
         # simply check depends array.
@@ -413,11 +416,12 @@ class Generator(ConsoleP):
         term = True
         toolkits = ('qt', 'gtk', 'wx', 'fox', 'tk')
 
-        for depend in pkg.depends:
-            for toolkit in toolkits:
-                if toolkit in depend:
-                    term = False
-                    break
+        if symtype == SYMTYPE_SINGLEBIN:
+            for depend in pkg.depends:
+                for toolkit in toolkits:
+                    if toolkit in depend:
+                        term = False
+                        break
 
         main_cat = get_directory(pkg.groups[0])
         path = os.path.join(self.PENTEST_PREFIX, main_cat, \
@@ -465,7 +469,7 @@ class Generator(ConsoleP):
                 dest = os.path.join(self.PENTEST_PREFIX, cat, sname)
                 self.symlink('/' + member, dest)
 
-            return
+            return SYMTYPE_SINGLEBIN
 
         bin_cnt = 0
         share_cnt = 0
@@ -489,12 +493,16 @@ class Generator(ConsoleP):
             for cat in iget_directories(pkg.groups):
                 dest = os.path.join(self.PENTEST_PREFIX, cat, sname)
                 self.symlink('/usr/share/%s' % sname, dest)
+
+            return SYMTYPE_FULLSHARE
         else:
             self.info("Symlinking all binaries for %s" % (pkg.name))
 
             for cat in iget_directories(pkg.groups):
                 dest = os.path.join(self.PENTEST_PREFIX, cat, sname)
                 self.symlink(bin_members, dest)
+
+            return SYMTYPE_MULTIBIN
 
     def generate_menu(self):
         nested_menus = ''
@@ -575,13 +583,13 @@ class Generator(ConsoleP):
                              pkg.name)
                 continue
 
-            self.create_symlink(pkg)
+            sym_type = self.create_symlink(pkg)
 
             if pkg.name in self.desktops or \
                self.sanitize(pkg.name) in self.desktops:
                 self.generate_from_json(pkg)
             else:
-                self.autogenerate(pkg)
+                self.autogenerate(pkg, sym_type)
 
         if self.is_squash:
             self.make_squash()
