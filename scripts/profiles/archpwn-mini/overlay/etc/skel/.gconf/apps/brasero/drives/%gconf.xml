@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<gconf>
-        <entry name="tmpdir" mtime="1212846651" type="string">
-                <stringvalue>/tmp</stringvalue>
-        </entry>
-</gconf>

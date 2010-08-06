@@ -1,8 +1,0 @@
-[Entry 0]
-Name=Internet Mail
-Exec=claws-mail
-Terminal=false
-StartupNotify=false
-Comment=Mail Application
-Icon=xfce-mail
-
