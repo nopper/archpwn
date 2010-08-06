@@ -1,0 +1,17 @@
+# Remove base ARCH kernel
+-d kernel26
+-d kernel26-headers
+-cs wxgtk
+-cs wxpython
+-cs jre
+-cs openjdk6
+-cs archpwn-windows
+-cs archpwn-cisco
+-cs archpwn-defense
+-cs archpwn-dect
+-cs cuda-toolkit
+-cs fox
+# swftools -> avifile -> qt
+-d qt
+# netcdf
+-d gcc-fortran

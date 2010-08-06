@@ -11,6 +11,8 @@ xorg-xinit
 xterm
 xorg-input-drivers
 mesa
+notification-daemon
+xcompmgr
 #xorg-video-drivers
 xf86-video-apm
 xf86-video-ark
@@ -27,7 +29,7 @@ xf86-video-intel
 xf86-video-mach64
 xf86-video-mga
 xf86-video-neomagic
-xf86-video-nouveau
+-d xf86-video-nouveau
 xf86-video-nv
 xf86-video-openchrome
 xf86-video-r128
@@ -42,20 +44,22 @@ xf86-video-tdfx
 xf86-video-trident
 xf86-video-tseng
 xf86-video-v4l
-xf86-video-rendition
 xf86-video-s3virge
 #xf86-video-vmware
 xf86-video-voodoo
-scrnsaverproto
+#scrnsaverproto
 synaptics
 freeglut
 xaw3d
 enca
 glproto
 #fonts
+##ttf-arbat
+ttf-droid
+ttf-bitstream-vera
 ttf-dejavu
-ttf-liberation
-ttf-ms-fonts
+##ttf-liberation
+##ttf-ms-fonts
 gsfonts
 # sound
 alsa-lib
@@ -64,33 +68,26 @@ alsa-oss
 # icon
 startup-notification
 shared-mime-info
-hicolor-icon-theme
-tango-icon-theme
-gnome-icon-theme
-tango-icon-theme-extras
+##tango-icon-theme
 desktop-file-utils
 # gtk engines
 gtk-engines
-#xfce deps
-gstreamer0.10-base
-libexif
-libglade
-libnotify
-libwnck
-libxres
-libxklavier
+gtk-engine-murrine-git
+# Force the installation of gnuplot-nowx
+gnuplot-nowx
 lm_sensors
-taglib
-vte
-hunspell
-libidl2
-mime-types
-nss
 scrot
 cups
+conky
 zenity
 xbindkeys
+xdg-utils
+xdg-user-dirs
+xcursor-jimmac
 gksu
+# login manager
+##slim
 #window manager
 awesome
 fluxbox
+fbpanel

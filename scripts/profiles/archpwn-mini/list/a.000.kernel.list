@@ -1,8 +1,21 @@
+# Base kernel and modules
 kernel26-pwn
--d squashfs-tools
--d virtualbox-modules
--d aufs2
--d aufs2-util
+squashfs-tools
+fbsplash
+# Not created yet
+#fbsplash-theme-archpwn
+# initscripts-extras-fbsplash are merged into fbsplash
+#initscripts-extras-fbsplash
+miscsplashutils
+kernel26-pwn-headers
+sqlzma
+v86d
+aufs2
+aufs2-util
+# VM modules
+-d virtualbox-ose-additions-modules
+-d virtualbox-ose-additions
+-d open-vm-tools-modules
 # Wifi stuff
 -d ndiswrapper-utils
 -d madwifi-utils
@@ -19,15 +32,10 @@ kernel26-pwn
 #-d speakup
 #-d speakup-utils
 # Firmware
--d kernel26-firmware
--d rt2x00-rt61-fw
--d rt2x00-rt71w-fw
--d iwlwifi-3945-ucode
--d iwlwifi-4965-ucode
--d iwlwifi-5000-ucode
+-d linux-firmware
 -d b43-fwcutter
 -d ipw2100-fw
 -d ipw2200-fw
 -d tiacx-firmware
 -d zd1211-firmware
--d nouveau-drm
+-d nouveau-firmware
