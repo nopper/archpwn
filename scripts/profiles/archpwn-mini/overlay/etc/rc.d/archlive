@@ -4,6 +4,7 @@
 # This script support some ZenLive's cheatcodes.
 #
 
+. /etc/rc.conf
 . /etc/rc.d/functions
 . /usr/lib/liblinuxlive
 
@@ -18,47 +19,29 @@ if [ ! "$newrootpass" = "" ]; then
     echo "root:$newrootpass" | /usr/sbin/chpasswd
 fi
 
+AUTOCMD=$(cmdline_value "autoexec" | tr "~" " ")
+if [ "$AUTOCMD" != "" ]; then
+   echo "starting autoexec command: su --login -c \"$AUTOCMD\""
+   su --login -c "$AUTOCMD"
+fi
+
 # ldconfig: Updates dynamic library cache. Useful when new modules are
 # added to the live cd.
 if [ "`cmdline_parameter ldconfig`" ]; then
     [[ -x /sbin/ldconfig ]] && /sbin/ldconfig
 fi
 
-if [ ! "`cmdline_parameter noxconfg`" ]; then
-    /etc/rc.d/xorg-detect start
-    /etc/rc.d/xorg-config start
+depmod -a
+
+if [ -x /usr/bin/update-desktop-database ]; then
+	update-desktop-database -q
 fi
 
-# lang: Override default language
-lang="`cmdline_value locale`"
-if [ "$lang" ]; then
-    echo "$lang.UTF-8 UTF-8" > /etc/locale.gen
-    echo "$lang ISO-8859-1" >> /etc/locale.gen
-    echo "$lang.ISO-8859-15 ISO-8859-15" >> /etc/locale.gen
-    locale-gen
-	[[ "`locale -a | grep -w $lang`" ]] && \
-	sed -i -e 's/^ *\(LOCALE=\).*$/\1$lang.UTF-8/' /etc/rc.conf
+if [ -x /usr/bin/update-mime-database ]; then
+	update-mime-database /usr/share/mime
 fi
 
-# Make firefox match OS locale
-if [ -w /usr/lib/firefox/greprefs/all.js ]; then
-    sed -i -e 's/pref("intl.locale.matchOS",                 false);/pref("intl.locale.matchOS",                 true);/g' /usr/lib/firefox-3.0/greprefs/all.js
-fi
+chmod 440 /etc/sudoers
 
-# Make thunderbird match OS locale
-if [ -w /usr/lib/thunderbird/greprefs/all.js ]; then
-    sed -i -e 's/pref("intl.locale.matchOS",                 false);/pref("intl.locale.matchOS",                 true);/g' /usr/lib/thunderbird/greprefs/all.js
-fi
-
-session="`cmdline_value session`"
-if [ "$session" != "" ]; then
-	cp -af "/etc/X11/xinit/xinitrc.${session}" /etc/X11/xinit/xinitrc
-	cp -af "/etc/X11/xinit/xinitrc.${session}" /etc/skel/.xinitrc
-fi
-
-chmod 0440 /etc/sudoers
-chown root:root /etc/sudoers
-update-desktop-database -q
-
-chown arch:users -R /home/arch
-chown root:root -R /root
+sed -i 's/archlive //' /etc/rc.conf
+chmod -x /etc/rc.d/archlive
