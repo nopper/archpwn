@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo umount -l ~/.gvfs
+sudo larchin.py
