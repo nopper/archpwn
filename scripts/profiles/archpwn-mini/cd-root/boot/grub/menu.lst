@@ -1,0 +1,33 @@
+default 0
+timeout 30
+
+splashimage=/boot/grub/splash.xpm.gz
+foreground e3e3e3
+background 303030
+
+title ArchPwn 2.0 (1280x1024)
+    kernel /boot/vmlinuz elevator=deadline lang=en_US keyb=us session=gnome load=overlay usbdelay=3 video=uvesafb:ywrap,mtrr,1280x1024-32@60 splash=verbose,theme:archpwn console=tty1 nonfree=yes
+    initrd /boot/initrd.img
+
+title ArchPwn 2.0 (1024x768)
+    kernel /boot/vmlinuz elevator=deadline lang=en_US keyb=us session=gnome load=overlay usbdelay=3 video=uvesafb:ywrap,mtrr,1024x768-32@60 splash=verbose,theme:archpwn console=tty1 nonfree=yes
+    initrd /boot/initrd.img
+
+title ArchPwn 2.0 (800x600)
+    kernel /boot/vmlinuz elevator=deadline lang=en_US keyb=us session=gnome load=overlay usbdelay=3 video=uvesafb:ywrap,mtrr,800x600-32@60 splash=verbose,theme:archpwn console=tty1 nonfree=yes
+    initrd /boot/initrd.img
+
+title ArchPwn 2.0 (Safe Graphical Mode)
+    kernel /boot/vmlinuz elevator=deadline lang=en_US keyb=us session=gnome load=overlay usbdelay=3 quiet logo.nologo console=tty1 nonfree=yes
+    initrd /boot/initrd.img
+
+title Memory Test
+    kernel /boot/memtest
+
+title Boot the First Hard Disk
+    root (hd0)
+    chainloader +1
+
+title Boot the Second Hard Disk
+    root (hd1)
+    chainloader +1
