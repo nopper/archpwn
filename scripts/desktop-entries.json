@@ -1,4 +1,12 @@
 {
+  "packetmanipulator": {
+      "path": "",
+      "term": false,
+      "name": "PacketManipulator",
+      "icon": "/usr/share/pixmaps/pm/pm-icon48.ico",
+      "exec": "PacketManipulator",
+      "comment": "Graphical tool to forge network packets"
+  },
   "edb": {
     "path": "", 
     "term": false, 
