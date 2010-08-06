@@ -15,68 +15,38 @@
 	438b  SB600 USB (OHCI4)
 	4396  SB700/SB800 USB EHCI Controller
 	4397  SB700/SB800 USB OHCI0 Controller
-	4398  SB700 USB OHCI1 Controller
+	4398  SB700/SB800 USB OHCI1 Controller
 	4399  SB700/SB800 USB OHCI2 Controller
-1022  Advanced Micro Devices [AMD]
-	7463  AMD-8111 USB EHCI
-	7464  AMD-8111 USB OHCI
-102f  Toshiba America
-	01b5  SCC USB 2.0 EHCI controller
-	01b6  SCC USB 1.1 OHCI controller
 1033  NEC Corporation
 	0035  USB
 		807d 0035  PCI-USB2 (OHCI subsystem)
 	0072  uPD72874 IEEE1394 OHCI 1.1 3-port PHY-Link Ctrlr
 	00e0  USB 2.0
 		807d 1043  PCI-USB2 (EHCI subsystem)
-	00e7  uPD72873 IEEE1394 OHCI 1.1 2-port Host Controller
 	00f2  uPD72874 IEEE1394 OHCI 1.1 3-port PHY-Link Ctrlr
-104a  STMicroelectronics
-	0230  STPC Atlas/Vega OHCI USB Controller
 104c  Texas Instruments
-	8009  TSB12LV22 IEEE-1394 Controller
+	8009  FireWire Controller
 		104d 8032  8032 OHCI i.LINK (IEEE 1394) Controller
 	802b  PCI7410,7510,7610 OHCI-Lynx Controller
 		1028 014e  PCI7410,7510,7610 OHCI-Lynx Controller (Latitude D800)
 	802e  PCI7x20 1394a-2000 OHCI Two-Port PHY/Link-Layer Controller
 	8032  OHCI Compliant IEEE 1394 Host Controller
 	803a  PCIxx12 OHCI Compliant IEEE 1394 Host Controller
-	823f  XIO2213A 1394b OHCI with 3-Port PHY
 	ac8f  PCI7420/7620 Combo CardBus, 1394a-2000 OHCI and SD/MS-Pro Controller
 10b9  ALi Corporation
 	5237  USB 1.1 Controller
 		104d 810f  VAIO PCG-U1 USB/OHCI Revision 1.0
 	5251  M5251 P1394 OHCI 1.0 Controller
 	5253  M5253 P1394 OHCI 1.1 Controller
-10cf  Fujitsu Limited.
-	1415  On-board USB 2.0 EHCI controller
-	200c  MB86613L IEEE1394 OHCI 1.0 Controller
 10de  nVidia Corporation
 	00e8  nForce3 EHCI USB 2.0 Controller
 	055e  MCP67 OHCI USB 1.1 Controller
 	055f  MCP67 EHCI USB 2.0 Controller
-	056a  MCP73 [nForce 630i] USB 2.0 Controller (EHCI)
-	077b  MCP78S [GeForce 8200] OHCI USB 1.1 Controller
-		1849 077b  K10N78FullHD-hSLI R3.0 OHCI USB 1.1 Controller
-	077c  MCP78S [GeForce 8200] EHCI USB 2.0 Controller
-		1849 077c  K10N78FullHD-hSLI R3.0 EHCI USB 2.0 Controller
-	077d  MCP78S [GeForce 8200] OHCI USB 1.1 Controller
-		1849 077d  K10N78FullHD-hSLI R3.0 OHCI USB 1.1 Controller
-	077e  MCP78S [GeForce 8200] EHCI USB 2.0 Controller
-		1849 077e  K10N78FullHD-hSLI R3.0 EHCI USB 2.0 Controller
-	0aa5  MCP79 OHCI USB 1.1 Controller
-	0aa6  MCP79 EHCI USB 2.0 Controller
-	0aa7  MCP79 OHCI USB 1.1 Controller
-	0aa8  MCP79 OHCI USB 1.1 Controller
-	0aa9  MCP79 EHCI USB 2.0 Controller
-	0aaa  MCP79 EHCI USB 2.0 Controller
 1106  VIA Technologies, Inc.
 	3038  VT82xxxxx UHCI USB 1.1 Controller
-	3044  VT6306 Fire II IEEE 1394 OHCI Link Layer Controller
 1166  Broadcom
 	0220  OSB4/CSB5 OHCI USB Controller
 	0221  CSB6 OHCI USB Controller
-		1734 1012  PRIMERGY RX/TX series onboard OHCI
 	0412  HT1100 USB OHCI Controller
 	0414  HT1100 USB EHCI Controller
 	0416  HT1100 USB EHCI Controller (with Debug Port)
@@ -85,11 +55,8 @@
 	5805  EHCI Controller 0 (Xenon)
 	5806  OHCI Controller 1 (Xenon)
 	5807  EHCI Controller 1 (Xenon)
-15ad  VMware
-	0770  USB2 EHCI Controller
-17a0  Genesys Logic, Inc
-	8083  GL880 USB 1.1 UHCI controller
-	8084  GL880 USB 2.0 EHCI controller
+15ad  VMware Inc
+	0770  Abstract USB2 EHCI Controller
 8086  Intel Corporation
 	1087  631xESB/632xESB UHCI Redirection
 	24c2  82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1
@@ -97,24 +64,12 @@
 	24c7  82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3
 	24cd  82801DB/DBM (ICH4/ICH4-M) USB2 EHCI Controller
 	24d2  82801EB/ER (ICH5/ICH5R) USB UHCI Controller #1
-		1028 016c  PowerEdge 1850 onboard UHCI
-		1028 016d  PowerEdge 2850 onboard UHCI
-		1028 0170  PowerEdge 6850 onboard UHCI
 		1734 101c  PRIMERGY RX/TX series onboard UHCI
 	24d4  82801EB/ER (ICH5/ICH5R) USB UHCI Controller #2
-		1028 016c  PowerEdge 1850 onboard UHCI
-		1028 016d  PowerEdge 2850 onboard UHCI
-		1028 0170  PowerEdge 6850 onboard UHCI
 		1734 101c  PRIMERGY RX/TX S2 series onboard UHCI
 	24d7  82801EB/ER (ICH5/ICH5R) USB UHCI Controller #3
-		1028 016c  PowerEdge 1850 onboard UHCI
-		1028 016d  PowerEdge 2850 onboard UHCI
-		1028 0170  PowerEdge 6850 onboard UHCI
 		1734 101c  PRIMERGY RX/TX S2 series onboard UHCI
 	24dd  82801EB/ER (ICH5/ICH5R) USB2 EHCI Controller
-		1028 016c  PowerEdge 1850 onboard EHCI
-		1028 016d  PowerEdge 2850 onboard EHCI
-		1028 0170  PowerEdge 6850 onboard EHCI
 	24de  82801EB/ER (ICH5/ICH5R) USB UHCI Controller #4
 		1734 101c  PRIMERGY RX/TX S2 series onboard UHCI
 	2658  82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #1
@@ -140,93 +95,30 @@
 	2836  82801H (ICH8 Family) USB2 EHCI Controller #1
 	283a  82801H (ICH8 Family) USB2 EHCI Controller #2
 	2934  82801I (ICH9 Family) USB UHCI Controller #1
-		1028 020f  PowerEdge R300 onboard UHCI
-		1028 0210  PowerEdge T300 onboard UHCI
-		1028 0235  PowerEdge R710 USB UHCI Controller
-		1028 0236  PowerEdge R610 USB UHCI Controller
-		1028 0237  PowerEdge T610 USB UHCI Controller
-		1028 023c  PowerEdge R200 onboard UHCI
-		1028 0287  PowerEdge M610 onboard UHCI
-		1028 029c  PowerEdge M710 USB UHCI Controller
 	2935  82801I (ICH9 Family) USB UHCI Controller #2
-		1028 020f  PowerEdge R300 onboard UHCI
-		1028 0210  PowerEdge T300 onboard UHCI
-		1028 0235  PowerEdge R710 USB UHCI Controller
-		1028 0236  PowerEdge R610 USB UHCI Controller
-		1028 0237  PowerEdge T610 USB UHCI Controller
-		1028 023c  PowerEdge R200 onboard UHCI
-		1028 0287  PowerEdge M610 onboard UHCI
-		1028 029c  PowerEdge M710 USB UHCI Controller
 	2936  82801I (ICH9 Family) USB UHCI Controller #3
-		1028 020f  PowerEdge R300 onboard UHCI
-		1028 0210  PowerEdge T300 onboard UHCI
-		1028 0237  PowerEdge T610 USB UHCI Controller
-		1028 023c  PowerEdge R200 onboard UHCI
-		1028 0287  PowerEdge M610 onboard UHCI
-		1028 029c  PowerEdge M710 USB UHCI Controller
 	2937  82801I (ICH9 Family) USB UHCI Controller #4
-		1028 0235  PowerEdge R710 USB UHCI Controller
-		1028 0236  PowerEdge R610 USB UHCI Controller
-		1028 0237  PowerEdge T610 USB UHCI Controller
-		1028 0287  PowerEdge M610 onboard UHCI
-		1028 029c  PowerEdge M710 USB UHCI Controller
 		8086 2942  828011 (ICH9 Family ) USB UHCI Controller
 	2938  82801I (ICH9 Family) USB UHCI Controller #5
-		1028 0235  PowerEdge R710 USB UHCI Controller
-		1028 0236  PowerEdge R610 USB UHCI Controller
-		1028 0237  PowerEdge T610 USB UHCI Controller
-		1028 0287  PowerEdge M610 onboard UHCI
-		1028 029c  PowerEdge M710 USB UHCI Controller
 	2939  82801I (ICH9 Family) USB UHCI Controller #6
-		1028 0210  PowerEdge T300 onboard UHCI
-		1028 0237  PowerEdge T610 USB UHCI Controller
 	293a  82801I (ICH9 Family) USB2 EHCI Controller #1
-		1028 020f  PowerEdge R300 onboard EHCI
-		1028 0210  PowerEdge T300 onboard EHCI
-		1028 0235  PowerEdge R710 USB EHCI Controller
-		1028 0236  PowerEdge R610 USB EHCI Controller
-		1028 0237  PowerEdge T610 USB EHCI Controller
-		1028 023c  PowerEdge R200 onboard EHCI
-		1028 0287  PowerEdge M610 onboard EHCI
-		1028 029c  PowerEdge M710 USB EHCI Controller
 	293c  82801I (ICH9 Family) USB2 EHCI Controller #2
-		1028 0235  PowerEdge R710 USB EHCI Controller
-		1028 0236  PowerEdge R610 USB EHCI Controller
-		1028 0237  PowerEdge T610 USB EHCI Controller
-		1028 0287  PowerEdge M610 onboard EHCI
-		1028 029c  PowerEdge M710 USB EHCI Controller
 	3a34  82801JI (ICH10 Family) USB UHCI Controller #1
-		1028 028c  PowerEdge R410 USB UHCI Controller
-		1028 028d  PowerEdge T410 USB UHCI Controller
 	3a35  82801JI (ICH10 Family) USB UHCI Controller #2
-		1028 028c  PowerEdge R410 USB UHCI Controller
-		1028 028d  PowerEdge T410 USB UHCI Controller
 	3a36  82801JI (ICH10 Family) USB UHCI Controller #3
-		1028 028c  PowerEdge R410 USB UHCI Controller
-		1028 028d  PowerEdge T410 USB UHCI Controller
 	3a37  82801JI (ICH10 Family) USB UHCI Controller #4
-		1028 028c  PowerEdge R410 USB UHCI Controller
-		1028 028d  PowerEdge T410 USB UHCI Controller
 	3a38  82801JI (ICH10 Family) USB UHCI Controller #5
-		1028 028c  PowerEdge R410 USB UHCI Controller
-		1028 028d  PowerEdge T410 USB UHCI Controller
 	3a39  82801JI (ICH10 Family) USB UHCI Controller #6
-		1028 028c  PowerEdge R410 USB UHCI Controller
-		1028 028d  PowerEdge T410 USB UHCI Controller
 	3a3a  82801JI (ICH10 Family) USB2 EHCI Controller #1
-		1028 028c  PowerEdge R410 USB EHCI Controller
-		1028 028d  PowerEdge T410 USB EHCI Controller
 	3a3c  82801JI (ICH10 Family) USB2 EHCI Controller #2
-		1028 028c  PowerEdge R410 USB EHCI Controller
-		1028 028d  PowerEdge T410 USB EHCI Controller
-	3a64  82801JD/DO (ICH10 Family) USB UHCI Controller #1
-	3a65  82801JD/DO (ICH10 Family) USB UHCI Controller #2
-	3a66  82801JD/DO (ICH10 Family) USB UHCI Controller #3
-	3a67  82801JD/DO (ICH10 Family) USB UHCI Controller #4
-	3a68  82801JD/DO (ICH10 Family) USB UHCI Controller #5
-	3a69  82801JD/DO (ICH10 Family) USB UHCI Controller #6
-	3a6a  82801JD/DO (ICH10 Family) USB2 EHCI Controller #1
-	3a6c  82801JD/DO (ICH10 Family) USB2 EHCI Controller #2
+	3a64  ICH10 USB UHCI Controller #1
+	3a65  ICH10 USB UHCI Controller #2
+	3a66  ICH10 USB UHCI Controller #3
+	3a67  ICH10 USB UHCI Controller #4
+	3a68  ICH10 USB UHCI Controller #5
+	3a69  ICH10 USB UHCI Controller #6
+	3a6a  ICH10 USB2 EHCI Controller #1
+	3a6c  ICH10 USB2 EHCI Controller #2
 	8114  System Controller Hub (SCH Poulsbo) USB UHCI #1
 	8115  System Controller Hub (SCH Poulsbo) USB UHCI #2
 	8116  System Controller Hub (SCH Poulsbo) USB UHCI #3

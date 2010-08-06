@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="loadExtraItems" mtime="1280776524" type="bool" value="false"/>
+	<entry name="layoutNamesAsGroupNames" mtime="1280776515" type="bool" value="true"/>
+	<entry name="groupPerWindow" mtime="1280774300" type="bool" value="false"/>
+</gconf>

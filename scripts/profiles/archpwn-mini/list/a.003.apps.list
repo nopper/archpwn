@@ -1,0 +1,37 @@
+networkmanager
+network-manager-applet
+network-manager-openvpn
+networkmanager-pptp
+cnetworkmanager
+netcfg
+# Browsers
+#chromium
+#aurora
+# Readers
+evince
+# Multimedia
+#vlc
+mplayer
+gnome-mplayer
+# Office
+claws-mail
+# Vm
+#qt
+#virtualbox-ose
+virtualbox-ose-additions
+virtualbox-ose-additions-modules
+# Networks
+#pan
+#gftp
+xchat
+pidgin
+transmission-gtk
+# Misc
+gparted
+tightvnc
+#gtk-recordmydesktop
+#galculator
+# Editors
+terminator
+ghex
+gvim

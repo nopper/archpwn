@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="exec" mtime="1280774066" type="string">
+		<stringvalue>gnome-mplayer</stringvalue>
+	</entry>
+</gconf>

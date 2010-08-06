@@ -14,24 +14,24 @@ install ()
     findfs ()
     {
         for blkdev in $(find /dev -type b | grep -v -e /dev/loop -e /dev/ram -e /dev/fd); do
-            eval $(/usr/lib/klibc/bin/fstype 2>/dev/null < ${blkdev})
-            if [ -n "${FSTYPE}" -a "${FSTYPE}" != "swap" -a "${FSTYPE}" != "unknown" -a "${FSTYPE}" != "luks" -a "${FSTYPE}" != "lvm2" ]; then
-                echo ${FSTYPE}
-            fi
+            /sbin/blkid -u filesystem -o value -s TYPE -p "${blkdev}" 2> /dev/null
         done
     }
 
     if [ ${UID} -eq 0 -o "$(groups | grep disk)" != "" ]; then
         for fs in $(findfs | sort | uniq); do
-            for mod in $(find "${MODULEDIR}" -type f -name "${fs}.ko"); do
-                if [ -n "${mod}" ]; then
-                    AUTODETECT="${AUTODETECT} ${mod}"
-                fi
+            allfs="${fs} $(modprobe --set-version ${KERNELVERSION} --resolve-alias ${fs})"
+            for mod in ${allfs}; do
+                for modfile in $(find "${MODULEDIR}" -type f -name "${mod}.ko"); do
+                    if [ -n "${modfile}" ]; then
+                        AUTODETECT="${AUTODETECT} ${modfile}"
+                    fi
+                done
             done
         done
 
         if [ -e /sbin/mdadm ]; then
-            for raidmod in $(/sbin/mdadm -E -s /dev/hd* /dev/sd* /dev/rd/* /dev/ida/* /dev/cciss/* /dev/ataraid/* \
+            for raidmod in $(/sbin/mdadm -E -s -v /dev/hd* /dev/sd* /dev/rd/* /dev/ida/* /dev/cciss/* /dev/ataraid/* /dev/mapper/* \
                         | awk -Flevel= '{print $2}' | awk '{print $1}'); do
                 case "${raidmod}" in
                     raid4|raid5|raid6)

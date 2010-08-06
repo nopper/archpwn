@@ -1,9 +1,0 @@
-[Desktop Entry]
-Exec=driftnet -h;sudo -s
-Icon=preferences-web-browser-cache
-Name=Driftnet
-StartupNotify=true
-Terminal=1
-Type=Application
-X-KDE-SubstituteUID=false
-Categories=Sniffers

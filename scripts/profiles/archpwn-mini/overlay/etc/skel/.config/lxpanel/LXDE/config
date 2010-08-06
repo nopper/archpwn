@@ -1,3 +1,0 @@
-[Command]
-FileManager=pcmanfm %s
-Terminal=xterm -e

@@ -1,0 +1,3 @@
+-cs autoscan
+-d wxgtk
+-d wxpython

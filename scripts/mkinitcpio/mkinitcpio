@@ -1,14 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 # mkinitcpio - modular tool for building an init ramfs cpio image
 #
-# IMPORTANT: We need to keep a common base syntax here
-# because some of these hooks/scripts need to run under
-# the klibc shell or even busybox's ash - therefore, the
-# following constraints should be enforced:
+# IMPORTANT: We need to keep a common base syntax here because
+# some of these hooks/scripts need to run under busybox's ash -
+# therefore, the following constraints should be enforced:
 #   variables should be quoted and bracketed "${SOMEVAR}"
 #   inline execution should be done with $() instead of backticks
 #   use -z "${var}" to test for nulls/empty strings
-#   incase of embedded spaces, quote all path names and string comarpisons
+#   in case of embedded spaces, quote all path names and string comarpisons
 #
 
 
@@ -33,7 +32,11 @@ SKIPHOOKS=""
 PRESETDIR="$CWD/mkinitcpio.d"
 QUIET="y"
 SHOW_AUTOMODS="n"
-COMPRESSION="bzip2"
+COMPRESSION="gzip"
+
+if [ ! $UID ]; then
+    UID=$(id -u)
+fi
 
 # Add /{,usr}/sbin to path
 # works around undetected problems like in #8448
@@ -51,7 +54,7 @@ usage ()
     echo "  -g IMAGE         Generate a cpio image as IMAGE. default: no"
     echo "  -a NAME          Append to an existing filelist. default: no"
     echo "  -p PRESET        Build specified preset."
-    echo "  -m MESSAGE       Print MESSAGE before passing control to kinit."
+    echo "  -m MESSAGE       Print MESSAGE before passing control to init."
     echo "  -S SKIPHOOKS     Skip SKIPHOOKS (comma-separated) when building the image."
     echo "  -v               Verbose output. Default: no"
     echo "  -M               Display modules found via autodetection." 
@@ -75,7 +78,7 @@ sighandler() {
 trap sighandler TERM INT
 
 while getopts ':c:k:s:b:g:a:p:m:vH:LMhS:' arg; do
-    if [ "${OPTARG:0:1}" = "-" ]; then
+    if [ "${OPTARG#-}" != "${OPTARG}" ]; then
         echo "error: optional argument to '-${arg}' begins with a '-'"
         echo "  you probably don't want this....aborting."
         usage
@@ -91,7 +94,7 @@ while getopts ':c:k:s:b:g:a:p:m:vH:LMhS:' arg; do
         m) MESSAGE="${OPTARG}" ;;
         v) QUIET="n" ;;
         S) SKIPHOOKS="${OPTARG}" ;;
-        H) source "${INSTDIR}/${OPTARG}";
+        H) . "${INSTDIR}/${OPTARG}";
            echo "Help for hook '${OPTARG}':"
            help
            cleanup
@@ -119,7 +122,7 @@ if [ -n "${PRESET}" ]; then
         [ -n "${MESSAGE}" ] && PRESET_MKOPTS="${PRESET_MKOPTS} -m \"${MESSAGE}\""
         [ "${QUIET}" = "n" ] && PRESET_MKOPTS="${PRESET_MKOPTS} -v"
         # Build all images
-        source ${PRESETDIR}/${PRESET}.preset
+        . ${PRESETDIR}/${PRESET}.preset
         for p in ${PRESETS[@]}; do
             echo "==> Building image \"${p}\""
             PRESET_CMD="${PRESET_MKOPTS}"
@@ -172,15 +175,13 @@ if [ -n "${PRESET}" ]; then
     fi
 fi
 
-# append a trailing / if needed
-if [ "${BASEDIR:${#BASEDIR}}" == "/" ]; then
-    BASEDIR="${BASEDIR:0:${#BASEDIR}-1}"
-fi
+# remove trailing / from BASEDIR
+BASEDIR="${BASEDIR%/}"
 
 MODULEDIR="${BASEDIR}/lib/modules/${KERNELVERSION}"
 
 if [ -n "${BASEDIR}" ]; then
-    if [ "${BASEDIR:0:1}" != "/" ]; then
+    if [ "${BASEDIR}" = "${BASEDIR#/}" ]; then
         BASEDIR="$(pwd)/${BASEDIR}"
     elif [ ! -d "${BASEDIR}" ]; then
         echo "base directory '${BASEDIR}' does not exist or is not a directory"
@@ -194,7 +195,7 @@ if [ ! -f "${CONFIG}" ]; then
     cleanup
     exit 1
 fi
-source "${CONFIG}"
+. "${CONFIG}"
 
 if [ -f "${FILELIST}" -a -z "${APPEND}" ]; then
     if [ -z "${SAVELIST}" ]; then
@@ -212,11 +213,11 @@ fi
 BASEDIR=$(echo ${BASEDIR} | tr -s /)
 MODULEDIR=$(echo ${MODULEDIR} | tr -s /)
 
-source "${FUNCTIONS}"
+. "${FUNCTIONS}"
 
 if [ "${SHOW_AUTOMODS}" = "y" ]; then
     echo "Modules autodetected:"
-    source "${INSTDIR}/autodetect"
+    . "${INSTDIR}/autodetect"
     install
     cat "${MODULE_FILE}"
     cleanup
@@ -240,7 +241,7 @@ for hook in ${HOOKS}; do
     # Deprecation check
     # A hook is considered deprecated if it is a symlink
     # within $INSTDIR.
-    if [ -L "${INSTDIR}/${hook}" ]; then
+    if [ -h "${INSTDIR}/${hook}" ]; then
         newhook="$(readlink -ne "${INSTDIR}/${hook}")"
         if [ -n "${newhook}" -a "${INSTDIR}/$(basename ${newhook})" -ef "${newhook}" ]; then
             newhook="$(basename ${newhook})"
@@ -252,7 +253,7 @@ for hook in ${HOOKS}; do
         fi
     fi
     if grep "install" "${INSTDIR}/${hook}" >/dev/null 2>&1; then
-        source "${INSTDIR}/${hook}"
+        . "${INSTDIR}/${hook}"
         echo ":: Parsing hook [${hook}]"
         install
         parse_hook
@@ -261,7 +262,7 @@ for hook in ${HOOKS}; do
     fi
 done
 
-if [ "${HAS_MODULES}" == "y" ]; then
+if [ "${HAS_MODULES}" = "y" ]; then
     echo ":: Generating module dependencies"
     for mod in $(grep "file /lib/modules/${KERNELVERSION}" ${FILELIST} | cut -d' ' -f2); do
         dir=$(dirname "${mod}")

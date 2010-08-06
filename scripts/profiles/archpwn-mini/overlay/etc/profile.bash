@@ -10,8 +10,8 @@ else
 fi
 
 alias ls='ls --color=auto'
-export MANPAGER="/usr/bin/most"
-export LESS="/usr/bin/most"
+export MANPAGER="/bin/less"
+export LESS="/bin/less"
 export EDITOR=vim
 
 PS2='> '

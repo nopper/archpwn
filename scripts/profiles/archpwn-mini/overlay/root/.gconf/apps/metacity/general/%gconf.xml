@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="compositing_manager" mtime="1280775148" type="bool" value="true"/>
+	<entry name="button_layout" mtime="1280775139" type="string">
+		<stringvalue>close,maximize,minimize:</stringvalue>
+	</entry>
+	<entry name="titlebar_font" mtime="1280773913" type="string">
+		<stringvalue>Droid Sans 10</stringvalue>
+	</entry>
+	<entry name="theme" mtime="1280774912" type="string">
+		<stringvalue>Ambiance</stringvalue>
+	</entry>
+</gconf>

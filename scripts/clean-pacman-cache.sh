@@ -1,5 +1,5 @@
 #!/bin/sh
-cd ../pacman-repo/packages/
+cd ../pacman/pkg/
 
 for i in *; do
     rm -f /var/cache/pacman/pkg/$i

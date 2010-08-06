@@ -38,28 +38,22 @@ mkdir ${startdir}/src
 cd ${startdir}/src
 
 get_file ${SRC}
-echo "Extracting $(basename $SRC) ..."
 bsdtar -xf $(basename ${SRC})
-echo "Copying ${SRCORIG} to ${SRCNAME} ..."
 cp -a ${SRCORIG} ${SRCNAME}
 cd ${SRCNAME}
 
 pre_apply
-echo "Start patching the kernel tree ..."
 
 for p in ${PATCHES[@]}; do
+  echo "Applyinf $p ..."
   patchname=$(echo ${p} | cut -d% -f1)
   patchstrip=$(echo ${p} | cut -d% -f2)
   get_file ${patchname}
-  echo "Applying ${patchname} ..."
   cat_patch ${patchname} | patch -Np${patchstrip} || exit 1
 done
 
 post_apply
 
-echo "Generating patchset ..."
 cd ${startdir}/src
 diff -Nur ${SRCORIG} ${SRCNAME} > $startdir/${PATCHNAME}
 bzip2 --best $startdir/${PATCHNAME}
-
-echo "Patchset generated under $startdir/${PATCHNAME}.bz2"

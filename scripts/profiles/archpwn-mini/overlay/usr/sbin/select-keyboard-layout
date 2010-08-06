@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Simle script to set keyboard layouts
+
+clear
+echo 
+echo "             Wolvix GNU/Linux keyboard layout selection script"
+echo "             -------------------------------------------------" 
+echo 
+echo " Type in your keyboard layout using your two letter country code."
+echo " Example: For German layout type 'de' or for Spanish layout 'es' (No quotes)"
+echo 
+echo " Tips: If you click the small arrow to the right of the keyboard icon you just"
+echo " clicked, you'll find many predefined keyboard layouts."
+echo 
+echo " (See 'man setxkbmap' or 'setxkbmap -help' for details about keyboard layouts)"
+echo 
+echo -n "Type in your two letter country code: "
+read USER_INPUT
+setxkbmap $USER_INPUT
+echo 
+echo "Keyboard layout set to: '$USER_INPUT'"
+echo 
+exit 1

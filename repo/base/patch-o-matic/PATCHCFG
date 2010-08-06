@@ -1,44 +1,44 @@
 # Kernel source file
-SRC="ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-2.6.31.tar.bz2"
+SRC="ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-2.6.34.tar.bz2"
 # Original source directory
-SRCORIG="linux-2.6.31"
+SRCORIG="linux-2.6.34"
 # Our source directory
-SRCNAME="linux-2.6.31-ARCH"
+SRCNAME="linux-2.6.34-ARCH"
 # Patches:
 #   URL%patchlevel
 #  or
 #   filename%patchlevel (file must be in patches/ subdirectory)
 PATCHES=(
-    # add upstream patch from 2.6.30 series
-    ftp://ftp.kernel.org/pub/linux/kernel/v2.6/patch-2.6.31.5.bz2%1
+    # add upstream patch from 2.6.33 series
+    # ftp://ftp.kernel.org/pub/linux/kernel/v2.6/patch-2.6.34.1.bz2%1
+    ftp://ftp.kernel.org/pub/linux/kernel/v2.6/patch-2.6.34.2.bz2%1
 
     # add latest fixes from stable queue, if needed
     # http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git
 
     # add aufs2 support, in reference to:
     # http://aufs.sourceforge.net
-    aufs2-base-20090910.patch%1
-    aufs2-standalone-20090910.patch%1
-    #aufs2-20090611.patch%1
+    aufs2-base-20100517.patch%1
+    aufs2-standalone-20100517.patch%1
+
     # squashfs4.0 lzma
-    0000-const-patch.patch%1
-    0001-Squashfs-move-zlib-decompression-wrapper-code-into.patch%1
-    0002-Squashfs-Factor-out-remaining-zlib-dependencies-int.patch%1
-    0003-Squashfs-add-a-decompressor-framework.patch%1
-    0004-Squashfs-add-decompressor-entries-for-lzma-and-lzo.patch%1
-    0005-Squashfs-add-an-extra-parameter-to-the-decompressor.patch%1
-    0006-Squashfs-add-LZMA-compression.patch%1
-    0007-Squashfs-Make-unlzma-available-to-non-initramfs-ini.patch%1
-    # Fragmentation
-    0008-mac80211_2.6.28-rc4-wl_frag+ack_v3.patch%1
+    # http://git.kernel.org/?p=linux/kernel/git/pkl/squashfs-lzma.git;a=summary
+    0001-Squashfs-add-LZMA-compression.patch%1
+    0002-Squashfs-Make-unlzma-available-to-non-initramfs-ini.patch%1
+    0003-Squashfs-select-decompress-lzma-needed.patch%1
+    0004-Squashfs-lzma-make-lzma-reentrant.patch%1
+    0005-Squashfs-force-lzma-wrapper-to-be-retained.patch%1
+    0006-Squashfs-add-missing-slab-include.patch%1
     # Reiser4 support
-    0009-reiser4-for-2.6.31.patch.bz2%1
-    0010-openlog.patch%0
+    # http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/
+    0007-reiser4-for-2.6.34.patch.bz2%1
+    0008-openlog.patch%0
     # Fbcondecor from gentoo
-    0011-fbcondecor-0.9.6-2.6.31.2.patch%1
+    # http://dev.gentoo.org/~spock/projects/fbcondecor/
+    0009-fbcondecor-0.9.6.patch%1
 )
 # Name of the resulting patch (will be bzipped afterwards)
-PATCHNAME="patch-2.6.31.5-1-pwn"
+PATCHNAME="patch-2.6.34.2-1-pwn"
 
 # Run this before applying patches
 pre_apply() {
@@ -58,5 +58,5 @@ post_apply() {
   cp ${startdir}/patches/logo_linux_vga16.ppm drivers/video/logo/
 
   # Kill some files
-  find . -name '*~' -exec rm -f {} \; 2>/dev/null
+  find . -name '*~' -or -name '*.orig' -exec rm -f {} \; 2>/dev/null
 }

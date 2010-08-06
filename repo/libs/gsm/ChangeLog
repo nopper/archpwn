@@ -1,4 +1,0 @@
-2008-01-13  Darwin Bautista  <djclue917@gmail.com>
-* gsm 1.0.12-6
-* Added '-fPIC' to CFLAGS when building under x86_64
-* mandir: /usr/man -> /usr/share/man

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="command" mtime="1280774063" type="string">
+		<stringvalue>claws-mail --compose %s</stringvalue>
+	</entry>
+</gconf>

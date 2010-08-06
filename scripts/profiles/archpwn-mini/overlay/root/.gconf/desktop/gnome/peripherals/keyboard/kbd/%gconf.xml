@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="options" mtime="1280774282" type="list" ltype="string">
+		<li type="string">
+			<stringvalue>grp	grp:alts_toggle</stringvalue>
+		</li>
+	</entry>
+	<entry name="layouts" mtime="1280776645" type="list" ltype="string">
+		<li type="string">
+			<stringvalue>us</stringvalue>
+		</li>
+		<li type="string">
+			<stringvalue>de</stringvalue>
+		</li>
+		<li type="string">
+			<stringvalue>fr</stringvalue>
+		</li>
+		<li type="string">
+			<stringvalue>it</stringvalue>
+		</li>
+	</entry>
+</gconf>

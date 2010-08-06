@@ -1,0 +1,35 @@
+From df32832c74028b51bf10e8e5d9b7997988b6e00d Mon Sep 17 00:00:00 2001
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Date: Tue, 5 Jan 2010 17:15:37 +0000
+Subject: [PATCH] libs: force lzma_wrapper to be retained
+
+When CONFIG_SQUASHFS=m and CONFIG_DECOMPRESS_LZMA=m, decompress_lzma
+is built but then discarded from the library because no built-in code
+uses it, so change it from a lib- to an obj- to force it to be kept
+in the library.
+
+ERROR: "unlzma" [fs/squashfs/squashfs.ko] undefined!
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+Cc: Michal Marek <mmarek@suse.cz>
+---
+ lib/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/lib/Makefile b/lib/Makefile
+index 0d40152..0995c22 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -69,7 +69,7 @@ obj-$(CONFIG_LZO_DECOMPRESS) += lzo/
+ 
+ lib-$(CONFIG_DECOMPRESS_GZIP) += decompress_inflate.o
+ lib-$(CONFIG_DECOMPRESS_BZIP2) += decompress_bunzip2.o
+-lib-$(CONFIG_DECOMPRESS_LZMA) += decompress_unlzma.o
++obj-$(CONFIG_DECOMPRESS_LZMA) += decompress_unlzma.o
+ lib-$(CONFIG_DECOMPRESS_LZO) += decompress_unlzo.o
+ 
+ obj-$(CONFIG_TEXTSEARCH) += textsearch.o
+-- 
+1.7.1
+

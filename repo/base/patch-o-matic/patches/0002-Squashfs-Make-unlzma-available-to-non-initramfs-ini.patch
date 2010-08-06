@@ -1,0 +1,215 @@
+From 491e6409b8fd8c724f13632715012b157e867e16 Mon Sep 17 00:00:00 2001
+From: Phillip Lougher <phillip@lougher.demon.co.uk>
+Date: Mon, 11 Jan 2010 16:15:00 +0100
+Subject: [PATCH] lzma: Make lzma available to non initramfs/initrd code
+
+Add a config option DECOMPRESS_LZMA_NEEDED which allows subsystems to
+specify they need the unlzma code.  Normally decompress_unlzma.c is
+compiled with __init and unlzma is not exported to modules.
+
+Move INIT definition into separate header files for bzip2/lzma/inflate/lzo
+so it can be defined differently for each decompressor.
+
+Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
+---
+ include/linux/decompress/bunzip2_mm.h |   12 ++++++++++++
+ include/linux/decompress/inflate_mm.h |   12 ++++++++++++
+ include/linux/decompress/mm.h         |    3 ---
+ include/linux/decompress/unlzma_mm.h  |   20 ++++++++++++++++++++
+ include/linux/decompress/unlzo_mm.h   |   12 ++++++++++++
+ lib/Kconfig                           |    3 +++
+ lib/decompress_bunzip2.c              |    1 +
+ lib/decompress_inflate.c              |    1 +
+ lib/decompress_unlzma.c               |    6 +++++-
+ lib/decompress_unlzo.c                |    1 +
+ 10 files changed, 67 insertions(+), 4 deletions(-)
+ create mode 100644 include/linux/decompress/bunzip2_mm.h
+ create mode 100644 include/linux/decompress/inflate_mm.h
+ create mode 100644 include/linux/decompress/unlzma_mm.h
+ create mode 100644 include/linux/decompress/unlzo_mm.h
+
+diff --git a/include/linux/decompress/bunzip2_mm.h b/include/linux/decompress/bunzip2_mm.h
+new file mode 100644
+index 0000000..cac6fef
+--- /dev/null
++++ b/include/linux/decompress/bunzip2_mm.h
+@@ -0,0 +1,12 @@
++#ifndef BUNZIP2_MM_H
++#define BUNZIP2_MM_H
++
++#ifdef STATIC
++/* Code active when included from pre-boot environment: */
++#define INIT
++#else
++/* Compile for initramfs/initrd code only */
++#define INIT __init
++#endif
++
++#endif
+diff --git a/include/linux/decompress/inflate_mm.h b/include/linux/decompress/inflate_mm.h
+new file mode 100644
+index 0000000..ca4a2ae
+--- /dev/null
++++ b/include/linux/decompress/inflate_mm.h
+@@ -0,0 +1,12 @@
++#ifndef INFLATE_MM_H
++#define INFLATE_MM_H
++
++#ifdef STATIC
++/* Code active when included from pre-boot environment: */
++#define INIT
++#else
++/* Compile for initramfs/initrd code only */
++#define INIT __init
++#endif
++
++#endif
+diff --git a/include/linux/decompress/mm.h b/include/linux/decompress/mm.h
+index ad5ec1d..f3f6526 100644
+--- a/include/linux/decompress/mm.h
++++ b/include/linux/decompress/mm.h
+@@ -63,8 +63,6 @@ static void free(void *where)
+ 
+ #define set_error_fn(x)
+ 
+-#define INIT
+-
+ #else /* STATIC */
+ 
+ /* Code active when compiled standalone for use when loading ramdisk: */
+@@ -87,7 +85,6 @@ static void free(void *where)
+ static void(*error)(char *m);
+ #define set_error_fn(x) error = x;
+ 
+-#define INIT __init
+ #define STATIC
+ 
+ #include <linux/init.h>
+diff --git a/include/linux/decompress/unlzma_mm.h b/include/linux/decompress/unlzma_mm.h
+new file mode 100644
+index 0000000..859287e
+--- /dev/null
++++ b/include/linux/decompress/unlzma_mm.h
+@@ -0,0 +1,20 @@
++#ifndef UNLZMA_MM_H
++#define UNLZMA_MM_H
++
++#ifdef STATIC
++
++/* Code active when included from pre-boot environment: */
++#define INIT
++
++#elif defined(CONFIG_DECOMPRESS_LZMA_NEEDED)
++
++/* Make it available to non initramfs/initrd code */
++#define INIT
++#include <linux/module.h>
++#else
++
++/* Compile for initramfs/initrd code only */
++#define INIT __init
++#endif
++
++#endif
+diff --git a/include/linux/decompress/unlzo_mm.h b/include/linux/decompress/unlzo_mm.h
+new file mode 100644
+index 0000000..e3f1573
+--- /dev/null
++++ b/include/linux/decompress/unlzo_mm.h
+@@ -0,0 +1,12 @@
++#ifndef UNLZO_MM_H
++#define UNLZO_MM_H
++
++#ifdef STATIC
++/* Code active when included from pre-boot environment: */
++#define INIT
++#else
++/* Compile for initramfs/initrd code only */
++#define INIT __init
++#endif
++
++#endif
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 170d8ca..390e88c 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -121,6 +121,9 @@ config DECOMPRESS_LZO
+ 	select LZO_DECOMPRESS
+ 	tristate
+ 
++config DECOMPRESS_LZMA_NEEDED
++	 boolean
++
+ #
+ # Generic allocator support is selected if needed
+ #
+diff --git a/lib/decompress_bunzip2.c b/lib/decompress_bunzip2.c
+index a4e971d..04386b3 100644
+--- a/lib/decompress_bunzip2.c
++++ b/lib/decompress_bunzip2.c
+@@ -52,6 +52,7 @@
+ #include <linux/slab.h>
+ #endif /* STATIC */
+ 
++#include <linux/decompress/bunzip2_mm.h>
+ #include <linux/decompress/mm.h>
+ 
+ #ifndef INT_MAX
+diff --git a/lib/decompress_inflate.c b/lib/decompress_inflate.c
+index fc686c7..cb6bcab 100644
+--- a/lib/decompress_inflate.c
++++ b/lib/decompress_inflate.c
+@@ -23,6 +23,7 @@
+ 
+ #endif /* STATIC */
+ 
++#include <linux/decompress/inflate_mm.h>
+ #include <linux/decompress/mm.h>
+ 
+ #define GZIP_IOBUF_SIZE (16*1024)
+diff --git a/lib/decompress_unlzma.c b/lib/decompress_unlzma.c
+index ca82fde..a614b26 100644
+--- a/lib/decompress_unlzma.c
++++ b/lib/decompress_unlzma.c
+@@ -36,6 +36,7 @@
+ #include <linux/slab.h>
+ #endif /* STATIC */
+ 
++#include <linux/decompress/unlzma_mm.h>
+ #include <linux/decompress/mm.h>
+ 
+ #define	MIN(a, b) (((a) < (b)) ? (a) : (b))
+@@ -531,7 +532,7 @@ static inline void INIT process_bit1(struct writer *wr, struct rc *rc,
+ 
+ 
+ 
+-STATIC inline int INIT unlzma(unsigned char *buf, int in_len,
++STATIC int INIT unlzma(unsigned char *buf, int in_len,
+ 			      int(*fill)(void*, unsigned int),
+ 			      int(*flush)(void*, unsigned int),
+ 			      unsigned char *output,
+@@ -652,6 +653,9 @@ exit_1:
+ exit_0:
+ 	return ret;
+ }
++#if defined(CONFIG_DECOMPRESS_LZMA_NEEDED) && !defined(PREBOOT)
++EXPORT_SYMBOL(unlzma);
++#endif
+ 
+ #ifdef PREBOOT
+ STATIC int INIT decompress(unsigned char *buf, int in_len,
+diff --git a/lib/decompress_unlzo.c b/lib/decompress_unlzo.c
+index bcb3a4b..af06d6f 100644
+--- a/lib/decompress_unlzo.c
++++ b/lib/decompress_unlzo.c
+@@ -39,6 +39,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/lzo.h>
++#include <linux/decompress/unlzo_mm.h>
+ #include <linux/decompress/mm.h>
+ 
+ #include <linux/compiler.h>
+-- 
+1.7.1
+

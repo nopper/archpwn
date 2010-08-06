@@ -1,9 +1,0 @@
-[Desktop Entry]
-Exec=asleap -h;sudo -s
-Icon=preferences-web-browser-cache
-Name=ASLEAP
-StartupNotify=true
-Terminal=1
-Type=Application
-X-KDE-SubstituteUID=false
-Categories=Radio-Network-Analysis-80211-Cracking

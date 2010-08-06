@@ -1,5 +1,5 @@
 #!/bin/bash
-# convert directory tree into .sqfs compressed file
+# convert directory tree into .lzm compressed file
 # which can be used as a LiveCD module
 #
 # Author: Tomas M. <http://www.linux-live.org>
@@ -10,14 +10,10 @@ PATH=.:$(dirname $0):/usr/lib:$PATH
 
 if [ ! -d "$1" -o "$2" = "" ]; then
    echo
-   echo "Convert directory tree into .sqfs compressed module"
-   echo "usage: $0 source_directory output_file.sqfs [ -skipcheck ]"
+   echo "Convert directory tree into .lzm compressed module"
+   echo "usage: $0 source_directory output_file.lzm"
    exit 1
 fi
 
-
-mksquashfs "$1" "$2"
+create_module "$1" "$2"
 if [ $? != 0 ]; then echo "error building compressed image"; exit 1; fi
-
-chmod 0444 "$2"
-echo -e "\ndone OK"

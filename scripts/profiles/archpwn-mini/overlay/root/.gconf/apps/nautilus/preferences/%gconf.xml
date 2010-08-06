@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="enable_delete" mtime="1280775465" type="bool" value="true"/>
+	<entry name="desktop_font" mtime="1280773895" type="string">
+		<stringvalue>Droid Sans 10</stringvalue>
+	</entry>
+</gconf>

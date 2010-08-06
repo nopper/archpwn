@@ -11,11 +11,16 @@ if [ "$1" != "" ]; then
 fi
 
 if [ "$2" != "" ]; then
-   ADDLOCALE="$2"
+   ROOT="$2"
 fi
 
 if [ "$3" != "" ]; then
-   ROOT="$3"
+	KERNEL="$3"
+	LMK="lib/modules/$KERNEL"
+fi
+
+if [ "$4" != "" ]; then
+   ADDLOCALE="$4"
 fi
 
 # rcopy is a recursive cp, which copies also symlink's real source
@@ -28,7 +33,6 @@ rcopy()
    CWD=$(pwd)
    if [ "$ROOT" = "" ]; then cd /; else cd $ROOT; fi
    SOURCE="./${1:${#ROOT}}"
-   echo $SOURCE
    DEST="$2"
    if [ -L "$SOURCE" ]; then
       REALPATH=$(readlink -f "$SOURCE")
@@ -73,7 +77,7 @@ debug()
 
 MOUNTDIR=/tmp/initrd_mountdir_$$
 INITRD_TREE=/tmp/initrd_tree_$$
-INITRDIMG=initrd
+INITRDIMG=base
 
 if [ ! -d $ROOT/$LMK ]; then
    echo "cannot find your kernel modules (*.ko) in $ROOT/$LMK"
@@ -117,6 +121,7 @@ chmod ago+x $INITRD_TREE/{linuxrc,cleanup}
 # handle the fuse filesystems here
 #
 cp -a fuse/* $INITRD_TREE
+cp -a httpfs/* $INITRD_TREE
 
 if [ "$USEPOSIXOVL" = "yes" ]; then
    cp -a posixovl/* $INITRD_TREE
@@ -138,6 +143,7 @@ ln -sf bin $INITRD_TREE/sbin
 # necessary modules and dependency files
 mkdir -p $INITRD_TREE/$LMK/kernel/fs
 rcopy $ROOT/$LMK/kernel/fs/aufs $INITRD_TREE
+#rcopy $ROOT/$LMK/fs/aufs25 $INITRD_TREE
 rcopy $ROOT/$LMK/kernel/fs/squashfs $INITRD_TREE
 
 # copy filesystem modules, if not directly copied into kernel
@@ -151,6 +157,13 @@ rcopy_ex $ROOT/$LMK/kernel/fs/fat $INITRD_TREE 2>>$DEBUG
 rcopy_ex $ROOT/$LMK/kernel/fs/vfat $INITRD_TREE 2>>$DEBUG
 rcopy_ex $ROOT/$LMK/kernel/fs/ntfs $INITRD_TREE 2>>$DEBUG
 rcopy_ex $ROOT/$LMK/kernel/fs/ext3 $INITRD_TREE 2>>$DEBUG
+rcopy_ex $ROOT/$LMK/kernel/fs/ext4 $INITRD_TREE 2>>$DEBUG
+rcopy_ex $ROOT/$LMK/kernel/fs/jbd2 $INITRD_TREE 2>>$DEBUG
+rcopy_ex $ROOT/$LMK/kernel/lib/crc16.* $INITRD_TREE 2>>$DEBUG
+rcopy_ex $ROOT/$LMK/kernel/lib/libcrc32c.* $INITRD_TREE 2>>$DEBUG
+rcopy_ex $ROOT/$LMK/kernel/crypto/crc32c.* $INITRD_TREE 2>>$DEBUG
+rcopy_ex $ROOT/$LMK/kernel/fs/btrfs $INITRD_TREE 2>>$DEBUG
+rcopy_ex $ROOT/$LMK/kernel/fs/mbcache.* $INITRD_TREE 2>>$DEBUG
 rcopy_ex $ROOT/$LMK/kernel/fs/reiserfs $INITRD_TREE 2>>$DEBUG
 rcopy_ex $ROOT/$LMK/kernel/fs/xfs $INITRD_TREE 2>>$DEBUG
 
@@ -177,7 +190,7 @@ rcopy_ex $ROOT/$LMK/kernel/drivers/pcmcia/yenta_socket.* $INITRD_TREE 2>>$DEBUG
 for mod in $(list_network_drivers); do
    cat $ROOT/$LMK/modules.dep | fgrep /$mod.ko | while read LINE; do
       for dep in $(echo $LINE | tr -d ":"); do
-         rcopy_ex $ROOT/$dep $INITRD_TREE 2>>$DEBUG
+         rcopy_ex $dep $INITRD_TREE 2>>$DEBUG
       done
    done
 done
@@ -195,12 +208,12 @@ debug "generating module dependency files"
 depmod -b $INITRD_TREE $KERNEL
 
 debug "compressing usr in initrd"
-mksquashfs $INITRD_TREE/usr $INITRD_TREE/usr.lzm >/dev/null 2>&1
+mksquashfs $INITRD_TREE/usr $INITRD_TREE/usr.lzm -comp gzip >/dev/null 2>&1
 chmod ago-x $INITRD_TREE/usr.lzm
 rm -Rf $INITRD_TREE/usr/*
 
 debug "compressing net in initrd"
-mksquashfs $INITRD_TREE/$LMK/kernel/drivers $INITRD_TREE/drivers.lzm >/dev/null 2>&1
+mksquashfs $INITRD_TREE/$LMK/kernel/drivers $INITRD_TREE/drivers.lzm -comp gzip >/dev/null 2>&1
 chmod ago-x $INITRD_TREE/drivers.lzm
 rm -Rf $INITRD_TREE/$LMK/kernel/drivers/*
 
@@ -237,16 +250,16 @@ rm -Rf $INITRD_TREE/$LMK/kernel/drivers/*
 #debug "unmounting $MOUNTDIR"
 #umount $MOUNTDIR
 
-mksquashfs $INITRD_TREE $INITRDIMG.lzm >/dev/null 2>&1
+mksquashfs $INITRD_TREE $INITRDIMG.lzm -comp gzip >/dev/null 2>&1
 chmod ago-x $INITRDIMG.lzm
-
 #debug "gzipping $INITRDIMG"
 #gzip --best $INITRDIMG
 
 #debug "deleting directory $MOUNTDIR"
 #rmdir $MOUNTDIR
 
+
 debug "deleting directory $INITRD_TREE"
 rm -Rf $INITRD_TREE
 
-debug "$INITRDIMG.gz created"
+debug "$INITRDIMG.lzm created"

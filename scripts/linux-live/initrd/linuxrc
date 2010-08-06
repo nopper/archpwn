@@ -4,9 +4,9 @@
 
 export PATH=.:/:/usr/sbin:/usr/bin:/sbin:/bin
 
-mount -n -t proc proc /proc
-mount -n -t sysfs sysfs /sys
-mount -n -o remount,rw /         # for the case we forgot rw boot option
+#mount -n -t proc proc /proc
+#mount -n -t sysfs sysfs /sys
+#mount -n -o remount,rw /         # for the case we forgot rw boot option
 ln -sf /proc/mounts /etc/mtab    # this allows us to use umount -a
 
 . liblinuxlive # it requires proc to be mounted
@@ -19,7 +19,7 @@ echo "0" >/proc/sys/kernel/printk
 # use mdev to create /dev/ devices and setup it as a hotplug-handler
 modprobe_essential_modules
 
-# /usr and some drivers are compressed in initrd
+# /usr and some drivers are compressed in initrd 
 # so it must be mounted from .lzm files
 mount_initrd_loops
 
@@ -34,7 +34,7 @@ debug_shell
 
 # make sure ext3 partitions are not mounted using ext2 driver,
 # and vfat partitions are not mounted using msdos driver
-echo -e "ext3\next2\nvfat\n*" >/etc/filesystems
+echo -e "ext4\next3\next2\nbtrfs\nvfat\n*" >/etc/filesystems
 
 mkdir -p $UNION
 mkdir -p $MEMORY
@@ -53,19 +53,29 @@ DATAFROM=$(cmdline_value from)
 # ip=<client-ip>:<boot-server-ip>:<gw-ip>:<netmask>
 # Nevertheless, from= parameter won't be overwritten by this
 IP=$(cmdline_value ip)
+if [ "$IP" != "" -a "$DATAFROM" = "" ]; then
+   DATAFROM="http://"$(echo $IP | cut -d : -f 2)
+fi
 
 if [ "$DATAFROM" ]; then
-  DATAFROM=$(find_in_computer $DATAFROM)
-  if [ "$DATAFROM" ]; then
-     mount_device $DATAFROM $LOOPMOUNT # mount again, it may be loop device
-     if [ $? -eq 0 -a "$(find_modules $LOOPMOUNT/$LIVECDNAME)" != "" ]; then
-        echolog "found in $DATAFROM"
-        DATA=$LOOPMOUNT/$LIVECDNAME
-     else
-        fumount $LOOPMOUNT
-        fumount $MOUNTDIR/*
-     fi
-  fi
+   if [ "$(echo $DATAFROM | cut -b 1-7 | tr "[:upper:]" "[:lower:]")" = "http://" ]; then
+      init_dhcp $(modprobe_network_modules)
+      mount_httpfs $DATAFROM $MOUNTDIR/httpfs
+      # if mountdir/httpfs/livecdname is found, set DATA=, else umount httpfs
+      # - currently this part works even without the above mentioned, but livecd.sgn is required now untill it's uncommented
+   else
+      DATAFROM=$(find_in_computer $DATAFROM)
+      if [ "$DATAFROM" ]; then
+         mount_device $DATAFROM $LOOPMOUNT # mount again, it may be loop device
+         if [ $? -eq 0 -a "$(find_modules $LOOPMOUNT/$LIVECDNAME)" != "" ]; then
+            echolog "found in $DATAFROM"
+            DATA=$LOOPMOUNT/$LIVECDNAME
+         else
+            fumount $LOOPMOUNT
+            fumount $MOUNTDIR/*
+         fi
+      fi
+   fi
 fi
 
 if [ "$DATA" = "" ]; then
@@ -150,7 +160,7 @@ fi
 
 # mount aufs using the writable branch as the first one (leftmost/topmost)
 mount -t aufs -o nowarn_perm,xino=$XINO/.aufs.xino,br:$CHANGES=rw aufs $UNION
-if [ $? -ne 0 ]; then dmesg | tail -n 1; fatal "Can't setup union (aufs)"; fi
+if [ $? -ne 0 ]; then dmesg | tail -n 1; fatal "can't setup union (aufs)"; fi
 
 debug_shell
 
@@ -158,7 +168,7 @@ debug_shell
 # (skip modules from /optional/ which are not listed in load= boot option)
 # Finaly modify DATA variable so it will point to correct directory
 if [ "$(cmdline_parameter toram)" != "" -o "$(cmdline_parameter copy2ram)" != "" ]; then
-   echolog "Copying $LIVECDNAME data to RAM, this may take some time ..."
+   echolog "Copying $LIVECDNAME data to RAM, this may take some time..."
    mkdir -p $COPY2RAM
 
    # make sure it's in RAM even with changes= parameter
@@ -175,6 +185,16 @@ fi
 
 debug_shell
 
+MODPATH=$(cmdline_value modpath)
+if [ "$MODPATH" != "" ]; then
+	MODPATH=$(find_in_computer $MODPATH)
+	if [ $(cmdline_value findiso) ]; then
+		mount_device $MODPATH $FINDISO/$LIVECDNAME/tmp rbind
+	else
+		mount_device $MODPATH $DATA/tmp rbind
+	fi
+fi
+
 # DATA contains path to the base directory of all fs modules which need
 # to be mounted and inserted into live filesystem. Do it now.
 echolog "Loading modules:"
@@ -186,8 +206,19 @@ union_insert_modules $UNION $MEMORY $IMAGES
 
 debug_shell
 
-echolog "Copying content of rootcopy directory"
-cp -af $DATA/rootcopy/* $UNION 2>/dev/null # may be empty
+ROOTCOPY=$(cmdline_value rootcopy)
+if [ $(cmdline_parameter norootcopy) ]; then
+	echolog "Not using rootcopy"
+elif [ "$ROOTCOPY" ]; then
+	echolog "Mounting content of rootcopy directory"
+	ROOTCOPY=$(find_in_computer $ROOTCOPY)
+    mount_device $ROOTCOPY $DATA/rootcopy rbind
+    echolog "Copying content of rootcopy directory"
+	cp -af $DATA/rootcopy/* $UNION 2>/dev/null # may be empty
+else
+	echolog "Copying content of rootcopy directory"
+	cp -af $DATA/rootcopy/* $UNION 2>/dev/null # may be empty
+fi
 
 # TODO: if copy2ram is used, there is no need to preserve the original in memory anymore
 #if [ "$DATA" = "$COPY2RAM" ]; then 
@@ -203,10 +234,11 @@ echolog "Recreating /etc/fstab and /mnt directories"
 touch $UNION/etc/fstab
 rmdir $UNION/mnt/* 2>/dev/null
 fstab_update $UNION
+#fstab_clean $UNION
 
 # everything is ready now, so we may unload unused kernel modules
 # and do some cleanup, unmount few things which are no longer needed.
-rmmod_unused_modules
+#rmmod_unused_modules
 fumount /usr
 fumount /sys
 
@@ -221,28 +253,35 @@ chmod 1777 $UNION/tmp
 
 # Boot will contain whatever was in ./boot directory in the bootable media
 # Error output goes to null, as nothing is mounted with copy2ram
-mount -n -o rbind $(dirname $DATA)/boot $UNION/boot 2>/dev/null
+#mount -n -o rbind $(dirname $DATA)/boot $UNION/boot 2>/dev/null
+
+debug_shell
+
+# This is for setup of locale varible in archiso-live
+lang=$(cmdline_value lang)
+if [ "$lang" ]; then
+	if [ -f "$UNION/etc/rc.conf" ]; then
+		sed -i -e "s/^ *\(LOCALE=\).*$/\1"$lang.utf8"/" $UNION/etc/rc.conf
+		touch $UNION/etc/locale.gen
+		echo "$lang.UTF-8 UTF-8" > $UNION/etc/locale.gen
+		echo "$lang ISO-8859-1" >> $UNION/etc/locale.gen
+	fi
+fi
 
 debug_shell
 
 # Union contains all the files and directories unioned from all modules.
 # Change root directory to it, and move initrd's root to /mnt/live/initramdisk
 # Finaly execute /sbin/init to start the distribution.
-#echolog "Changing root directory ..."
 
 cd $UNION
 mkdir -p $INITRAMDISK
 
-# make sure some devices are there
-if [ ! -e dev/console ]; then mknod dev/console c 5 1; fi
-if [ ! -e dev/null ]; then mknod dev/null c 1 3; fi
-
-# If a boot parameter nohotplug is used, copy all dev files (found by mdev)
-# to the unioned dev directory, your Linux may need them since most likely
-# udev will not be started in that case
-if [ "$(cmdline_parameter nohotplug)" != "" ]; then
-   cp -fdR /dev . 2>/dev/null
-fi
+# Copy all dev files (found by mdev) to unioned dev directory
+# so at least disk devices exist (your Linux may need them).
+# Two exceptions, do not copy pty* and tty* devs.
+if [ ! -e /dev/console ]; then mknod /dev/console c 5 1; fi
+cp -fdR /dev . 2>/dev/null
 
 # find chroot and init
 if [ -x bin/chroot ]; then  CHROOT=bin/chroot; fi

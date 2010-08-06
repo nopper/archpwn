@@ -1,0 +1,59 @@
+# Reverse
+wipe
+gdb
+ddd
+ltrace
+strace
+# Wireless
+aircrack-ng-svn
+#airsnort
+kismet
+gpsd
+# gpsdrive
+# Bluetooth
+minicom
+obexftp
+bluez-hcidump
+ussp-push
+# Misc
+##swftools
+macchanger
+ipcalc
+# Tunneling
+tor
+privoxy
+proxytunnel
+socat
+# Sniffer
+wireshark
+dsniff
+etherape
+ettercap
+ettercap-gtk
+# Forensic
+##perl-exiftool
+##libextractor
+extundelete
+dcfldd
+ddrescue
+testdisk
+rkhunter
+sleuthkit
+# Already present
+##clamav
+dnsutils
+tcptraceroute
+fping
+hping
+gnu-netcat
+nmap
+curl
+##lynx
+samba
+# smb4k
+john
+nemesis
+ntop
+ngrep
+##steghide
+##stegdetect

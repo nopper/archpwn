@@ -1,0 +1,53 @@
+#!/bin/bash
+
+. /etc/rc.conf
+. /etc/rc.d/functions
+. /usr/lib/liblinuxlive
+
+# keyb: Override default keyboard layout
+
+keyb="`cmdline_value keyb`"
+if [ "$keyb" ]; then
+   if [ -x /bin/loadkeys ]; then
+    stat_busy "Setting keyboard layout to $keyb"
+ 	/bin/loadkeys $keyb > /dev/null
+    stat_done
+   fi
+fi
+
+session="`cmdline_value session`"
+if [ "$session" != "" ]; then
+    stat_busy "Configuring $session desktop"
+	cp -af "/etc/X11/xinit/xinitrc.${session}" /etc/X11/xinit/xinitrc
+	cp -af "/etc/X11/xinit/xinitrc.${session}" /etc/skel/.xinitrc
+    stat_done
+fi
+
+# lang: Override default language
+lang="`cmdline_value lang`"
+if [ "$lang" ]; then
+    echo "$lang.UTF-8 UTF-8" > /etc/locale.gen
+    echo "$lang ISO-8859-1" >> /etc/locale.gen
+    echo "$lang.ISO-8859-15 ISO-8859-15" >> /etc/locale.gen
+
+    stat_busy "Generating $lang locales"
+    locale-gen > /dev/null
+
+    [[ "`locale -a | grep -w $lang`" ]] && \
+    sed -i -e "s/^ *\(LOCALE=\).*$/\1$lang.UTF-8/" /etc/rc.conf
+
+    # Make firefox match OS locale
+    if [ -f /usr/lib/firefox-3.0/defaults/preferences/firefox-I10n.js ]; then
+     	echo "pref("general.useragent.locale", "$lang")" > /usr/lib/firefox-3.0/defaults/preferences/firefox-I10n.js
+    fi
+
+    stat_done
+fi
+
+timezone="`cmdline_value timezone`"
+if [ "$timezone" != "" ]; then
+    stat_busy "Setting timezone to $timezone"
+	sed -i "s|^.*TIMEZONE=.*|TIMEZONE=$timezone|" /etc/rc.conf
+	ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+    stat_done
+fi

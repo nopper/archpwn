@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="command" mtime="1280774061" type="string">
+		<stringvalue>firefox -new-tab &quot;%s&quot;</stringvalue>
+	</entry>
+</gconf>

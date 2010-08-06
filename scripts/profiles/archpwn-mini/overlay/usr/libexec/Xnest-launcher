@@ -1,1 +1,0 @@
-/usr/bin/Xnest :${display} -ac -kb -name ${wm} & setxkbmap ${XKBMAP} & ( DISPLAY=":${display}" ; SESSION_MANAGER= ; /bin/sh /etc/X11/xdm/Xsession ${wm} )

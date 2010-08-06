@@ -233,7 +233,7 @@ class Interpreter(ConsoleP):
 
 class PkgBuild(Interpreter):
     def get_output(self):
-        return "%s-%s-%s-%s.pkg.tar.gz" % ( \
+        return "%s-%s-%s-%s.pkg.tar.xz" % ( \
                 self.scope['pkgname'],
                 self.scope['pkgver'],
                 self.scope['pkgrel'],

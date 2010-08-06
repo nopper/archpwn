@@ -1,0 +1,486 @@
+#!/bin/sh
+#
+# arch2lzm - convert Archlinux packages to LiveCD modules for archlive.
+#
+# Author: Christopher Rogers (aka Godane) <slaxemulator@gmail.com>
+#
+# License: GPL v3
+#
+
+if [ "$1" = "" ]; then
+   echo
+   echo "Download and convert local cache Archlinux's PKG.TAR.GZ package and deps into .LZM compressed module"
+   echo "usage: $0 [option] common_package_name"
+   echo "		option: "
+   echo "		merge - cleans and download all new packages to cache "
+   echo "		to make a module of all cache package "
+   echo "		(Ex. $0 merge xfce4)"
+   echo
+   echo "		update - updates the module you ask for "
+   echo "		(Ex. $0 update 02_devel.lzm" 
+   echo
+   echo "		clean - cleans the cache"
+   echo
+   echo "		sync - sync database for packages repo"
+   echo
+   echo " 		pkg - make a module of a package only "
+   echo " 		(Ex. $0 pkg xchat)"
+   echo 
+   echo "		addlist - add packages to a module based on a list"
+   echo "		(Ex. $0 addlist module.lzm list)"
+   echo "		NOTE: list is a text file"
+   echo
+   echo "		removelist - remove packages from a module based on a list"
+   echo "		(Ex. $0 removelist module.lzm list)"
+   echo "		NOTE: list is a text file"
+   echo
+   echo	"		updateonly - makes updateonly module of current system"
+   echo "		local - make a module from a package store localy "
+   echo "		(Ex. $0 local path/to/package_name)"
+   echo "		(NOTE: no need to add 1.0.0-1-i686.pkg.tar.gz)"
+   echo
+   echo "		changes - save the /mnt/live/memory/changes folder "
+   echo "		with all your settings"
+   echo "		NOTE: Only etc,home,opt,root,var folders are saved"
+   echo
+   echo "		mergelist - make a module based on a list of packages"
+   echo "		(Ex. $0 mergelist module.lzm list)"
+   echo 
+   echo "		aur - build packages in aur unsupported"
+   echo "		(Ex. $0 aur package)"
+   echo
+   exit 1
+fi
+
+PATH=.:$(dirname $0):/usr/lib:$PATH
+. liblinuxlive || exit 3
+allow_only_root
+
+#touch $(pwd)/empty 2>/dev/null && rm -f $(pwd)/empty 2>/dev/null
+
+TMPDIR=/tmp/pkg2lzm$$
+CACHE=/tmp/cache$$
+
+mkdir -p /var/cache/pacman/pkg
+
+if [ -f /var/lib/pacman/db.lck ]; then
+   rm -f /var/lib/pacman/db.lck # remove db.lck if script is cancel before finishing
+fi
+
+merge()
+{
+	#clean
+	
+	# download latest archlinux datebase of packages
+	sync
+	mkdir -p $CACHE
+
+	# download packages only without installing or connfirming
+	pacman -Sw "$1" --needed --noconfirm --cachedir $CACHE
+	
+	# PKG varible to list all packages in caches to install
+	PKG=$(ls $CACHE/*.pkg.tar.*z) 
+	CWD=$(pwd)
+	
+	mkdir -p $TMPDIR/var/lib/pacman/local
+	for FILE in $PKG; do
+	pacman -U -d -r $TMPDIR $FILE
+	done
+	
+	DESTINATION="$(pwd)/$(basename $1).lzm"
+	/sbin/mksquashfs $TMPDIR $DESTINATION -b 128kB > mksquashfs.log
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	
+	mv -f $CACHE/* /var/cache/pacman/pkg/
+	rm -Rf $CACHE
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+
+changes()
+{
+	MODULE=$(basename "$1" .lzm).lzm
+	TMPDIR=/mnt/live/memory/tmp$$
+	CHANGES=/mnt/live/memory/changes
+
+	mkdir -p $TMPDIR
+	cp -aR $CHANGES/{etc,home,opt,root,var} $TMPDIR
+	find $TMPDIR -type f -name ".wh.*" -delete
+	CACHE=$(find $TMPDIR -type d -name "Cache")
+	rm -Rf $CACHE/*
+	if [ -d $TMPDIR/var/lib/pacman ]; then
+		rm -rf $TMPDIR/var/lib/pacman
+	fi
+	if [ -d $TMPDIR/var/cache/pacman ]; then
+		rm -rf $TMPDIR/var/cache/pacman
+	fi
+	if [ -d $TMPDIR/var/run ]; then
+		rm -rf $TMPDIR/var/run
+	fi
+	if [ "$1" = "" ]; then
+	DESTINATION="$(pwd)"/"changes-$(date +'%y.%m.%d.%H.%M').lzm"
+	else
+	DESTINATION="$(pwd)/$MODULE"
+	fi
+	/sbin/mksquashfs $TMPDIR $DESTINATION -b 128kB > mksquashfs.log
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	#rm -Rf $TMPDIR
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+mergelist()
+{
+	mkdir -p $TMPDIR/var/lib/pacman/local
+	CACHE=/tmp/cache$$
+	mkdir -p $CACHE
+	# download latest archlinux datebase of packages
+	sync
+	
+	# download packages only without installing or confirming
+	cat $2 | grep -v "^#" | while read PKGNAME; do
+		pacman -Sw --needed --noconfirm --cachedir $CACHE "$PKGNAME" 
+	done
+	
+	PKG=$(ls $CACHE/*.pkg.tar.*z)
+	pacman -U --needed -d -r $TMPDIR $PKG
+	MODULE=$(basename "$1" .lzm).lzm
+	
+	DESTINATION="$(pwd)/$MODULE"
+	/sbin/mksquashfs $TMPDIR $DESTINATION -b 128kB > mksquashfs.log
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	
+	mv -f $CACHE/* /var/cache/pacman/pkg/
+	rm -Rf $CACHE
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+removelist()
+{
+	MODULE=$(basename "$1" .lzm).lzm
+	TMPDIR=/mnt/live/memory/tmp$$
+	IMAGES=/mnt/live/memory/images
+	UNION=$TMPDIR/union
+	CHANGES=$TMPDIR/changes
+	if [ -d $TMPDIR/union ]; then
+		umount $TMPDIR/union
+	fi
+	mkdir -p $UNION
+	mkdir -p $CHANGES
+	
+	
+	modprobe aufs
+    if [ $? -ne 0 ]; then
+	echo "Error loading Union filesystem module."
+	exit 1
+    fi
+	mount -t aufs -o br:$CHANGES=rw:$IMAGES/$MODULE=rr aufs $UNION
+
+	#sync
+	
+	cat $2 | grep -v "^#" | while read PKGNAME; do
+	if [ "$PKGNAME" = update ]; then
+		pacman -Syu -d -r $UNION --noconfirm
+	else
+		pacman -R -r $UNION "$PKGNAME" --noconfirm
+	fi
+	done
+	
+	rm -R $UNION/var/lib/pacman/sync/*
+	
+	DESTINATION="$(pwd)/$MODULE"
+	/sbin/mksquashfs $UNION $DESTINATION -b 128kB > mksquashfs.log
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	
+	umount $TMPDIR/union
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+#pacsearch()
+#{
+#	pacman -Qs --database /mnt/live/memory/iamges/*/var/lib/pacman/local $1
+#}
+
+addlist()
+{
+	MODULE=$(basename "$1" .lzm).lzm
+	TMPDIR=/mnt/live/memory/tmp$$
+	IMAGES=/mnt/live/memory/images
+	UNION=$TMPDIR/union
+	CHANGES=$TMPDIR/changes
+	if [ -d $TMPDIR/union ]; then
+		umount $TMPDIR/union
+	fi
+	mkdir -p $UNION
+	mkdir -p $CHANGES
+	
+	
+	modprobe aufs
+    	if [ $? -ne 0 ]; then
+		echo "Error loading Union filesystem module."
+		exit 1
+    	fi
+	mount -t aufs -o br:$CHANGES=rw:$IMAGES/$MODULE=rr aufs $UNION
+
+	#sync
+	
+	cat $2 | grep -v "^#" | while read PKGNAME; do
+	if [ "$PKGNAME" = update ]; then
+		pacman -Syu -d -r $UNION --noconfirm
+	else
+		pacman -Sw -d "$PKGNAME" --noconfirm
+		PKG=$(ls /var/cache/pacman/pkg/$PKGNAME-[0-9]*.pkg.tar.*z)
+		#PKG=$(ls /var/cache/pacman/pkg/*.pkg.tar.*z)
+		pacman -U -f -d -r $UNION $PKG
+	fi
+	done
+	
+	rm -R $UNION/var/lib/pacman/sync/*
+	
+	DESTINATION="$(pwd)/$MODULE"
+	/sbin/mksquashfs $UNION $DESTINATION -b 128kB > mksquashfs.log
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	
+	umount $TMPDIR/union
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+pkg()
+{
+	TMPDIR="$(pwd)/pkg2lzm$$"
+	mkdir -p $TMPDIR/var/lib/pacman/local
+	#sync
+
+	pacman -Sw "$1" --noconfirm
+	PKG=$(ls /var/cache/pacman/pkg/$1-[0-9]*.pkg.tar.*z | tail -1)
+	
+	pacman -U -d -r $TMPDIR $PKG
+	
+	echo "Creating module ..."
+
+	DESTINATION="$(pwd)/${PKG%.pkg.tar.*z}.lzm"
+	/sbin/mksquashfs $TMPDIR $DESTINATION -b 128kB > mksquashfs.log
+	
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+aur()
+{
+	TMPDIR="$(pwd)/pkg2lzm$$"
+	mkdir -p $TMPDIR/var/lib/pacman/local
+	sync
+	
+	#if [ $(whereis yaourt) ]; then
+	yaourt -Sw "$1" --noconfirm
+	PKG=$(ls /var/cache/pacman/pkg/$1-[0-9]*.pkg.tar.*z)
+	yaourt -U -d -r $TMPDIR $PKG
+	#else
+	#pacman -Sw "$1" --noconfirm
+	#pacman -U -d -r $TMPDIR $PKG
+	#fi
+	
+	echo "Creating module ..."
+
+	DESTINATION="$(pwd)/${PKG%.pkg.tar.*z}.lzm"
+	/sbin/mksquashfs $TMPDIR $DESTINATION -b 128kB > mksquashfs.log
+	
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+local()
+{
+	TMPDIR="$(pwd)/pkg2lzm$$"
+	mkdir -p $TMPDIR/var/lib/pacman/local
+	PKG=$(ls $1-[0-9]*.pkg.tar.*z)
+	pacman -U -d -r $TMPDIR $PKG
+	
+	echo "Creating module ..."
+
+	DESTINATION="$(pwd)/${PKG%.pkg.tar.*z}.lzm"
+	/sbin/mksquashfs $TMPDIR $DESTINATION -b 128kB > mksquashfs.log
+
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+
+clean()
+{
+	pacman -Scc --noconfirm
+}
+
+sync()
+{
+	pacman -Syy
+}
+
+updateonly()
+{
+	TMPDIR=/mnt/live/memory/tmp$$
+	DB=$TMPDIR/db$$
+	DBPATH=$DB/var/lib/pacman/local
+	UNION=$TMPDIR/union
+	CHANGES=$TMPDIR/changes
+	mkdir -p $DBPATH
+	mkdir -p $CHANGES
+	mkdir -p $UNION
+	MODULE=$(basename "$1" .lzm).lzm
+	cp -aR /var/lib/pacman/local/* $DBPATH
+	
+	modprobe aufs
+    if [ $? -ne 0 ]; then
+	echo "Error loading Union filesystem module."
+	exit 1
+    fi
+	mount -t aufs -o br:$CHANGES=rw:$DB=rr aufs $UNION
+
+	#sync
+	pacman -Syu --noconfirm -d -r $UNION
+	
+	echo "Creating module ..."
+	
+	umount -l $UNION
+	if [ "$1" = "" ]; then
+	DESTINATION="$(pwd)"/"update-$(date +'%y.%m.%d.%H.%M').lzm"
+	else
+	DESTINATION="$(pwd)/$MODULE"
+	fi
+
+	rm -Rf $CHANGES/var/lib/pacman/sync/*
+	find $CHANGES -type f -name ".wh.*" -delete
+	/sbin/mksquashfs $CHANGES $DESTINATION -b 128kB > mksquashfs.log
+
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+	
+	rm -R -f $TMPDIR
+	echo $DESTINATION
+	chmod 0755 $DESTINATION
+}
+	
+update()
+{
+	MODULE=$(basename "$1" .lzm).lzm
+	IMAGES=/mnt/live/memory/images
+	TMPDIR=/mnt/live/memory/updatemod
+	CHANGES=$TMPDIR/changes
+	UNION=$TMPDIR/union
+	
+	if [ -d $TMPDIR ]; then
+	umount -n -l $UNION 2>/dev/null
+	rm -Rf $TMPDIR
+	fi
+	
+	if [ ! -d $IMAGES/$MODULE ]; then
+		echo "Module does not exist in union."
+		exit 1
+	fi
+	mkdir -p $CHANGES
+	mkdir -p $UNION
+
+	modprobe aufs
+    if [ $? -ne 0 ]; then
+	echo "Error loading Union filesystem module."
+	exit 1
+    fi
+	mount -t aufs -o br:$CHANGES=rw:$IMAGES/$MODULE=rr aufs $UNION
+
+	mkdir -p $UNION/var/lib/pacman
+	#sync
+	pacman -Syu --noconfirm -d -r $UNION
+
+	rm -Rf $UNION/var/lib/pacman/sync/*
+
+	/sbin/mksquashfs $UNION $MODULE -b 128kB > mksquashfs.log
+
+	if [ $? -ne 0 ]; then 
+	echo "Error building module"
+	exit
+	fi
+
+	umount -l $UNION
+
+	echo $MODULE
+	chmod 0755 $MODULE
+}
+
+action="$1"
+path="$2"
+path1="$3"
+
+case $action in
+	merge)
+		merge $path
+		;;
+	clean)
+		clean
+		;;
+	update)
+		update $path
+		;;
+	pkg)
+		pkg $path
+		;;
+	aur)
+		aur $path
+		;;
+	local)
+		local $path
+		;;
+	changes)
+		changes $path
+		;;
+	updateonly)
+		updateonly $path
+		;;
+	sync)
+		sync
+		;;
+	addlist)
+		addlist $path $path1
+		;;
+	removelist)
+		removelist $path $path1
+		;;
+	mergelist)
+		mergelist $path $path1
+		;;
+esac
+
+echo "Cleaning temporary files ..."
+rm -Rf $TMPDIR
+echo "Completed!"

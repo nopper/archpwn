@@ -2,11 +2,14 @@
 
 install ()
 {
-    MODULES=" $(checked_modules "/drivers/net/") "
+    MODULES="nfs $(checked_modules "/drivers/net/") "
 
     BINARIES=""
     FILES=""
-    SCRIPT=""
+    SCRIPT="net"
+
+    add_binary "/lib/initcpio/ipconfig" "/bin/ipconfig"
+    add_binary "/lib/initcpio/nfsmount" "/bin/nfsmount"
 }
 
 help ()
@@ -35,7 +38,7 @@ cat<<HELPEOF
                 empty only replies from the specified server are
                 accepted. To use different RARP and NFS server,
                 specify your RARP server here (or leave it blank), and
-                specify your NFS server in the `nfsroot' parameter
+                specify your NFS server in the 'nfsroot' parameter
                 (see above). If this entry is blank the address of the
                 server is used which answered the RARP/BOOTP/DHCP
                 request.
@@ -97,10 +100,10 @@ cat<<HELPEOF
                         acdirmin        = 30
                         acdirmax        = 60
                         flags           = hard, nointr, noposix, cto, ac
-  
+
   root=/dev/nfs
-  
-  If you don't use nfsroot= parameter you need to set root=/dev/nfs 
+
+  If you don't use nfsroot= parameter you need to set root=/dev/nfs
   to boot from a nfs root by autoconfiguration.
 HELPEOF
 }

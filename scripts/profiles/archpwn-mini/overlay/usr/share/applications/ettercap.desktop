@@ -1,9 +1,0 @@
-[Desktop Entry]
-Exec=ettercap -C
-Icon=preferences-web-browser-cache
-Name=Ettercap
-StartupNotify=true
-Terminal=1
-Type=Application
-X-KDE-SubstituteUID=false
-Categories=Sniffers;Spoofing

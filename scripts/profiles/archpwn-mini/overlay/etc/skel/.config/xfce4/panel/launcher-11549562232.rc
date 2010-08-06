@@ -1,8 +1,0 @@
-[Entry 0]
-Name=Navigator
-Exec=exo-open --launch WebBrowser
-Terminal=false
-StartupNotify=false
-Comment=Browse the web
-Icon=gnome-globe
-

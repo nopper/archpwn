@@ -109,20 +109,19 @@ hwdetect_graphics()
 			elif [ "$CARD_ATI" != "" ]
 			then
 			
-				# Disabled for the moment
-				#if [ $(grep -i "$CARD_ATI" ${HW_DB_PATH}/${ATI_DB}) ]
-				#then
-				#
-				#	printhl "ATI hardware detected"
-				#	printhl "Installing driver: ATI catalyst. This can take some seconds."
-				#
-				#	pacman -Udf ${HW_DRIVER_PATH}/catalyst* &>/dev/null
-				#
-				#	# add a status file in /tmp
-				#	touch /tmp/catalyst
-				#else
+				if [ $(grep -i "$CARD_ATI" ${HW_DB_PATH}/${ATI_DB}) ]
+				then
+				
+					printhl "ATI hardware detected"
+					printhl "Installing driver: ATI catalyst. This can take some seconds."
+				
+					pacman -Udf ${HW_DRIVER_PATH}/catalyst* &>/dev/null
+				
+					# add a status file in /tmp
+					touch /tmp/catalyst
+				else
 					printhl "No non-free drivers available for this hardware"
-				#fi
+				fi
 			else
 			
 					printhl "No non-free drivers available for this hardware"
@@ -133,6 +132,23 @@ hwdetect_graphics()
 		*)
 
 					printhl "Non-free graphics drivers disabled"
+
+# arg! this don't work yet
+#					# check for nvidia
+#					CARD_NVIDIA=$(lspci -n | sed -n "s/.* 0300: 10de:\(....\).*/\1/p")
+#
+#					# do we have one?
+#					if [ "$CARD_NVIDIA" != "" ]
+#					then
+#						printhl "NVIDIA hardware detected"
+#						printhl "Installing driver: nouveau. This can take some seconds."
+#
+#						pacman -Rd libdrm --noconfirm &>/dev/null
+#						pacman -Udf ${HW_DRIVER_PATH}/xf86-video-nouveau* &>/dev/null
+#						pacman -Udf ${HW_DRIVER_PATH}/nouveau-drm* &>/dev/null
+#						pacman -Udf ${HW_DRIVER_PATH}/nouveau-libdrm* &>/dev/null
+#
+#					fi
 
 		;;
 	esac

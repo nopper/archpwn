@@ -1,6 +1,4 @@
 # This file contains common functions used in init and in hooks
-# with some modifications for colorized messages :)
-
 RST="\033[1;0m"
 
 # regular colors
@@ -33,13 +31,20 @@ BGM="\033[45m"
 BGC="\033[46m"
 BGW="\033[47m"
 
-hl () { echo -n "${W}$@${RST}";  }
+#msg () {
+#    [ "${quiet}" != "y" ] && echo $@
+#}
+#err () {
+#    echo "ERROR: $@"
+#}
+
+hl () { echo -en "${W}$@${RST}";  }
 
 info () {
     if [ $# -eq 2 ] && [ "$1" = "-n" ]; then
-        echo -n " $EMB*$RST "; hl "$2"
+        echo -en " $EMB*$RST "; hl "$2"
     else
-        echo -n " $EMB*$RST "; hl "$@"; echo
+        echo -en " $EMB*$RST "; hl "$@"; echo
     fi
 }
 
@@ -47,33 +52,107 @@ msg () {
     info $@;
 }
 
-err () {
+warn () {
     if [ $# -eq 2 ] && [ "$1" = "-n" ]; then
-        echo -n " $EMR*$RST "; hl "$2"
+        echo -en " $EMY*$RST "; hl "$2"
     else
-        echo -n " $EMR*$RST "; hl "$@"; echo
+        echo -en " $EMY*$RST "; hl "$2"; echo
     fi
 }
 
-warn () {
+err () {
     if [ $# -eq 2 ] && [ "$1" = "-n" ]; then
-        echo -n " $EMY*$RST "; hl "$2"
+        echo -en " $EMR*$RST "; hl "$2"
     else
-        echo -n " $EMY*$RST "; hl "$@"; echo
+        echo -en " $EMR*$RST "; hl "$@"; echo
     fi
 }
 
 poll_device() {
     device="$1"
-    if [ "$2" -gt 0 ]; then
+    if [ "$2" -ge 0 ]; then
         seconds="$2"
     else
         seconds=5
     fi
-    info "Waiting ${seconds} seconds for device ${device} ..."
-    while [ ! -b "${device}" -a ! -L "${device}" -a ${seconds} -gt 0 ]; do
-        sleep 1
-        seconds=$((${seconds}-1))
-    done
-    [ -b "${device}" -o -L "${device}" ]
+    if [ "${udevd_running}" -eq 1 ]; then
+        info "Waiting ${seconds} seconds for device ${device} ..."
+        while [ ! -b "${device}" -a ! -h "${device}" -a ${seconds} -gt 0 ]; do
+            sleep 1
+            seconds=$((${seconds}-1))
+        done
+    fi
+    [ -b "${device}" -o -h "${device}" ]
+}
+
+launch_interactive_shell() {
+    export PS1='[ramfs \W]\$ '
+    [ "$1" = "--exec" ] && exec /bin/sh -i
+    /bin/sh -i
+}
+
+default_mount_handler() {
+    if [ ${root:0:5} != "/dev/" ] || ! poll_device "${root}" ${rootdelay}; then
+        msg "Root device '${root}' doesn't exist. Attempting to create it."
+        major=""
+        minor=""
+        if [ ${root:0:5} = "/dev/" ]; then
+            # It might be a block device (/dev/sda) -> /sys/block/sda/dev
+            # or a partition (/dev/sda1) -> /sys/block/sda/sda1/dev
+            for dir in /sys/block /sys/block/*; do
+                if [ -f ${dir}/${root:5}/dev ]; then
+                    major="$(cat ${dir}/${root:5}/dev | cut -d: -f1)"
+                    minor="$(cat ${dir}/${root:5}/dev | cut -d: -f2)"
+                    break
+                fi
+            done
+        # It might be a major/minor pair (8:1)
+        elif echo ${root} | grep -q :; then
+            major="$(echo ${root} | cut -d: -f1)"
+            minor="$(echo ${root} | cut -d: -f2)"
+            root="/dev/root"
+        # It might be major/minor encoded as a single hex-number (lilo-style) (801)
+        elif [ ${#root} -le 4 -a ${#root} -gt 2 ] && echo "${root}" | grep -qe '^[A-Fa-f0-9]*$'; then
+            str_offset=$((${#root}-2))
+            major=$((0x${root:0:${str_offset}}))
+            minor=$((0x${root:${str_offset}}))
+            root="/dev/root"
+        fi
+        if [ -n "${major}" -a -n "${minor}" ]; then
+            msg "Creating root device ${root} with major ${major} and minor ${minor}."
+            mknod ${root} b ${major} ${minor}
+        else
+            err "Unable to determine major/minor number of root device '${root}'."
+            warn "You are being dropped to a recovery shell"
+            warn "    Type 'exit' to try and continue booting"
+            launch_interactive_shell
+            info "Trying to continue (this will most likely fail) ..."
+        fi
+    fi
+    # We didn't build filesystem support into busybox,
+    # instead we use util-linux-ng's blkid for best compatibility
+    if [ -n "${rootfstype}" ]; then
+        fstype="${rootfstype}"
+    else
+        fstype=$(sbin/blkid -u filesystem -o value -s TYPE -p "${root}")
+        if [ -z "${fstype}" ]; then
+            err "Unable to determine the file system type of ${root}:"
+            err "Either it contains no filesystem, an unknown filesystem,"
+            err "or more than one valid file system signature was found."
+            echo
+            err "Try adding"
+            err "    rootfstype=your_filesystem_type"
+            err "to the kernel command line."
+            echo
+            warn "You are now being dropped into an emergency shell."
+            launch_interactive_shell
+            info "Trying to continue (this will most likely fail) ..."
+        fi
+    fi
+    if [ "${readwrite}" = "yes" ]; then
+        rwopt="rw"
+    else
+        rwopt="ro"
+    fi
+    mount ${fstype:+-t ${fstype}} -o ${rwopt}${rootflags:+,${rootflags}} "${root}" "$1"
 }
