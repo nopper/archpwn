@@ -1,0 +1,496 @@
+[begin] (Menu)
+[exec] (Terminal) {gnome-terminal}
+[exec] (Terminator) {terminator}
+[exec] (xterm) {xterm}
+[exec] (Firefox) {firefox}
+[exec] (File manager) {nautilus --no-desktop}
+[separator]
+[submenu] (Applications)
+ [submenu] (Accessories)
+     [exec] (Archive Manager) {file-roller }
+     [exec] (Character Map) {gucharmap}
+     [exec] (Root Terminal) {gksu -l gnome-terminal}
+     [exec] (Search for Files...) {gnome-search-tool}
+     [exec] (Take Screenshot) {gnome-screenshot --interactive}
+     [exec] (Terminal) {gnome-terminal}
+     [exec] (Terminator) {terminator}
+     [exec] (gVim) {gvim}
+     [exec] (gedit) {gedit }
+ [end] # (Accessories)
+ [submenu] (ArchPwn)
+  [submenu] (Bluetooth)
+      [exec] (Blueprint) {gnome-terminal -e /usr/share/archpwn-launchers/blueprint-launcher}
+      [exec] (Btscanner) {gnome-terminal -e /usr/share/archpwn-launchers/btscanner-launcher}
+      [exec] (bluebugger) {gnome-terminal -e /usr/share/archpwn-launchers/bluebugger-launcher}
+      [exec] (bluediving) {gnome-terminal -e /usr/share/archpwn-launchers/bluediving-launcher}
+      [exec] (bluesnarfer) {gnome-terminal -e /usr/share/archpwn-launchers/bluesnarfer-launcher}
+      [exec] (bluesquirrel) {gnome-terminal -e /usr/share/archpwn-launchers/bluesquirrel-launcher}
+      [exec] (bss) {gnome-terminal -e /usr/share/archpwn-launchers/bss-launcher}
+      [exec] (bt_audit) {gnome-terminal -e /usr/share/archpwn-launchers/bt_audit-launcher}
+      [exec] (carwhisperer) {gnome-terminal -e /usr/share/archpwn-launchers/carwhisperer-launcher}
+      [exec] (ghettotooth) {gnome-terminal -e /usr/share/archpwn-launchers/ghettotooth-launcher}
+      [exec] (greenplaque) {gnome-terminal -e /usr/share/archpwn-launchers/greenplaque-launcher}
+      [exec] (haraldscan) {gnome-terminal -e /usr/share/archpwn-launchers/haraldscan-launcher}
+      [exec] (hidattack) {gnome-terminal -e /usr/share/archpwn-launchers/hidattack-launcher}
+      [exec] (obexstress) {gnome-terminal -e /usr/share/archpwn-launchers/obexstress-launcher}
+      [exec] (tbear) {gnome-terminal -e /usr/share/archpwn-launchers/tbear-launcher}
+  [end] # (Bluetooth)
+  [submenu] (Bruteforce)
+      [exec] (BruteSSH) {gnome-terminal -e /usr/share/archpwn-launchers/brutessh-launcher}
+      [exec] (Cowpatty) {gnome-terminal -e /usr/share/archpwn-launchers/cowpatty-launcher}
+      [exec] (Inguma) {gnome-terminal -e /usr/share/archpwn-launchers/inguma-launcher}
+      [exec] (Medusa) {gnome-terminal -e /usr/share/archpwn-launchers/medusa-launcher}
+      [exec] (SQLbrute) {gnome-terminal -e /usr/share/archpwn-launchers/sqlbrute-launcher}
+      [exec] (SSHater) {gnome-terminal -e /usr/share/archpwn-launchers/sshatter-launcher}
+      [exec] (Wfuzz) {gnome-terminal -e /usr/share/archpwn-launchers/wfuzz-launcher}
+      [exec] (bob-the-butcher) {gnome-terminal -e /usr/share/archpwn-launchers/bob-the-butcher-launcher}
+      [exec] (ophcrack) {gnome-terminal -e /usr/share/archpwn-launchers/ophcrack-launcher}
+      [exec] (owabf) {gnome-terminal -e /usr/share/archpwn-launchers/owabf-launcher}
+      [exec] (passcracking) {gnome-terminal -e /usr/share/archpwn-launchers/passcracking-launcher}
+      [exec] (pyrit) {gnome-terminal -e /usr/share/archpwn-launchers/pyrit-launcher}
+      [exec] (rainbowcrack) {gnome-terminal -e /usr/share/archpwn-launchers/rainbowcrack-launcher}
+      [exec] (rarcrack) {gnome-terminal -e /usr/share/archpwn-launchers/rarcrack-launcher}
+      [exec] (rdesktop-brute) {gnome-terminal -e /usr/share/archpwn-launchers/rdesktop-brute-launcher}
+      [exec] (saltymd5) {gnome-terminal -e /usr/share/archpwn-launchers/saltymd5-launcher}
+      [exec] (smbbf) {gnome-terminal -e /usr/share/archpwn-launchers/smbbf-launcher}
+      [exec] (sqlpat) {gnome-terminal -e /usr/share/archpwn-launchers/sqlpat-launcher}
+      [exec] (tftp-bruteforce) {gnome-terminal -e /usr/share/archpwn-launchers/tftp-bruteforce-launcher}
+      [exec] (thc-pptp-bruter) {gnome-terminal -e /usr/share/archpwn-launchers/thc-pptp-bruter-launcher}
+      [exec] (vncrack) {gnome-terminal -e /usr/share/archpwn-launchers/vncrack-launcher}
+      [exec] (zulu) {gnome-terminal -e /usr/share/archpwn-launchers/zulu-launcher}
+  [end] # (Bruteforce)
+  [submenu] (Database)
+      [exec] (Pblind) {gnome-terminal -e /usr/share/archpwn-launchers/pblind-launcher}
+      [exec] (SQL Ninja) {gnome-terminal -e /usr/share/archpwn-launchers/sqlninja-launcher}
+      [exec] (SQLMap) {gnome-terminal -e /usr/share/archpwn-launchers/sqlmap-launcher}
+      [exec] (SQLbrute) {gnome-terminal -e /usr/share/archpwn-launchers/sqlbrute-launcher}
+      [exec] (blindsql) {gnome-terminal -e /usr/share/archpwn-launchers/blindsql-launcher}
+      [exec] (bsqlbf) {gnome-terminal -e /usr/share/archpwn-launchers/bsqlbf-launcher}
+      [exec] (getsids) {gnome-terminal -e /usr/share/archpwn-launchers/getsids-launcher}
+      [exec] (mysqlaudit) {gnome-terminal -e /usr/share/archpwn-launchers/mysqlaudit-launcher}
+      [exec] (spike-proxy) {gnome-terminal -e /usr/share/archpwn-launchers/spike-proxy-launcher}
+      [exec] (sqid) {gnome-terminal -e /usr/share/archpwn-launchers/sqid-launcher}
+      [exec] (sqlsus) {gnome-terminal -e /usr/share/archpwn-launchers/sqlsus-launcher}
+  [end] # (Database)
+  [submenu] (Enumeration)
+      [exec] (DNSTracer) {gnome-terminal -e /usr/share/archpwn-launchers/dnstracer-launcher}
+      [exec] (Dns Enum) {gnome-terminal -e /usr/share/archpwn-launchers/dnsenum-launcher}
+      [exec] (EnumIAX) {gnome-terminal -e /usr/share/archpwn-launchers/enumiax-launcher}
+      [exec] (Fierce) {gnome-terminal -e /usr/share/archpwn-launchers/fierce-svn-launcher}
+      [exec] (Gooscan) {gnome-terminal -e /usr/share/archpwn-launchers/gooscan-launcher}
+      [exec] (Metagoofil) {gnome-terminal -e /usr/share/archpwn-launchers/metagoofil-launcher}
+      [exec] (Snmp Enum) {gnome-terminal -e /usr/share/archpwn-launchers/snmpenum-launcher}
+      [exec] (Webshag) {webshag}
+      [exec] (ace) {gnome-terminal -e /usr/share/archpwn-launchers/ace-launcher}
+      [exec] (dmitry) {gnome-terminal -e /usr/share/archpwn-launchers/dmitry-launcher}
+      [exec] (dnsmap) {gnome-terminal -e /usr/share/archpwn-launchers/dnsmap-launcher}
+      [exec] (dnspredict) {gnome-terminal -e /usr/share/archpwn-launchers/dnspredict-launcher}
+      [exec] (dnsrecon) {gnome-terminal -e /usr/share/archpwn-launchers/dnsrecon-launcher}
+      [exec] (dnswalk) {gnome-terminal -e /usr/share/archpwn-launchers/dnswalk-launcher}
+      [exec] (enum4linux) {gnome-terminal -e /usr/share/archpwn-launchers/enum4linux-launcher}
+      [exec] (firewalk) {gnome-terminal -e /usr/share/archpwn-launchers/firewalk-launcher}
+      [exec] (getsids) {gnome-terminal -e /usr/share/archpwn-launchers/getsids-launcher}
+      [exec] (goorecon) {gnome-terminal -e /usr/share/archpwn-launchers/goorecon-launcher}
+      [exec] (gwtenum) {gnome-terminal -e /usr/share/archpwn-launchers/gwtenum-launcher}
+      [exec] (halberd) {gnome-terminal -e /usr/share/archpwn-launchers/halberd-launcher}
+      [exec] (irpas) {gnome-terminal -e /usr/share/archpwn-launchers/irpas-launcher}
+      [exec] (isr-form) {gnome-terminal -e /usr/share/archpwn-launchers/isr-form-launcher}
+      [exec] (lbd) {gnome-terminal -e /usr/share/archpwn-launchers/lbd-launcher}
+      [exec] (nbtool) {gnome-terminal -e /usr/share/archpwn-launchers/nbtool-launcher}
+      [exec] (netmap) {gnome-terminal -e /usr/share/archpwn-launchers/netmap-launcher}
+      [exec] (nmbscan) {gnome-terminal -e /usr/share/archpwn-launchers/nmbscan-launcher}
+      [exec] (polenum) {gnome-terminal -e /usr/share/archpwn-launchers/polenum-launcher}
+      [exec] (python-0trace) {gnome-terminal -e /usr/share/archpwn-launchers/python-0trace-launcher}
+      [exec] (relay-scanner) {gnome-terminal -e /usr/share/archpwn-launchers/relay-scanner-launcher}
+      [exec] (smtp-vrfy) {gnome-terminal -e /usr/share/archpwn-launchers/smtp-vrfy-launcher}
+      [exec] (smtpmap) {gnome-terminal -e /usr/share/archpwn-launchers/smtpmap-launcher}
+      [exec] (snmpcheck) {gnome-terminal -e /usr/share/archpwn-launchers/snmpcheck-launcher}
+      [exec] (snmpscan) {gnome-terminal -e /usr/share/archpwn-launchers/snmpscan-launcher}
+      [exec] (subdomainer) {gnome-terminal -e /usr/share/archpwn-launchers/subdomainer-launcher}
+      [exec] (theharvester) {gnome-terminal -e /usr/share/archpwn-launchers/theharvester-launcher}
+      [exec] (upnpscan) {gnome-terminal -e /usr/share/archpwn-launchers/upnpscan-launcher}
+      [exec] (webenum) {gnome-terminal -e /usr/share/archpwn-launchers/webenum-launcher}
+  [end] # (Enumeration)
+  [submenu] (Exploits)
+      [exec] (enyelkm) {gnome-terminal -e /usr/share/archpwn-launchers/enyelkm-launcher}
+      [exec] (evilgrade) {gnome-terminal -e /usr/share/archpwn-launchers/evilgrade-launcher}
+      [exec] (metasploit3) {gnome-terminal -e /usr/share/archpwn-launchers/metasploit3-launcher}
+      [exec] (pirana) {gnome-terminal -e /usr/share/archpwn-launchers/pirana-launcher}
+      [exec] (sapyto) {gnome-terminal -e /usr/share/archpwn-launchers/sapyto-launcher}
+      [exec] (set) {gnome-terminal -e /usr/share/archpwn-launchers/set-svn-launcher}
+  [end] # (Exploits)
+  [submenu] (Forensics)
+      [exec] (AESfix) {gnome-terminal -e /usr/share/archpwn-launchers/aesfix-launcher}
+      [exec] (AESkeyfind) {gnome-terminal -e /usr/share/archpwn-launchers/aeskeyfind-launcher}
+      [exec] (DCFLDD) {gnome-terminal -e /usr/share/archpwn-launchers/dcfldd-launcher}
+      [exec] (Foremost) {gnome-terminal -e /usr/share/archpwn-launchers/foremost-launcher}
+      [exec] (Magicrescue) {gnome-terminal -e /usr/share/archpwn-launchers/magicrescue-launcher}
+      [exec] (MboxGrep) {gnome-terminal -e /usr/share/archpwn-launchers/mboxgrep-launcher}
+      [exec] (RSAkeyfind) {gnome-terminal -e /usr/share/archpwn-launchers/rsakeyfind-launcher}
+      [exec] (Vinetto) {gnome-terminal -e /usr/share/archpwn-launchers/vinetto-launcher}
+      [exec] (afflib) {gnome-terminal -e /usr/share/archpwn-launchers/afflib-launcher}
+      [exec] (aimage) {gnome-terminal -e /usr/share/archpwn-launchers/aimage-launcher}
+      [exec] (air) {gnome-terminal -e /usr/share/archpwn-launchers/air-launcher}
+      [exec] (autopsy) {gnome-terminal -e /usr/share/archpwn-launchers/autopsy-launcher}
+      [exec] (bios_memimage) {gnome-terminal -e /usr/share/archpwn-launchers/bios_memimage-launcher}
+      [exec] (data-carver-processors) {gnome-terminal -e /usr/share/archpwn-launchers/data-carver-processors-launcher}
+      [exec] (fatback) {gnome-terminal -e /usr/share/archpwn-launchers/fatback-launcher}
+      [exec] (galleta) {gnome-terminal -e /usr/share/archpwn-launchers/galleta-launcher}
+      [exec] (grokevt) {gnome-terminal -e /usr/share/archpwn-launchers/grokevt-launcher}
+      [exec] (make-pdf) {gnome-terminal -e /usr/share/archpwn-launchers/make-pdf-launcher}
+      [exec] (memdump) {gnome-terminal -e /usr/share/archpwn-launchers/memdump-launcher}
+      [exec] (memfetch) {gnome-terminal -e /usr/share/archpwn-launchers/memfetch-launcher}
+      [exec] (ms-sys) {gnome-terminal -e /usr/share/archpwn-launchers/ms-sys-launcher}
+      [exec] (ophcrack) {gnome-terminal -e /usr/share/archpwn-launchers/ophcrack-launcher}
+      [exec] (origami) {gnome-terminal -e /usr/share/archpwn-launchers/origami-launcher}
+      [exec] (pasco) {gnome-terminal -e /usr/share/archpwn-launchers/pasco-launcher}
+      [exec] (pdf-parser) {gnome-terminal -e /usr/share/archpwn-launchers/pdf-parser-launcher}
+      [exec] (pdfid) {gnome-terminal -e /usr/share/archpwn-launchers/pdfid-launcher}
+      [exec] (reglookup) {gnome-terminal -e /usr/share/archpwn-launchers/reglookup-launcher}
+      [exec] (scalpel) {gnome-terminal -e /usr/share/archpwn-launchers/scalpel-launcher}
+      [exec] (scrub) {gnome-terminal -e /usr/share/archpwn-launchers/scrub-launcher}
+      [exec] (trid) {gnome-terminal -e /usr/share/archpwn-launchers/trid-launcher}
+      [exec] (videosnarf) {gnome-terminal -e /usr/share/archpwn-launchers/videosnarf-launcher}
+      [exec] (volatility) {gnome-terminal -e /usr/share/archpwn-launchers/volatility-launcher}
+      [exec] (xplico) {gnome-terminal -e /usr/share/archpwn-launchers/xplico-launcher}
+  [end] # (Forensics)
+  [submenu] (Fuzzing)
+      [exec] (Bed) {gnome-terminal -e /usr/share/archpwn-launchers/bed-launcher}
+      [exec] (Inguma) {gnome-terminal -e /usr/share/archpwn-launchers/inguma-launcher}
+      [exec] (Spike) {gnome-terminal -e /usr/share/archpwn-launchers/spike-launcher}
+      [exec] (Wfuzz) {gnome-terminal -e /usr/share/archpwn-launchers/wfuzz-launcher}
+      [exec] (ZZuf) {gnome-terminal -e /usr/share/archpwn-launchers/zzuf-launcher}
+      [exec] (browser-fuzzer) {gnome-terminal -e /usr/share/archpwn-launchers/browser-fuzzer-launcher}
+      [exec] (bss) {gnome-terminal -e /usr/share/archpwn-launchers/bss-launcher}
+      [exec] (bunny) {gnome-terminal -e /usr/share/archpwn-launchers/bunny-launcher}
+      [exec] (cirt-fuzzer) {gnome-terminal -e /usr/share/archpwn-launchers/cirt-fuzzer-launcher}
+      [exec] (file-format-fuzzer) {gnome-terminal -e /usr/share/archpwn-launchers/file-format-fuzzer-launcher}
+      [exec] (fuzzdiff) {gnome-terminal -e /usr/share/archpwn-launchers/fuzzdiff-launcher}
+      [exec] (http-fuzz) {gnome-terminal -e /usr/share/archpwn-launchers/http-fuzz-launcher}
+      [exec] (hyenae) {gnome-terminal -e /usr/share/archpwn-launchers/hyenae-launcher}
+      [exec] (mistress) {gnome-terminal -e /usr/share/archpwn-launchers/mistress-launcher}
+      [exec] (ohrwurm) {gnome-terminal -e /usr/share/archpwn-launchers/ohrwurm-launcher}
+      [exec] (sfuzz) {gnome-terminal -e /usr/share/archpwn-launchers/sfuzz-launcher}
+      [exec] (smtp-fuzz) {gnome-terminal -e /usr/share/archpwn-launchers/smtp-fuzz-launcher}
+      [exec] (taof) {/usr/share/archpwn-launchers/taof-launcher}
+  [end] # (Fuzzing)
+  [submenu] (Misc)
+      [exec] (3proxy) {gnome-terminal -e /usr/share/archpwn-launchers/3proxy-launcher}
+      [exec] (Driftnet) {gnome-terminal -e /usr/share/archpwn-launchers/driftnet-git-launcher}
+      [exec] (Sing) {gnome-terminal -e /usr/share/archpwn-launchers/sing-launcher}
+      [exec] (airgraph-ng) {gnome-terminal -e /usr/share/archpwn-launchers/airgraph-ng-svn-launcher}
+      [exec] (chntpw) {gnome-terminal -e /usr/share/archpwn-launchers/chntpw-launcher}
+      [exec] (dhcdrop) {gnome-terminal -e /usr/share/archpwn-launchers/dhcdrop-launcher}
+      [exec] (elettra) {gnome-terminal -e /usr/share/archpwn-launchers/elettra-launcher}
+      [exec] (ent) {gnome-terminal -e /usr/share/archpwn-launchers/ent-launcher}
+      [exec] (extundelete) {gnome-terminal -e /usr/share/archpwn-launchers/extundelete-launcher}
+      [exec] (flare) {gnome-terminal -e /usr/share/archpwn-launchers/flare-launcher}
+      [exec] (flasm) {gnome-terminal -e /usr/share/archpwn-launchers/flasm-launcher}
+      [exec] (genlist) {gnome-terminal -e /usr/share/archpwn-launchers/genlist-launcher}
+      [exec] (geoedge) {gnome-terminal -e /usr/share/archpwn-launchers/geoedge-launcher}
+      [exec] (geoipgen) {gnome-terminal -e /usr/share/archpwn-launchers/geoipgen-launcher}
+      [exec] (hamster) {gnome-terminal -e /usr/share/archpwn-launchers/hamster-launcher}
+      [exec] (http-put) {gnome-terminal -e /usr/share/archpwn-launchers/http-put-launcher}
+      [exec] (iWar ) {gnome-terminal -e /usr/share/archpwn-launchers/iwar-launcher}
+      [exec] (intrace) {gnome-terminal -e /usr/share/archpwn-launchers/intrace-launcher}
+      [exec] (inundator) {gnome-terminal -e /usr/share/archpwn-launchers/inundator-launcher}
+      [exec] (kismet-earth) {gnome-terminal -e /usr/share/archpwn-launchers/kismet-earth-launcher}
+      [exec] (kmsap) {gnome-terminal -e /usr/share/archpwn-launchers/kmsap-launcher}
+      [exec] (leo) {/usr/share/archpwn-launchers/leo-launcher}
+      [exec] (list-urls) {gnome-terminal -e /usr/share/archpwn-launchers/list-urls-launcher}
+      [exec] (lynis) {gnome-terminal -e /usr/share/archpwn-launchers/lynis-launcher}
+      [exec] (middler) {gnome-terminal -e /usr/share/archpwn-launchers/middler-launcher}
+      [exec] (mitmap) {gnome-terminal -e /usr/share/archpwn-launchers/mitmap-launcher}
+      [exec] (nbtool) {gnome-terminal -e /usr/share/archpwn-launchers/nbtool-launcher}
+      [exec] (netactview) {gnome-terminal -e /usr/share/archpwn-launchers/netactview-launcher}
+      [exec] (netmap) {gnome-terminal -e /usr/share/archpwn-launchers/netmap-launcher}
+      [exec] (nwmap) {gnome-terminal -e /usr/share/archpwn-launchers/nwmap-launcher}
+      [exec] (openvas-client) {gnome-terminal -e /usr/share/archpwn-launchers/openvas-client-launcher}
+      [exec] (openvas-libraries) {gnome-terminal -e /usr/share/archpwn-launchers/openvas-libraries-launcher}
+      [exec] (openvas-scanner) {gnome-terminal -e /usr/share/archpwn-launchers/openvas-scanner-launcher}
+      [exec] (packet-o-matic) {gnome-terminal -e /usr/share/archpwn-launchers/packet-o-matic-svn-launcher}
+      [exec] (rarcrack) {gnome-terminal -e /usr/share/archpwn-launchers/rarcrack-launcher}
+      [exec] (sbd) {gnome-terminal -e /usr/share/archpwn-launchers/sbd-launcher}
+      [exec] (schnappi-dhcp) {gnome-terminal -e /usr/share/archpwn-launchers/schnappi-dhcp-launcher}
+      [exec] (sslcat) {gnome-terminal -e /usr/share/archpwn-launchers/sslcat-launcher}
+      [exec] (stompy) {gnome-terminal -e /usr/share/archpwn-launchers/stompy-launcher}
+      [exec] (tcpxtract) {gnome-terminal -e /usr/share/archpwn-launchers/tcpxtract-launcher}
+      [exec] (tnscmd) {gnome-terminal -e /usr/share/archpwn-launchers/tnscmd-launcher}
+      [exec] (wavemon) {gnome-terminal -e /usr/share/archpwn-launchers/wavemon-launcher}
+      [exec] (winexe) {gnome-terminal -e /usr/share/archpwn-launchers/winexe-git-launcher}
+      [exec] (xspy) {gnome-terminal -e /usr/share/archpwn-launchers/xspy-launcher}
+  [end] # (Misc)
+  [submenu] (Password)
+      [exec] (AESfix) {gnome-terminal -e /usr/share/archpwn-launchers/aesfix-launcher}
+      [exec] (AESkeyfind) {gnome-terminal -e /usr/share/archpwn-launchers/aeskeyfind-launcher}
+      [exec] (ASLEAP) {gnome-terminal -e /usr/share/archpwn-launchers/asleap-launcher}
+      [exec] (CmosPwd) {gnome-terminal -e /usr/share/archpwn-launchers/cmospwd-launcher}
+      [exec] (Cowpatty) {gnome-terminal -e /usr/share/archpwn-launchers/cowpatty-launcher}
+      [exec] (Medusa) {gnome-terminal -e /usr/share/archpwn-launchers/medusa-launcher}
+      [exec] (RSAkeyfind) {gnome-terminal -e /usr/share/archpwn-launchers/rsakeyfind-launcher}
+      [exec] (bios_memimage) {gnome-terminal -e /usr/share/archpwn-launchers/bios_memimage-launcher}
+      [exec] (bob-the-butcher) {gnome-terminal -e /usr/share/archpwn-launchers/bob-the-butcher-launcher}
+      [exec] (crunch) {gnome-terminal -e /usr/share/archpwn-launchers/crunch-launcher}
+      [exec] (cupp) {gnome-terminal -e /usr/share/archpwn-launchers/cupp-launcher}
+      [exec] (evilmaid) {gnome-terminal -e /usr/share/archpwn-launchers/evilmaid-launcher}
+      [exec] (ophcrack) {gnome-terminal -e /usr/share/archpwn-launchers/ophcrack-launcher}
+      [exec] (rainbowcrack) {gnome-terminal -e /usr/share/archpwn-launchers/rainbowcrack-launcher}
+      [exec] (samdump2) {gnome-terminal -e /usr/share/archpwn-launchers/samdump2-launcher}
+      [exec] (samydeluxe) {gnome-terminal -e /usr/share/archpwn-launchers/samydeluxe-launcher}
+      [exec] (smbbf) {gnome-terminal -e /usr/share/archpwn-launchers/smbbf-launcher}
+      [exec] (wyd) {gnome-terminal -e /usr/share/archpwn-launchers/wyd-launcher}
+  [end] # (Password)
+  [submenu] (Reversing)
+      [exec] (Evans Debugger) {edb}
+      [exec] (Spike) {gnome-terminal -e /usr/share/archpwn-launchers/spike-launcher}
+      [exec] (ZeroWine) {gnome-terminal -e /usr/share/archpwn-launchers/zerowine-launcher}
+      [exec] (eresi) {gnome-terminal -e /usr/share/archpwn-launchers/eresi-svn-launcher}
+      [exec] (flasm) {gnome-terminal -e /usr/share/archpwn-launchers/flasm-launcher}
+      [exec] (radare) {gnome-terminal -e /usr/share/archpwn-launchers/radare-hg-launcher}
+      [exec] (swfintruder) {gnome-terminal -e /usr/share/archpwn-launchers/swfintruder-launcher}
+      [exec] (udis86) {gnome-terminal -e /usr/share/archpwn-launchers/udis86-launcher}
+  [end] # (Reversing)
+  [submenu] (Scanners)
+      [exec] (ADMSnmp) {gnome-terminal -e /usr/share/archpwn-launchers/admsnmp-launcher}
+      [exec] (Amap) {gnome-terminal -e /usr/share/archpwn-launchers/amap-launcher}
+      [exec] (Hping3) {gnome-terminal -e /usr/share/archpwn-launchers/hping3-launcher}
+      [exec] (Inguma) {gnome-terminal -e /usr/share/archpwn-launchers/inguma-launcher}
+      [exec] (Netdiscover) {gnome-terminal -e /usr/share/archpwn-launchers/netdiscover-svn-launcher}
+      [exec] (P0f) {gnome-terminal -e /usr/share/archpwn-launchers/p0f-launcher}
+      [exec] (PacketManipulator) {PacketManipulator}
+      [exec] (Packit) {gnome-terminal -e /usr/share/archpwn-launchers/packit-launcher}
+      [exec] (Pblind) {gnome-terminal -e /usr/share/archpwn-launchers/pblind-launcher}
+      [exec] (Propecia) {gnome-terminal -e /usr/share/archpwn-launchers/propecia-launcher}
+      [exec] (Ratproxy) {gnome-terminal -e /usr/share/archpwn-launchers/ratproxy-launcher}
+      [exec] (SEAT) {seat}
+      [exec] (SQL Ninja) {gnome-terminal -e /usr/share/archpwn-launchers/sqlninja-launcher}
+      [exec] (UnicornScan) {gnome-terminal -e /usr/share/archpwn-launchers/unicornscan-launcher}
+      [exec] (Wapiti) {gnome-terminal -e /usr/share/archpwn-launchers/wapiti-launcher}
+      [exec] (Webshag) {webshag}
+      [exec] (XProbe2) {gnome-terminal -e /usr/share/archpwn-launchers/xprobe2-launcher}
+      [exec] (arp-scan) {gnome-terminal -e /usr/share/archpwn-launchers/arp-scan-launcher}
+      [exec] (braa) {gnome-terminal -e /usr/share/archpwn-launchers/braa-launcher}
+      [exec] (complemento) {gnome-terminal -e /usr/share/archpwn-launchers/complemento-launcher}
+      [exec] (fpdns) {gnome-terminal -e /usr/share/archpwn-launchers/fpdns-launcher}
+      [exec] (grabber) {gnome-terminal -e /usr/share/archpwn-launchers/grabber-launcher}
+      [exec] (httprint) {gnome-terminal -e /usr/share/archpwn-launchers/httprint-launcher}
+      [exec] (ike-scan) {gnome-terminal -e /usr/share/archpwn-launchers/ike-scan-launcher}
+      [exec] (lynis) {gnome-terminal -e /usr/share/archpwn-launchers/lynis-launcher}
+      [exec] (mdk3) {gnome-terminal -e /usr/share/archpwn-launchers/mdk3-launcher}
+      [exec] (metoscan) {gnome-terminal -e /usr/share/archpwn-launchers/metoscan-launcher}
+      [exec] (nbtool) {gnome-terminal -e /usr/share/archpwn-launchers/nbtool-launcher}
+      [exec] (nikto) {gnome-terminal -e /usr/share/archpwn-launchers/nikto-launcher}
+      [exec] (nsat) {gnome-terminal -e /usr/share/archpwn-launchers/nsat-launcher}
+      [exec] (nwmap) {gnome-terminal -e /usr/share/archpwn-launchers/nwmap-launcher}
+      [exec] (onesixtyone) {gnome-terminal -e /usr/share/archpwn-launchers/onesixtyone-launcher}
+      [exec] (packETH) {packETH}
+      [exec] (paketto) {gnome-terminal -e /usr/share/archpwn-launchers/paketto-launcher}
+      [exec] (pbnj) {gnome-terminal -e /usr/share/archpwn-launchers/pbnj-launcher}
+      [exec] (perl-net-sinfp) {gnome-terminal -e /usr/share/archpwn-launchers/perl-net-sinfp-launcher}
+      [exec] (sctpscan) {gnome-terminal -e /usr/share/archpwn-launchers/sctpscan-git-launcher}
+      [exec] (sslscan) {gnome-terminal -e /usr/share/archpwn-launchers/sslscan-launcher}
+      [exec] (thc-ipv6) {gnome-terminal -e /usr/share/archpwn-launchers/thc-ipv6-launcher}
+      [exec] (umit) {gnome-terminal -e /usr/share/archpwn-launchers/umit-launcher}
+      [exec] (upnpscan) {gnome-terminal -e /usr/share/archpwn-launchers/upnpscan-launcher}
+      [exec] (w3af) {gnome-terminal -e /usr/share/archpwn-launchers/w3af-launcher}
+      [exec] (wafp) {gnome-terminal -e /usr/share/archpwn-launchers/wafp-svn-launcher}
+      [exec] (whatweb) {gnome-terminal -e /usr/share/archpwn-launchers/whatweb-launcher}
+      [exec] (xsser) {gnome-terminal -e /usr/share/archpwn-launchers/xsser-launcher}
+      [exec] (xsss) {gnome-terminal -e /usr/share/archpwn-launchers/xsss-launcher}
+      [exec] (yersinia) {/usr/share/archpwn-launchers/yersinia-launcher}
+  [end] # (Scanners)
+  [submenu] (Sniffing)
+      [exec] (ASLEAP) {gnome-terminal -e /usr/share/archpwn-launchers/asleap-launcher}
+      [exec] (DSniff) {gnome-terminal -e /usr/share/archpwn-launchers/dsniff-launcher}
+      [exec] (Driftnet) {gnome-terminal -e /usr/share/archpwn-launchers/driftnet-git-launcher}
+      [exec] (SSLDump) {gnome-terminal -e /usr/share/archpwn-launchers/ssldump-launcher}
+      [exec] (TcPick) {gnome-terminal -e /usr/share/archpwn-launchers/tcpick-launcher}
+      [exec] (fiked) {gnome-terminal -e /usr/share/archpwn-launchers/fiked-launcher}
+      [exec] (hamster) {gnome-terminal -e /usr/share/archpwn-launchers/hamster-launcher}
+      [exec] (ipaudit) {gnome-terminal -e /usr/share/archpwn-launchers/ipaudit-launcher}
+      [exec] (netsed) {gnome-terminal -e /usr/share/archpwn-launchers/netsed-launcher}
+      [exec] (packet-o-matic) {gnome-terminal -e /usr/share/archpwn-launchers/packet-o-matic-svn-launcher}
+      [exec] (phoss) {gnome-terminal -e /usr/share/archpwn-launchers/phoss-launcher}
+      [exec] (sniffjoke) {gnome-terminal -e /usr/share/archpwn-launchers/sniffjoke-launcher}
+      [exec] (sslsniff) {gnome-terminal -e /usr/share/archpwn-launchers/sslsniff-launcher}
+      [exec] (sslstrip) {gnome-terminal -e /usr/share/archpwn-launchers/sslstrip-launcher}
+      [exec] (tcpreplay) {gnome-terminal -e /usr/share/archpwn-launchers/tcpreplay-launcher}
+      [exec] (ucsniff) {gnome-terminal -e /usr/share/archpwn-launchers/ucsniff-launcher}
+  [end] # (Sniffing)
+  [submenu] (Spoofing)
+      [exec] (admid-pack) {gnome-terminal -e /usr/share/archpwn-launchers/admid-pack-launcher}
+      [exec] (dnsa) {gnome-terminal -e /usr/share/archpwn-launchers/dnsa-launcher}
+      [exec] (lsrtunnel) {gnome-terminal -e /usr/share/archpwn-launchers/lsrtunnel-launcher}
+  [end] # (Spoofing)
+  [submenu] (Tunneling)
+      [exec] (CryptCat) {gnome-terminal -e /usr/share/archpwn-launchers/cryptcat-launcher}
+      [exec] (ProxyTunnel) {gnome-terminal -e /usr/share/archpwn-launchers/proxytunnel-launcher}
+      [exec] (TinyProxy) {gnome-terminal -e /usr/share/archpwn-launchers/tinyproxy-launcher}
+      [exec] (ctunnel) {gnome-terminal -e /usr/share/archpwn-launchers/ctunnel-launcher}
+      [exec] (dns2tcp) {gnome-terminal -e /usr/share/archpwn-launchers/dns2tcp-launcher}
+      [exec] (icmptx) {gnome-terminal -e /usr/share/archpwn-launchers/icmptx-launcher}
+      [exec] (iodine) {gnome-terminal -e /usr/share/archpwn-launchers/iodine-launcher}
+      [exec] (matahari) {gnome-terminal -e /usr/share/archpwn-launchers/matahari-launcher}
+      [exec] (miredo) {gnome-terminal -e /usr/share/archpwn-launchers/miredo-launcher}
+      [exec] (nstx) {gnome-terminal -e /usr/share/archpwn-launchers/nstx-launcher}
+      [exec] (ozymandns) {gnome-terminal -e /usr/share/archpwn-launchers/ozymandns-launcher}
+      [exec] (packet-o-matic) {gnome-terminal -e /usr/share/archpwn-launchers/packet-o-matic-svn-launcher}
+      [exec] (pingtunnel) {gnome-terminal -e /usr/share/archpwn-launchers/pingtunnel-launcher}
+      [exec] (proxychains) {gnome-terminal -e /usr/share/archpwn-launchers/proxychains-launcher}
+      [exec] (rinetd) {gnome-terminal -e /usr/share/archpwn-launchers/rinetd-launcher}
+      [exec] (sbd) {gnome-terminal -e /usr/share/archpwn-launchers/sbd-launcher}
+      [exec] (stunnel) {gnome-terminal -e /usr/share/archpwn-launchers/stunnel-launcher}
+      [exec] (tinc) {gnome-terminal -e /usr/share/archpwn-launchers/tinc-launcher}
+      [exec] (udptunnel) {gnome-terminal -e /usr/share/archpwn-launchers/udptunnel-launcher}
+  [end] # (Tunneling)
+  [submenu] (VoIP)
+      [exec] (EnumIAX) {gnome-terminal -e /usr/share/archpwn-launchers/enumiax-launcher}
+      [exec] (SIPP ) {gnome-terminal -e /usr/share/archpwn-launchers/sipp-launcher}
+      [exec] (SIPSak ) {gnome-terminal -e /usr/share/archpwn-launchers/sipsak-launcher}
+      [exec] (SIPvicious) {gnome-terminal -e /usr/share/archpwn-launchers/sipvicious-launcher}
+      [exec] (Voiper) {gnome-terminal -e /usr/share/archpwn-launchers/voiper-launcher}
+      [exec] (ace) {gnome-terminal -e /usr/share/archpwn-launchers/ace-launcher}
+      [exec] (erase-registrations) {gnome-terminal -e /usr/share/archpwn-launchers/erase-registrations-launcher}
+      [exec] (iaxflood) {gnome-terminal -e /usr/share/archpwn-launchers/iaxflood-launcher}
+      [exec] (ohrwurm) {gnome-terminal -e /usr/share/archpwn-launchers/ohrwurm-launcher}
+      [exec] (pcapsipdump) {gnome-terminal -e /usr/share/archpwn-launchers/pcapsipdump-launcher}
+      [exec] (redirectpoison) {gnome-terminal -e /usr/share/archpwn-launchers/redirectpoison-launcher}
+      [exec] (rtp-flood) {gnome-terminal -e /usr/share/archpwn-launchers/rtp-flood-launcher}
+      [exec] (rtp-insertsound) {gnome-terminal -e /usr/share/archpwn-launchers/rtp-insertsound-launcher}
+      [exec] (rtp-mixsound) {gnome-terminal -e /usr/share/archpwn-launchers/rtp-mixsound-launcher}
+      [exec] (rtpbreak) {gnome-terminal -e /usr/share/archpwn-launchers/rtpbreak-launcher}
+      [exec] (rtpinject) {/usr/share/archpwn-launchers/rtpinject-launcher}
+      [exec] (sip-rogue) {gnome-terminal -e /usr/share/archpwn-launchers/sip-rogue-launcher}
+      [exec] (sipcrack) {gnome-terminal -e /usr/share/archpwn-launchers/sipcrack-launcher}
+      [exec] (smap) {gnome-terminal -e /usr/share/archpwn-launchers/smap-launcher}
+      [exec] (teardown) {gnome-terminal -e /usr/share/archpwn-launchers/teardown-launcher}
+      [exec] (ucsniff) {gnome-terminal -e /usr/share/archpwn-launchers/ucsniff-launcher}
+      [exec] (videojak) {gnome-terminal -e /usr/share/archpwn-launchers/videojak-launcher}
+      [exec] (videosnarf) {gnome-terminal -e /usr/share/archpwn-launchers/videosnarf-launcher}
+      [exec] (vnak) {gnome-terminal -e /usr/share/archpwn-launchers/vnak-launcher}
+      [exec] (voiphopper) {gnome-terminal -e /usr/share/archpwn-launchers/voiphopper-launcher}
+      [exec] (voipong) {gnome-terminal -e /usr/share/archpwn-launchers/voipong-launcher}
+      [exec] (vomit) {gnome-terminal -e /usr/share/archpwn-launchers/vomit-launcher}
+      [exec] (warvox) {gnome-terminal -e /usr/share/archpwn-launchers/warvox-svn-launcher}
+  [end] # (VoIP)
+  [submenu] (WWW)
+      [exec] (ASP-Audit) {gnome-terminal -e /usr/share/archpwn-launchers/asp-audit-launcher}
+      [exec] (Pblind) {gnome-terminal -e /usr/share/archpwn-launchers/pblind-launcher}
+      [exec] (Ratproxy) {gnome-terminal -e /usr/share/archpwn-launchers/ratproxy-launcher}
+      [exec] (SEAT) {seat}
+      [exec] (SQL Ninja) {gnome-terminal -e /usr/share/archpwn-launchers/sqlninja-launcher}
+      [exec] (Wapiti) {gnome-terminal -e /usr/share/archpwn-launchers/wapiti-launcher}
+      [exec] (Webshag) {webshag}
+      [exec] (browser-fuzzer) {gnome-terminal -e /usr/share/archpwn-launchers/browser-fuzzer-launcher}
+      [exec] (darkjumper) {gnome-terminal -e /usr/share/archpwn-launchers/darkjumper-launcher}
+      [exec] (davtest) {gnome-terminal -e /usr/share/archpwn-launchers/davtest-launcher}
+      [exec] (dff-scanner) {gnome-terminal -e /usr/share/archpwn-launchers/dff-scanner-launcher}
+      [exec] (fimap) {gnome-terminal -e /usr/share/archpwn-launchers/fimap-launcher}
+      [exec] (grabber) {gnome-terminal -e /usr/share/archpwn-launchers/grabber-launcher}
+      [exec] (halberd) {gnome-terminal -e /usr/share/archpwn-launchers/halberd-launcher}
+      [exec] (hcraft) {gnome-terminal -e /usr/share/archpwn-launchers/hcraft-launcher}
+      [exec] (httprint) {gnome-terminal -e /usr/share/archpwn-launchers/httprint-launcher}
+      [exec] (list-urls) {gnome-terminal -e /usr/share/archpwn-launchers/list-urls-launcher}
+      [exec] (metoscan) {gnome-terminal -e /usr/share/archpwn-launchers/metoscan-launcher}
+      [exec] (nikto) {gnome-terminal -e /usr/share/archpwn-launchers/nikto-launcher}
+      [exec] (rww-attack) {gnome-terminal -e /usr/share/archpwn-launchers/rww-attack-launcher}
+      [exec] (w3af) {gnome-terminal -e /usr/share/archpwn-launchers/w3af-launcher}
+      [exec] (waffit) {gnome-terminal -e /usr/share/archpwn-launchers/waffit-svn-launcher}
+      [exec] (wafp) {gnome-terminal -e /usr/share/archpwn-launchers/wafp-svn-launcher}
+      [exec] (webenum) {gnome-terminal -e /usr/share/archpwn-launchers/webenum-launcher}
+      [exec] (whatweb) {gnome-terminal -e /usr/share/archpwn-launchers/whatweb-launcher}
+      [exec] (wmat) {gnome-terminal -e /usr/share/archpwn-launchers/wmat-launcher}
+      [exec] (xsser) {gnome-terminal -e /usr/share/archpwn-launchers/xsser-launcher}
+      [exec] (xsss) {gnome-terminal -e /usr/share/archpwn-launchers/xsss-launcher}
+  [end] # (WWW)
+  [submenu] (Wireless)
+      [exec] (AirSnarf) {gnome-terminal -e /usr/share/archpwn-launchers/airsnarf-launcher}
+      [exec] (Cowpatty) {gnome-terminal -e /usr/share/archpwn-launchers/cowpatty-launcher}
+      [exec] (Kismet) {gnome-terminal -e /usr/share/archpwn-launchers/kismet-launcher}
+      [exec] (RFIdiot) {gnome-terminal -e /usr/share/archpwn-launchers/rfidiot-launcher}
+      [exec] (aircrack-ng) {gnome-terminal -e /usr/share/archpwn-launchers/aircrack-ng-svn-launcher}
+      [exec] (airflood) {gnome-terminal -e /usr/share/archpwn-launchers/airflood-launcher}
+      [exec] (airoscript) {gnome-terminal -e /usr/share/archpwn-launchers/airoscript-git-launcher}
+      [exec] (airpwn) {gnome-terminal -e /usr/share/archpwn-launchers/airpwn-launcher}
+      [exec] (aphopper) {gnome-terminal -e /usr/share/archpwn-launchers/aphopper-launcher}
+      [exec] (fakeap) {gnome-terminal -e /usr/share/archpwn-launchers/fakeap-launcher}
+      [exec] (giskismet) {gnome-terminal -e /usr/share/archpwn-launchers/giskismet-svn-launcher}
+      [exec] (hotspotter) {gnome-terminal -e /usr/share/archpwn-launchers/hotspotter-launcher}
+      [exec] (kismet-earth) {gnome-terminal -e /usr/share/archpwn-launchers/kismet-earth-launcher}
+      [exec] (mdk3) {gnome-terminal -e /usr/share/archpwn-launchers/mdk3-launcher}
+      [exec] (pyrit) {gnome-terminal -e /usr/share/archpwn-launchers/pyrit-launcher}
+      [exec] (spectools) {gnome-terminal -e /usr/share/archpwn-launchers/spectools-launcher}
+      [exec] (ssidsniff) {gnome-terminal -e /usr/share/archpwn-launchers/ssidsniff-launcher}
+      [exec] (ubitack) {gnome-terminal -e /usr/share/archpwn-launchers/ubitack-launcher}
+      [exec] (wepbuster) {gnome-terminal -e /usr/share/archpwn-launchers/wepbuster-launcher}
+      [exec] (wicrawl) {gnome-terminal -e /usr/share/archpwn-launchers/wicrawl-git-launcher}
+      [exec] (wifitap) {gnome-terminal -e /usr/share/archpwn-launchers/wifitap-launcher}
+      [exec] (wifizoo) {gnome-terminal -e /usr/share/archpwn-launchers/wifizoo-launcher}
+      [exec] (wlan2eth) {gnome-terminal -e /usr/share/archpwn-launchers/wlan2eth-launcher}
+      [exec] (zulu) {gnome-terminal -e /usr/share/archpwn-launchers/zulu-launcher}
+  [end] # (Wireless)
+ [end] # (ArchPwn)
+ [submenu] (Graphics)
+     [exec] (Image Viewer) {eog }
+ [end] # (Graphics)
+ [submenu] (Internet)
+     [exec] (Avahi SSH Server Browser) {/usr/bin/bssh}
+     [exec] (Avahi VNC Server Browser) {/usr/bin/bvnc}
+     [exec] (Claws Mail) {claws-mail}
+     [exec] (EtherApe) {etherape}
+     [exec] (Ettercap GTK) {/usr/bin/ettercap-gtk --gtk}
+     [exec] (Firefox) {firefox }
+     [exec] (Firefox - Safe Mode) {firefox -safe-mode }
+     [exec] (Pidgin Internet Messenger) {pidgin}
+     [exec] (Remote Desktop Viewer) {vinagre }
+     [exec] (Transmission) {transmission }
+     [exec] (XChat IRC) {xchat}
+     [exec] (Zenmap) {zenmap }
+     [exec] (Zenmap (as root)) {/usr/share/zenmap/su-to-zenmap.sh }
+     [exec] (wireshark) {wireshark}
+ [end] # (Internet)
+ [submenu] (Office)
+     [exec] (Dictionary) {gnome-dictionary}
+ [end] # (Office)
+ [submenu] (Programming)
+     [exec] (Data Display Debugger) {ddd}
+     [exec] (Hex Editor) {ghex2 }
+ [end] # (Programming)
+ [submenu] (Sound & Video)
+     [exec] (GNOME MPlayer) {gnome-mplayer }
+     [exec] (Sound Recorder) {gnome-sound-recorder}
+     [exec] (Volume Control) {gnome-volume-control}
+ [end] # (Sound & Video)
+ [submenu] (System Tools)
+     [exec] (Avahi Zeroconf Browser) {/usr/bin/avahi-discover}
+     [exec] (Disk Usage Analyzer) {baobab}
+     [exec] (Disk Utility) {palimpsest}
+     [exec] (EtherApe) {etherape}
+     [exec] (Ettercap GTK) {/usr/bin/ettercap-gtk --gtk}
+     [exec] (GParted) {gksu /usr/sbin/gparted }
+     [exec] (Htop) {gnome-terminal -e htop}
+     [exec] (Log File Viewer) {gnome-system-log}
+     [exec] (Manage Printing) {/usr/bin/xdg-open http://localhost:631/}
+     [exec] (System Monitor) {gnome-system-monitor}
+ [end] # (System Tools)
+[end] # (Applications)
+[separator]
+[config] (Configuration)
+                [workspaces] (Workspace)
+                [submenu] (System Styles) {Choose a style...}
+                        [stylesdir] (/usr/share/blackbox/styles)
+			[stylesdir] (/usr/share/fluxbox/styles)
+			[stylesdir] (/usr/share/openbox/styles)
+                [end]
+                [submenu] (User Styles) {Choose a style...}
+                        [stylesdir] (~/.blackbox/styles)
+			[stylesdir] (~/.fluxbox/styles)
+			[stylesdir] (~/.openbox/styles)
+                [end]
+        [separator]
+        [exec] (Run Command) {bbrun -a -w}
+        [exec] (Lock Screen) {xlock}
+        [restart] (Restart) {}
+        [exit] (Logout)
+[end]
+    [end]

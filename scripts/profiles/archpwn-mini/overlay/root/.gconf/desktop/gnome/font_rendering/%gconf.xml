@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="dpi" mtime="1280774147" type="float" value="96"/>
+	<entry name="hinting" mtime="1280774145" type="string">
+		<stringvalue>full</stringvalue>
+	</entry>
+	<entry name="antialiasing" mtime="1280774145" type="string">
+		<stringvalue>rgba</stringvalue>
+	</entry>
+</gconf>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="menus_have_icons" mtime="1280774349" type="bool" value="true"/>
+	<entry name="menu_have_icons" mtime="1280774330" type="bool" value="true"/>
+	<entry name="buttons_have_icons" mtime="1280774323" type="bool" value="true"/>
+	<entry name="monospace_font_name" mtime="1280773921" type="string">
+		<stringvalue>Droid Sans Mono 10</stringvalue>
+	</entry>
+	<entry name="document_font_name" mtime="1280773890" type="string">
+		<stringvalue>Droid Sans 10</stringvalue>
+	</entry>
+	<entry name="font_name" mtime="1280773886" type="string">
+		<stringvalue>Droid Sans 10</stringvalue>
+	</entry>
+	<entry name="icon_theme" mtime="1280773974" type="string">
+		<stringvalue>ubuntu-mono-dark</stringvalue>
+	</entry>
+	<entry name="gtk_theme" mtime="1280773800" type="string">
+		<stringvalue>Ambiance</stringvalue>
+	</entry>
+</gconf>
