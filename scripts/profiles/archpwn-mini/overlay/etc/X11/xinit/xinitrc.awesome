@@ -26,4 +26,13 @@ fi
 
 # start some nice programs
 
+GSDPID=`pidof gnome-settings-daemon`
+
+if [ "x$GSDPID" == "x" ]; then
+    gnome-settings-daemon &
+fi
+
+conky &
+nm-applet &
+
 exec ck-launch-session awesome
