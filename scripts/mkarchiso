@@ -495,17 +495,6 @@ command_install () {
         # remove the initcpio images that were generated for the host system
         find "${union}/boot" -name *.img -delete
 
-        if [ -d "${OVERLAY}/home/arch" ]; then
-            #chown -R arch:users "${OVERLAY}/home/arch"
-            chown -R 1001:100 "${OVERLAY}/home/arch"
-            chmod -R 700 "${OVERLAY}/home/arch"
-        fi
-
-        if [ -d "${OVERLAY}/root" ]; then
-            chown -R root:root "${OVERLAY}/root"
-            chmod -R 700 "${OVERLAY}/root"
-        fi
-
         # copy over kernel and grub configs for boot
         if [ "$BOOT" = "grub" -o "$BOOT" = "grub-gfx" ]; then
             if [ -e "${union}/boot" -a -e "${OVERLAY}/boot" ]; then
@@ -584,9 +573,9 @@ command_overlay () {
     #find "${OVERLAY}" -name ".svn" -type d > exclude
 
     if [ "${QUIET}" = "y" ]; then
-        mksquashfs "${OVERLAY}" "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}" -noappend ${MKOPTION} >/dev/null
+        mksquashfs "${OVERLAY}" "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}" -noappend ${MKOPTION} -all-root >/dev/null
     else
-        mksquashfs "${OVERLAY}" "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}" -noappend ${MKOPTION}
+        mksquashfs "${OVERLAY}" "${IMGROOT}/${CDNAME}/optional/overlay.${EXT}" -noappend ${MKOPTION} -all-root
     fi
 
     #rm exclude
