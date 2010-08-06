@@ -409,9 +409,7 @@ install_arch_union () {
     done
 
     for x in ${kill_dirs}; do
-        if [ -e "${union}/${x}" ]; then
-            rm -Rf "${union}/${x}"
-        fi
+        rm -Rf "${union}/"${x}
     done
 
 }
@@ -462,11 +460,9 @@ command_install () {
 
     mkdir -p ${packlist}
 
-    if [ "${OS}" = "archlinux" ]; then
-        # in case of if you have to kill mkarchiso cause of something
-        if [ -d "${INSTROOT}/var/lib/pacman/sync" ]; then
-            rm -R "${INSTROOT}/var/lib/pacman/sync"
-        fi
+    # in case of if you have to kill mkarchiso cause of something
+    if [ -d "${INSTROOT}/var/lib/pacman/sync" ]; then
+        rm -R "${INSTROOT}/var/lib/pacman/sync"
     fi
 
     for mod in ${MODULES}; do
@@ -575,10 +571,8 @@ command_install () {
     find ${moduledir} -type f -name ".wh.*" -exec rm {} \;
     find ${moduledir} -type d -name ".wh.*" -exec rm -rf {} \;
 
-    if [ "${OS}" = "archlinux" ]; then
-        info "Removing sync subfolders from modules."
-        find ${moduledir}/*/var/lib/pacman/sync -type d -exec rm -rf {} \; 2>/dev/null
-    fi
+    info "Removing sync subfolders from modules."
+    find ${moduledir}/*/var/lib/pacman/sync -type d -exec rm -rf {} \; 2>/dev/null
 
     rmmod aufs
 }
@@ -713,11 +707,9 @@ command_img () {
 
         bootflags="-b boot/grub/stage2_eltorito"
     elif [ "$BOOT" = "syslinux" ]; then
-        if [ "${OS}" = "archlinux" ]; then
-            if ! pacman -Qi syslinux >/dev/null 2>&1; then
-                error "$BOOT not found on host system. Cannot install!"
-                exit 1
-            fi
+        if ! pacman -Qi syslinux >/dev/null 2>&1; then
+            error "$BOOT not found on host system. Cannot install!"
+            exit 1
         fi
 
         mkdir -p "${IMGROOT}/boot/isolinux"
